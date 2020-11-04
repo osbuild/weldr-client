@@ -1,0 +1,161 @@
+// Copyright 2020 by Red Hat, Inc. All rights reserved.
+// Use of this source is goverend by the Apache License
+// that can be found in the LICENSE file.
+
+/*
+Package root is the top of the subcommand parser
+
+root handles setup of the command line flags and initialization
+of the weldr API client's configuration values. It also holds
+commandline flags that can be accessed by subcommands.
+*/
+package root
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path"
+	"strings"
+	"time"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
+
+	"weldr-client/weldr"
+)
+
+var (
+	rootCmd = &cobra.Command{
+		Use:   path.Base(os.Args[0]),
+		Short: "composer commandline tool",
+		Long:  "commandline tool for osbuild-composer",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Printf("Ran the root command")
+			return nil
+		},
+	}
+	docCmd = &cobra.Command{
+		Use:   "doc DIRECTORY",
+		Short: "Generate manpage files",
+		Long:  "Generate manpage files for all the commands, one per file",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			header := &doc.GenManHeader{
+				Title:   "COMPOSER-CLI",
+				Section: "1",
+				Source:  "composer-cli",
+			}
+			return doc.GenManTree(rootCmd, header, args[0])
+		},
+		Args: cobra.ExactArgs(1),
+	}
+	versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "Display the version and exit",
+		Long:  "Display the version and git hash used for the build",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Printf("composer-cli v%s\n", Version)
+			return nil
+		},
+	}
+	apiVersion  int
+	httpTimeout int
+	JSONOutput  bool // State of --json cmdline flag
+	logPath     string
+	socketPath  string
+	testMode    int
+
+	RootCmd = rootCmd
+
+	// Version is set by the build
+	Version = "DEVEL"
+
+	// Client is the weldr.Client used to communicate with the server
+	Client weldr.Client
+)
+
+func init() {
+	rootCmd.PersistentFlags().IntVarP(&apiVersion, "api", "a", 1, "Server API Version to use")
+	rootCmd.PersistentFlags().BoolVarP(&JSONOutput, "json", "j", false, "Output the raw JSON response instead of the normal output")
+	rootCmd.PersistentFlags().StringVar(&logPath, "log", "", "Path to optional logfile")
+	rootCmd.PersistentFlags().StringVarP(&socketPath, "socket", "s", "/run/weldr/api.socket", "Path to the server's socket file")
+	rootCmd.PersistentFlags().IntVar(&testMode, "test", 0, "Pass test mode to compose. 1=Mock compose with fail. 2=Mock compose with finished.")
+	rootCmd.PersistentFlags().IntVar(&httpTimeout, "timeout", 240, "Timeout to use for server communication. Set to 0 for no timeout")
+
+}
+
+// Init sets up Cobra and adds the doc command to the root cmdline parser
+func Init() {
+	cobra.OnInitialize(initConfig)
+
+	// Command to generate manpage documentation
+	AddRootCommand(docCmd)
+
+	// Display the version
+	AddRootCommand(versionCmd)
+}
+
+func initConfig() {
+	var ctx context.Context
+	var cancel context.CancelFunc
+	ctx = context.Background()
+
+	if httpTimeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(httpTimeout)*time.Second)
+		defer cancel()
+	}
+
+	Client = weldr.InitClientUnixSocket(ctx, apiVersion, socketPath)
+
+	if JSONOutput {
+		Client.SetRawCallback(func(data []byte) {
+			// Convert the data to a generic data structure, then pretty-print it
+			var rawJson map[string]interface{}
+			err := json.Unmarshal(data, &rawJson)
+			if err == nil {
+				json, err := json.MarshalIndent(rawJson, "", "    ")
+				if err == nil {
+					fmt.Println(string(json))
+				}
+			}
+		})
+	}
+}
+
+// Execute runs the commands on the commandline
+func Execute() error {
+	return rootCmd.Execute()
+}
+
+// AddRootCommand adds a cobra command to the list of root commands
+func AddRootCommand(cmd *cobra.Command) {
+	rootCmd.AddCommand(cmd)
+}
+
+// ExecutionError prints an error to stderr, sets silent flags on the cobra command, and
+// returns an error to the caller suitable for assignment to error
+func ExecutionError(cmd *cobra.Command, format string, a ...interface{}) error {
+	s := fmt.Sprintf(format, a...)
+	if len(s) > 0 {
+		fmt.Fprintln(os.Stderr, s)
+	}
+	cmd.SilenceErrors = true // cobra will not print errors returned from commands after this
+	cmd.SilenceUsage = true  // cobra will not print usage on errors after this
+	return fmt.Errorf(s)
+}
+
+// GetCommaArgs returns a list of the arguments, split by commas and spaces
+// They can be grouped or separated, the return list should be the same for all variations
+// empty fields, eg. ,, are ignored by collapsing repeated , and spaces into one.
+func GetCommaArgs(args []string) []string {
+	var result []string
+	// Gather up all the arguments, with or without commas
+	f := func(c rune) bool {
+		return c == ',' || c == ' '
+	}
+	for _, arg := range args {
+		result = append(result, strings.FieldsFunc(arg, f)...)
+	}
+	return result
+}
