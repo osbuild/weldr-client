@@ -9,6 +9,7 @@ import (
 	"os"
 
 	_ "weldr-client/cmd/composer-cli/blueprints"
+	_ "weldr-client/cmd/composer-cli/compose"
 	"weldr-client/cmd/composer-cli/root"
 	_ "weldr-client/cmd/composer-cli/status"
 )
