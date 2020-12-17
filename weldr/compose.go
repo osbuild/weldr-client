@@ -80,3 +80,33 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 
 	return composes, nil, nil
 }
+
+// GetComposeTypes returns a list of the compose types
+func (c Client) GetComposeTypes() ([]string, *APIResponse, error) {
+	var errors []APIErrorMsg
+	j, resp, err := c.GetRaw("GET", "/compose/types")
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp != nil {
+		errors = append(errors, resp.Errors...)
+		return nil, resp, nil
+	}
+
+	var types struct {
+		Types []ComposeTypesV0
+	}
+	err = json.Unmarshal(j, &types)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var enabled []string
+	for i := range types.Types {
+		if types.Types[i].Enabled {
+			enabled = append(enabled, types.Types[i].Name)
+		}
+	}
+
+	return enabled, nil, nil
+}

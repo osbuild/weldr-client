@@ -118,3 +118,9 @@ type ComposeStatusV0 struct {
 	JobStarted  float64 `json:"job_started"`  // XXX correct type?
 	JobFinished float64 `json:"job_finished"` // XXX correct type?
 }
+
+// ComposeTypesV0 is the response to /compose/types
+type ComposeTypesV0 struct {
+	Name    string
+	Enabled bool
+}

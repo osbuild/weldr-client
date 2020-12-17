@@ -96,3 +96,54 @@ func TestListComposes(t *testing.T) {
 	//	assert.Equal(t, []string{"http-server-prod", "nfs-server-test"}, blueprints)
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestGetComposeTypes(t *testing.T) {
+	// Test the GetComposeTypes function
+	mc := MockClient{
+		DoFunc: func(request *http.Request) (*http.Response, error) {
+			var json string
+			json = `{
+    "types": [
+        {
+            "name": "ami",
+            "enabled": true
+        },
+        {
+            "name": "fedora-iot-commit",
+            "enabled": true
+        },
+        {
+            "name": "openstack",
+            "enabled": true
+        },
+        {
+            "name": "qcow2",
+            "enabled": true
+        },
+        {
+            "name": "vhd",
+            "enabled": true
+        },
+        {
+            "name": "vmdk",
+            "enabled": true
+        }
+    ]
+}`
+
+			return &http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	types, r, err := tc.GetComposeTypes()
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, types)
+	assert.Equal(t, 6, len(types))
+	assert.Contains(t, types, "openstack")
+	assert.Equal(t, "GET", mc.Req.Method)
+}
