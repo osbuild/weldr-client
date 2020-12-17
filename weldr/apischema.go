@@ -105,3 +105,16 @@ type BlueprintsListV0 struct {
 	Limit      uint     `json:"limit"`
 	Blueprints []string `json:"blueprints"`
 }
+
+// ComposeStatusV0 is the response to /compose/queue, finished, failed
+type ComposeStatusV0 struct {
+	ID          string  `json:"id"`
+	Blueprint   string  `json:"blueprint"`
+	Version     string  `json:"version"`
+	Type        string  `json:"compose_type"`
+	Size        uint    `json:"image_size"`
+	Status      string  `json:"queue_status"`
+	JobCreated  float64 `json:"job_created"`  // XXX correct type?
+	JobStarted  float64 `json:"job_started"`  // XXX correct type?
+	JobFinished float64 `json:"job_finished"` // XXX correct type?
+}
