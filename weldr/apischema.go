@@ -124,3 +124,9 @@ type ComposeTypesV0 struct {
 	Name    string
 	Enabled bool
 }
+
+// ComposeStartV0 is the response to a successful start compose
+type ComposeStartV0 struct {
+	ID     string `json:"build_id"`
+	Status bool   `json:"status"`
+}

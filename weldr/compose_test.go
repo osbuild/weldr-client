@@ -147,3 +147,135 @@ func TestGetComposeTypes(t *testing.T) {
 	assert.Contains(t, types, "openstack")
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestStartCompose(t *testing.T) {
+	// Test the PushBlueprintTOML function
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			var json string
+			json = `{
+				"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
+				"status": true
+}`
+			return &http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	id, r, err := tc.StartCompose("http-server", "qcow2", 0)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "876b2946-16cd-4f38-bace-0cdd0093d112", id)
+	assert.Equal(t, "POST", mc.Req.Method)
+	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	mc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
+	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
+}
+
+func TestStartComposeSize(t *testing.T) {
+	// Test the PushBlueprintTOML function with non-zero size
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			var json string
+			json = `{
+				"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
+				"status": true
+}`
+			return &http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	id, r, err := tc.StartCompose("http-server", "qcow2", 998)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "876b2946-16cd-4f38-bace-0cdd0093d112", id)
+	assert.Equal(t, "POST", mc.Req.Method)
+	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	mc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":998}`), sentBody)
+	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
+}
+
+func TestStartComposeBadBlueprint(t *testing.T) {
+	// Test the PushBlueprintTOML function with a bad blueprint
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			var json string
+			json = `{
+    "status": false,
+    "errors": [
+        {
+            "id": "UnknownBlueprint",
+            "msg": "Unknown blueprint name: thingy"
+        }
+    ]
+}`
+			return &http.Response{
+				StatusCode: 400,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	_, r, err := tc.StartCompose("thingy", "qcow2", 0)
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.False(t, r.Status)
+	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "Unknown blueprint name: thingy"}, r.Errors[0])
+	assert.Equal(t, "POST", mc.Req.Method)
+	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	mc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Equal(t, []byte(`{"blueprint_name":"thingy","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
+	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
+}
+
+func TestStartComposeBadType(t *testing.T) {
+	// Test the PushBlueprintTOML function with a bad type
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			var json string
+			json = `{
+    "status": false,
+    "errors": [
+        {
+			"id": "UnknownComposeType",
+			"msg": "Unknown compose type for architecture: punchcard"
+        }
+    ]
+}`
+			return &http.Response{
+				StatusCode: 400,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	_, r, err := tc.StartCompose("http-server", "punchcard", 0)
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.False(t, r.Status)
+	assert.Equal(t, APIErrorMsg{"UnknownComposeType", "Unknown compose type for architecture: punchcard"}, r.Errors[0])
+	assert.Equal(t, "POST", mc.Req.Method)
+	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	mc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"punchcard","branch":"master","size":0}`), sentBody)
+	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
+}

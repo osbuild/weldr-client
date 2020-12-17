@@ -110,3 +110,35 @@ func (c Client) GetComposeTypes() ([]string, *APIResponse, error) {
 
 	return enabled, nil, nil
 }
+
+// StartCompose will start a compose of a blueprint
+// Returns the UUID of the build that was started
+func (c Client) StartCompose(blueprint, composeType string, size uint) (string, *APIResponse, error) {
+	var settings struct {
+		Name   string `json:"blueprint_name"`
+		Type   string `json:"compose_type"`
+		Branch string `json:"branch"`
+		Size   uint   `json:"size"`
+	}
+	settings.Name = blueprint
+	settings.Type = composeType
+	settings.Branch = "master"
+	settings.Size = size
+
+	data, err := json.Marshal(settings)
+	if err != nil {
+		return "", nil, err
+	}
+
+	body, resp, err := c.PostJSON("/compose", string(data))
+	if resp != nil || err != nil {
+		return "", resp, err
+	}
+	var build ComposeStartV0
+	err = json.Unmarshal(body, &build)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return build.ID, resp, err
+}
