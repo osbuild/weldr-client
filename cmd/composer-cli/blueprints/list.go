@@ -6,6 +6,7 @@ package blueprints
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/spf13/cobra"
 
@@ -37,6 +38,7 @@ func list(cmd *cobra.Command, args []string) error {
 		return root.ExecutionError(cmd, "List Error: %s", resp.String())
 	}
 
+	sort.Strings(blueprints)
 	for i := range blueprints {
 		fmt.Println(blueprints[i])
 	}
