@@ -6,6 +6,8 @@ package weldr
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
 // ListComposes returns details about the composes on the server
@@ -141,4 +143,35 @@ func (c Client) StartCompose(blueprint, composeType string, size uint) (string, 
 	}
 
 	return build.ID, resp, err
+}
+
+// DeleteCompose removes a list of composes from the server
+func (c Client) DeleteComposes(ids []string) ([]ComposeDeleteV0, []APIErrorMsg, error) {
+	var errors []APIErrorMsg
+	route := fmt.Sprintf("/compose/delete/%s", strings.Join(ids, ","))
+	j, resp, err := c.DeleteRaw(route)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp != nil {
+		errors = append(errors, resp.Errors...)
+		return nil, errors, nil
+	}
+
+	// delete returns the status of each build id it was asked to delete
+	var r struct {
+		UUIDs  []ComposeDeleteV0
+		Errors []APIErrorMsg
+	}
+	err = json.Unmarshal(j, &r)
+	if err != nil {
+		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
+	}
+	if len(errors) > 0 {
+		return nil, errors, nil
+	}
+	if len(r.Errors) > 0 {
+		errors = append(errors, r.Errors...)
+	}
+	return r.UUIDs, errors, nil
 }

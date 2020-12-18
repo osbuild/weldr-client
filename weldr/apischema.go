@@ -130,3 +130,9 @@ type ComposeStartV0 struct {
 	ID     string `json:"build_id"`
 	Status bool   `json:"status"`
 }
+
+// ComposeDeleteV0 is the response to a delete request
+type ComposeDeleteV0 struct {
+	ID     string `json:"uuid"`
+	Status bool   `json:"status"`
+}
