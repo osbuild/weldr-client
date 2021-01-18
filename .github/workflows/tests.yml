@@ -1,0 +1,33 @@
+name: Linting and Unit Tests
+
+# This makes sure only one action triggers the job
+on:
+  pull_request:
+    branches:
+      - "*"
+  push:
+    branches:
+      - master
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.13'
+      - name: Install golint
+        run: go get golang.org/x/lint/golint
+      - name: Run lint checks on the source
+        run: make check
+
+  unit-tests:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '1.13'
+      - name: Run unit tests
+        run: make test
