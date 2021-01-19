@@ -61,12 +61,11 @@ var (
 	}
 	apiVersion  int
 	httpTimeout int
-	JSONOutput  bool // State of --json cmdline flag
-	logPath     string
-	socketPath  string
-	testMode    int
-
-	RootCmd = rootCmd
+	// JSONOutput is the state of --json cmdline flag
+	JSONOutput bool
+	logPath    string
+	socketPath string
+	testMode   int
 
 	// Version is set by the build
 	Version = "DEVEL"
@@ -111,10 +110,10 @@ func initConfig() {
 	if JSONOutput {
 		Client.SetRawCallback(func(data []byte) {
 			// Convert the data to a generic data structure, then pretty-print it
-			var rawJson map[string]interface{}
-			err := json.Unmarshal(data, &rawJson)
+			var rawJSON map[string]interface{}
+			err := json.Unmarshal(data, &rawJSON)
 			if err == nil {
-				json, err := json.MarshalIndent(rawJson, "", "    ")
+				json, err := json.MarshalIndent(rawJSON, "", "    ")
 				if err == nil {
 					fmt.Println(string(json))
 				}
