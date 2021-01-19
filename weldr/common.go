@@ -38,7 +38,7 @@ func NewClient(ctx context.Context, socket HTTPClient, apiVersion int, socketPat
 	}
 }
 
-// InitUnixClientSocket configures the client to use a unix domain socket
+// InitClientUnixSocket configures the client to use a unix domain socket
 // This configures the weldr.Client with the selected API version and socket path
 // It must be called before using any of the weldr.Client functions.
 func InitClientUnixSocket(ctx context.Context, apiVersion int, socketPath string) Client {

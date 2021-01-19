@@ -145,7 +145,7 @@ func (c Client) StartCompose(blueprint, composeType string, size uint) (string, 
 	return build.ID, resp, err
 }
 
-// DeleteCompose removes a list of composes from the server
+// DeleteComposes removes a list of composes from the server
 func (c Client) DeleteComposes(ids []string) ([]ComposeDeleteV0, []APIErrorMsg, error) {
 	var errors []APIErrorMsg
 	route := fmt.Sprintf("/compose/delete/%s", strings.Join(ids, ","))
