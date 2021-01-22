@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"sort"
 )
 
 // HTTPClient make it easier to swap out the client socket for testing
@@ -262,4 +263,37 @@ func (c Client) DeleteRaw(path string) ([]byte, *APIResponse, error) {
 	}
 
 	return responseBody, nil, nil
+}
+
+// SortComposeStatusV0 sorts a slice of compose statuses
+// It sorts, in order of preference, by:
+// - status: running, waiting, finished, failed
+// - blueprint name
+// - blueprint version
+// - compose type
+func SortComposeStatusV0(composes []ComposeStatusV0) []ComposeStatusV0 {
+	statusOrder := map[string]int{"RUNNING": 0, "WAITING": 1, "FINISHED": 2, "FAILED": 3}
+	sort.SliceStable(composes,
+		func(i, j int) bool {
+			ci := composes[i]
+			cj := composes[j]
+			if ci.Status != cj.Status {
+				cis, ok := statusOrder[ci.Status]
+				if !ok {
+					cis = 4
+				}
+				cij, ok := statusOrder[cj.Status]
+				if !ok {
+					cij = 4
+				}
+				return cis < cij
+			} else if ci.Blueprint != cj.Blueprint {
+				return ci.Blueprint < cj.Blueprint
+			} else if ci.Version != cj.Version {
+				return ci.Version < cj.Version
+			} else {
+				return ci.Type < cj.Type
+			}
+		})
+	return composes
 }

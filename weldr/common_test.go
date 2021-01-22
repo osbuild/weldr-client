@@ -697,3 +697,96 @@ func TestRawCallbackResponse(t *testing.T) {
 	assert.Equal(t, APIErrorMsg{"ERROR400", "Sent a 400"}, r.Errors[0])
 	assert.Equal(t, []byte(json), rawData)
 }
+
+func TestSortComposeStatus(t *testing.T) {
+	unsorted := []ComposeStatusV0{
+		{
+			ID:        "uuid-4",
+			Blueprint: "http-server",
+			Version:   "0.1.0",
+			Type:      "qcow2",
+			Status:    "FINISHED",
+		},
+		{
+			ID:        "uuid-1",
+			Blueprint: "tmux-server",
+			Version:   "1.1.0",
+			Type:      "qcow2",
+			Status:    "RUNNING",
+		},
+		{
+			ID:        "uuid-6",
+			Blueprint: "tomcat-server",
+			Version:   "1.0.0",
+			Type:      "qcow2",
+			Status:    "BROKEN",
+		},
+		{
+			ID:        "uuid-3",
+			Blueprint: "ssh-server",
+			Version:   "1.0.0",
+			Type:      "qcow2",
+			Status:    "WAITING",
+		},
+		{
+			ID:        "uuid-5",
+			Blueprint: "tmux-server",
+			Version:   "1.1.0",
+			Type:      "qcow2",
+			Status:    "FAILED",
+		},
+		{
+			ID:        "uuid-2",
+			Blueprint: "tmux-server",
+			Version:   "1.1.3",
+			Type:      "qcow2",
+			Status:    "RUNNING",
+		},
+	}
+
+	sorted := []ComposeStatusV0{
+		{
+			ID:        "uuid-1",
+			Blueprint: "tmux-server",
+			Version:   "1.1.0",
+			Type:      "qcow2",
+			Status:    "RUNNING",
+		},
+		{
+			ID:        "uuid-2",
+			Blueprint: "tmux-server",
+			Version:   "1.1.3",
+			Type:      "qcow2",
+			Status:    "RUNNING",
+		},
+		{
+			ID:        "uuid-3",
+			Blueprint: "ssh-server",
+			Version:   "1.0.0",
+			Type:      "qcow2",
+			Status:    "WAITING",
+		},
+		{
+			ID:        "uuid-4",
+			Blueprint: "http-server",
+			Version:   "0.1.0",
+			Type:      "qcow2",
+			Status:    "FINISHED",
+		},
+		{
+			ID:        "uuid-5",
+			Blueprint: "tmux-server",
+			Version:   "1.1.0",
+			Type:      "qcow2",
+			Status:    "FAILED",
+		},
+		{
+			ID:        "uuid-6",
+			Blueprint: "tomcat-server",
+			Version:   "1.0.0",
+			Type:      "qcow2",
+			Status:    "BROKEN",
+		},
+	}
+	assert.Equal(t, sorted, SortComposeStatusV0(unsorted))
+}
