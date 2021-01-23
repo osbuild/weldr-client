@@ -5,6 +5,7 @@
 package compose
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -31,10 +32,11 @@ func init() {
 
 func start(cmd *cobra.Command, args []string) error {
 	var resp *weldr.APIResponse
+	var uuid string
 	var err error
 	// 2 args is uploads
 	if len(args) == 2 {
-		_, resp, err = root.Client.StartCompose(args[0], args[1], size)
+		uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
 	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Push TOML Error: %s", err)
@@ -46,5 +48,6 @@ func start(cmd *cobra.Command, args []string) error {
 		return root.ExecutionError(cmd, strings.Join(resp.AllErrors(), "\n"))
 	}
 
+	fmt.Printf("Compose %s added to the queue\n", uuid)
 	return nil
 }
