@@ -261,7 +261,7 @@ func (c Client) DeleteRaw(path string) ([]byte, *APIResponse, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-
+	c.rawFunc(responseBody)
 	return responseBody, nil, nil
 }
 
