@@ -136,3 +136,9 @@ type ComposeDeleteV0 struct {
 	ID     string `json:"uuid"`
 	Status bool   `json:"status"`
 }
+
+// ComposeCancelV0 is the response to a cancel request
+type ComposeCancelV0 struct {
+	ID     string `json:"uuid"`
+	Status bool   `json:"status"`
+}

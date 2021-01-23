@@ -350,3 +350,62 @@ func TestDeleteComposesMultiple(t *testing.T) {
 	assert.Equal(t, "DELETE", mc.Req.Method)
 	assert.Equal(t, "/api/v1/compose/delete/ac188b76-138a-452c-82fb-5cc651986991,4b668b1a-e6b8-4dce-8828-4a8e3bef2345", mc.Req.URL.Path)
 }
+
+func TestCancelCompose(t *testing.T) {
+	// Test the CancelComposes function
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			var json string
+			json = `{
+    "uuid": "ac188b76-138a-452c-82fb-5cc651986991",
+    "status": true
+}`
+			return &http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	status, r, err := tc.CancelCompose("ac188b76-138a-452c-82fb-5cc651986991")
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, status)
+	assert.Equal(t, ComposeCancelV0{ID: "ac188b76-138a-452c-82fb-5cc651986991", Status: true}, status)
+	assert.Equal(t, "DELETE", mc.Req.Method)
+	assert.Equal(t, "/api/v1/compose/cancel/ac188b76-138a-452c-82fb-5cc651986991", mc.Req.URL.Path)
+}
+
+func TestCancelComposeUnknown(t *testing.T) {
+	// Test the CancelComposes function
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			var json string
+			json = `{
+    "status": false,
+    "errors": [
+        {
+            "id": "UnknownUUID",
+            "msg": "Compose ac188b76-138a-452c-82fb-5cc651986991 doesn't exist"
+        }
+    ]
+}`
+			return &http.Response{
+				StatusCode: 400,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	status, r, err := tc.CancelCompose("ac188b76-138a-452c-82fb-5cc651986991")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	require.NotNil(t, status)
+	assert.Equal(t, APIErrorMsg{ID: "UnknownUUID", Msg: "Compose ac188b76-138a-452c-82fb-5cc651986991 doesn't exist"}, r[0])
+	assert.Equal(t, "DELETE", mc.Req.Method)
+	assert.Equal(t, "/api/v1/compose/cancel/ac188b76-138a-452c-82fb-5cc651986991", mc.Req.URL.Path)
+}

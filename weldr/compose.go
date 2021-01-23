@@ -175,3 +175,25 @@ func (c Client) DeleteComposes(ids []string) ([]ComposeDeleteV0, []APIErrorMsg, 
 	}
 	return r.UUIDs, errors, nil
 }
+
+// CancelComposes cancels a compose that is waiting or running on the server
+func (c Client) CancelCompose(id string) (ComposeCancelV0, []APIErrorMsg, error) {
+	var r ComposeCancelV0
+	var errors []APIErrorMsg
+	route := fmt.Sprintf("/compose/cancel/%s", id)
+	j, resp, err := c.DeleteRaw(route)
+	if err != nil {
+		return r, nil, err
+	}
+	if resp != nil {
+		errors = append(errors, resp.Errors...)
+		return r, errors, nil
+	}
+
+	// cancel returns the status of the single build id it was asked to cancel
+	err = json.Unmarshal(j, &r)
+	if err != nil {
+		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
+	}
+	return r, errors, nil
+}
