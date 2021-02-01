@@ -188,3 +188,30 @@ func (c Client) UndoBlueprint(name, commit string) (*APIResponse, error) {
 	}
 	return resp, err
 }
+
+// GetBlueprintsChanges requests the list of commits made to a list of blueprints
+func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIErrorMsg, error) {
+	var errors []APIErrorMsg
+	route := fmt.Sprintf("/blueprints/changes/%s", strings.Join(names, ","))
+	j, resp, err := c.GetRaw("GET", route)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp != nil {
+		errors = append(errors, resp.Errors...)
+		return nil, errors, nil
+	}
+
+	var changes BlueprintsChangesV0
+	err = json.Unmarshal(j, &changes)
+	if err != nil {
+		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
+	}
+	if len(errors) > 0 {
+		return nil, errors, nil
+	}
+	if len(changes.Errors) > 0 {
+		errors = append(errors, changes.Errors...)
+	}
+	return changes.Changes, errors, nil
+}

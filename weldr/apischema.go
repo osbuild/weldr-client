@@ -73,20 +73,6 @@ func (c Client) apiError(resp *http.Response) (*APIResponse, error) {
 	return NewAPIResponse(body)
 }
 
-// MockClient implements the HTTPClient interface for testing client requests
-// Set DoFunc to a function that returns whatever response is required
-type MockClient struct {
-	DoFunc func(req *http.Request) (*http.Response, error)
-	Req    http.Request
-}
-
-// Do saves the request in m.Req and runs the function set in m.DoFunc
-// instead of making an actual network query
-func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
-	m.Req = *req
-	return m.DoFunc(req)
-}
-
 // StatusV0 is the response to /api/status from a v0+ server
 type StatusV0 struct {
 	API           string   `json:"api"`
@@ -104,6 +90,25 @@ type BlueprintsListV0 struct {
 	Offset     uint     `json:"offset"`
 	Limit      uint     `json:"limit"`
 	Blueprints []string `json:"blueprints"`
+}
+
+// BlueprintsChangesV0 is the response to /blueprints/changes/ request
+type BlueprintsChangesV0 struct {
+	Changes []BlueprintChanges `json:"blueprints"`
+	Errors  []APIErrorMsg      `json:"errors"`
+	Limit   uint               `json:"limit"`
+	Offset  uint               `json:"offset"`
+}
+type BlueprintChanges struct {
+	Changes []Change `json:"changes"`
+	Name    string   `json:"name"`
+	Total   int      `json:"total"`
+}
+type Change struct {
+	Commit    string `json:"commit" toml:"commit"`
+	Message   string `json:"message" toml:"message"`
+	Revision  *int   `json:"revision" toml:"revision"`
+	Timestamp string `json:"timestamp" toml:"timestamp"`
 }
 
 // ComposeStatusV0 is the response to /compose/queue, finished, failed
