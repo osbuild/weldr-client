@@ -9,4 +9,7 @@ check:
 test:
 	go test -v ./...
 
+integration:
+	go test -c -tags=integration -o composer-cli-tests ./weldr/
+
 .PHONY: build check test

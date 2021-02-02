@@ -2,14 +2,11 @@
 // Use of this source is goverend by the Apache License
 // that can be found in the LICENSE file.
 
+// +build integration
+
 package weldr
 
 import (
-	"bytes"
-	"context"
-	"io/ioutil"
-	"net/http"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,422 +14,208 @@ import (
 )
 
 func TestListBlueprints(t *testing.T) {
-	// Test the ListBlueprints function
-	mc := MockClient{
-		DoFunc: func(request *http.Request) (*http.Response, error) {
-			query := request.URL.Query()
-			v := query.Get("limit")
-			limit, _ := strconv.ParseUint(v, 10, 64)
-			var json string
-			if limit == 0 {
-				json = `{"blueprints": [], "total": 2, "offset": 0, "limit": 0}`
-			} else {
-				json = `{"blueprints": ["http-server-prod", "nfs-server-test"], "total": 2, "offset": 0, "limit": 2}`
-			}
-
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	blueprints, r, err := tc.ListBlueprints()
+	blueprints, r, err := testState.client.ListBlueprints()
 	require.Nil(t, err)
 	require.Nil(t, r)
 	require.NotNil(t, blueprints)
-	assert.Equal(t, 2, len(blueprints))
-	assert.Equal(t, []string{"http-server-prod", "nfs-server-test"}, blueprints)
-	assert.Equal(t, "GET", mc.Req.Method)
-	assert.Equal(t, "/api/v1/blueprints/list", mc.Req.URL.Path)
+	assert.GreaterOrEqual(t, len(blueprints), 2)
+	assert.True(t, isStringInSlice(blueprints, "cli-test-bp-1"))
+	assert.True(t, isStringInSlice(blueprints, "cli-test-bp-2"))
 }
 
 func TestGetBlueprintsTOML(t *testing.T) {
-	// Test the GetBlueprintsTOML function
-	mc := MockClient{
-		DoFunc: func(request *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("TOML BLUEPRINT GOES HERE"))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	blueprints, r, err := tc.GetBlueprintsTOML([]string{"test-blueprint", "other-blueprint"})
+	blueprints, r, err := testState.client.GetBlueprintsTOML([]string{"cli-test-bp-1", "cli-test-bp-2"})
 	require.Nil(t, err)
 	require.Nil(t, r)
 	require.NotNil(t, blueprints)
-	assert.Equal(t, 2, len(blueprints))
-	assert.Equal(t, []string{"TOML BLUEPRINT GOES HERE", "TOML BLUEPRINT GOES HERE"}, blueprints)
-	assert.Equal(t, "GET", mc.Req.Method)
-	assert.Equal(t, "/api/v1/blueprints/info/other-blueprint", mc.Req.URL.Path)
-	assert.Equal(t, "toml", mc.Req.URL.Query().Get("format"))
+	assert.GreaterOrEqual(t, len(blueprints), 2)
 }
 
 func TestGetBlueprintsJSON(t *testing.T) {
-	// Test the GetBlueprintsTOML function
-	mc := MockClient{
-		DoFunc: func(request *http.Request) (*http.Response, error) {
-			json := `{
-    "blueprints": [
-        {
-            "description": "An example http server with PHP and MySQL support.",
-            "name": "example-http-server",
-            "version": "0.0.2"
-        }
-	],
-	"changes": [
-        {
-            "changed": false, 
-            "name": "example-http-server"
-        }
-    ],
-    "errors": [
-        {
-            "id": "UnknownBlueprint",
-            "msg": "blueprint-not-here: " 
-        }
-    ]
-}`
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	blueprints, errors, err := tc.GetBlueprintsJSON([]string{"example-http-server", "blueprint-not-here"})
+	blueprints, errors, err := testState.client.GetBlueprintsJSON([]string{"cli-test-bp-1", "cli-test-bp-2", "unknown-cli-bp"})
 	require.Nil(t, err)
 	require.NotNil(t, errors)
 	require.NotNil(t, blueprints)
-	assert.Equal(t, 1, len(errors))
-	assert.Equal(t, 1, len(blueprints))
+	require.Equal(t, 1, len(errors))
+	require.GreaterOrEqual(t, len(blueprints), 2)
 	name, ok := blueprints[0].(map[string]interface{})["name"].(string)
 	require.True(t, ok)
-	assert.Equal(t, "example-http-server", name)
-	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "blueprint-not-here: "}, errors[0])
-	assert.Equal(t, "GET", mc.Req.Method)
-	assert.Equal(t, "/api/v1/blueprints/info/example-http-server,blueprint-not-here", mc.Req.URL.Path)
-	assert.Equal(t, "", mc.Req.URL.Query().Get("format"))
-}
+	assert.Equal(t, "cli-test-bp-1", name)
+	version, ok := blueprints[0].(map[string]interface{})["version"].(string)
+	require.True(t, ok)
+	assert.Equal(t, "0.1.0", version)
 
-func TestGetBlueprintsJSONError(t *testing.T) {
-	// Test the GetBlueprintsJSON function with bad JSON
-	mc := MockClient{
-		DoFunc: func(request *http.Request) (*http.Response, error) {
-			json := `{"blueprints": [`
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	blueprints, errors, err := tc.GetBlueprintsJSON([]string{"example-http-server"})
-	require.Nil(t, err)
-	require.NotNil(t, errors)
-	require.Nil(t, blueprints)
-	assert.Equal(t, 1, len(errors))
-	assert.Equal(t, APIErrorMsg{"JSONError", "unexpected end of JSON input"}, errors[0])
-	assert.Equal(t, "GET", mc.Req.Method)
-	assert.Equal(t, "/api/v1/blueprints/info/example-http-server", mc.Req.URL.Path)
-	assert.Equal(t, "", mc.Req.URL.Query().Get("format"))
+	name, ok = blueprints[1].(map[string]interface{})["name"].(string)
+	require.True(t, ok)
+	assert.Equal(t, "cli-test-bp-2", name)
+	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp: "}, errors[0])
 }
 
 func TestDeleteBlueprint(t *testing.T) {
-	// Test the DeleteBlueprint function
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	r, err := tc.DeleteBlueprint("example-http-server")
+	r, err := testState.client.DeleteBlueprint("cli-test-bp-2")
 	require.Nil(t, err)
 	require.Nil(t, r)
-	assert.Equal(t, "DELETE", mc.Req.Method)
-	assert.Equal(t, "/api/v1/blueprints/delete/example-http-server", mc.Req.URL.Path)
+}
+
+func TestDeleteUnknownBlueprint(t *testing.T) {
+	r, err := testState.client.DeleteBlueprint("unknown-blueprint-test")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.False(t, r.Status)
+	require.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"BlueprintsError", "Unknown blueprint: unknown-blueprint-test"}, r.Errors[0])
 }
 
 func TestPushBlueprintTOML(t *testing.T) {
-	// Test the PushBlueprintTOML function
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("{\"status\": true}"))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
+	bp := `
+		name="test-toml-blueprint-v0"
+		description="postTOMLBlueprintV0"
+		version="0.0.1"
+		[[packages]]
+		name="bash"
+		version="*"
 
-	r, err := tc.PushBlueprintTOML("post TOML test")
+		[[modules]]
+		name="util-linux"
+		version="*"
+
+		[[customizations.user]]
+		name="root"
+		password="qweqweqwe"
+		`
+	r, err := testState.client.PushBlueprintTOML(bp)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.True(t, r.Status)
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
-	require.Nil(t, err)
-	assert.Equal(t, []byte("post TOML test"), sentBody)
-	assert.Equal(t, "text/x-toml", mc.Req.Header.Get("Content-Type"))
-	assert.Equal(t, "/api/v1/blueprints/new", mc.Req.URL.Path)
 }
 
 func TestPushBlueprintTOMLError(t *testing.T) {
-	// Test the PushBlueprintTOML function with an error response
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			json := `{
-		"errors": [
-        {
-            "id": "BlueprintsError",
-            "msg": "Missing blueprint"
-        }
-    ],
-    "status": false
-}`
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	r, err := tc.PushBlueprintTOML("post TOML test")
+	// Use a blueprint that's missing a trailing ']' on package
+	bp := `
+		name="test-invalid-toml-blueprint-v0"
+		version="0.0.1"
+		description="postInvalidTOMLBlueprintV0"
+		[package
+		name="bash"
+		version="*"
+		`
+	r, err := testState.client.PushBlueprintTOML(bp)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
-	assert.Equal(t, 1, len(r.Errors))
-	assert.Equal(t, APIErrorMsg{"BlueprintsError", "Missing blueprint"}, r.Errors[0])
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
-	require.Nil(t, err)
-	assert.Equal(t, []byte("post TOML test"), sentBody)
-	assert.Equal(t, "text/x-toml", mc.Req.Header.Get("Content-Type"))
-	assert.Equal(t, "/api/v1/blueprints/new", mc.Req.URL.Path)
+	require.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, "BlueprintsError", r.Errors[0].ID)
 }
 
 func TestPushBlueprintWorkspaceTOML(t *testing.T) {
-	// Test the PushBlueprintWorkspaceTOML function
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("{\"status\": true}"))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
+	bp := `
+		name="test-toml-blueprint-ws-v0"
+		description="postTOMLBlueprintWSV0"
+		version="0.0.1"
+		[[packages]]
+		name="bash"
+		version="*"
 
-	r, err := tc.PushBlueprintWorkspaceTOML("post TOML test")
+		[[modules]]
+		name="util-linux"
+		version="*"
+
+		[[customizations.user]]
+		name="root"
+		password="qweqweqwe"
+		`
+	r, err := testState.client.PushBlueprintWorkspaceTOML(bp)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.True(t, r.Status)
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
-	require.Nil(t, err)
-	assert.Equal(t, []byte("post TOML test"), sentBody)
-	assert.Equal(t, "text/x-toml", mc.Req.Header.Get("Content-Type"))
-	assert.Equal(t, "/api/v1/blueprints/workspace", mc.Req.URL.Path)
 }
 
 func TestPushBlueprintWorkspaceTOMLError(t *testing.T) {
-	// Test the PushBlueprintWorkspaceTOML function with an error response
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			json := `{
-		"errors": [
-        {
-            "id": "BlueprintsError",
-            "msg": "Missing blueprint"
-        }
-    ],
-    "status": false
-}`
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	r, err := tc.PushBlueprintWorkspaceTOML("post TOML test")
+	// Use a blueprint that's missing a trailing ']' on package
+	bp := `
+		name="test-invalid-toml-blueprint-ws-v0"
+		version="0.0.1"
+		description="postInvalidTOMLWorkspaceV0"
+		[package
+		name="bash"
+		version="*"
+		`
+	r, err := testState.client.PushBlueprintWorkspaceTOML(bp)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
-	assert.Equal(t, 1, len(r.Errors))
-	assert.Equal(t, APIErrorMsg{"BlueprintsError", "Missing blueprint"}, r.Errors[0])
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
-	require.Nil(t, err)
-	assert.Equal(t, []byte("post TOML test"), sentBody)
-	assert.Equal(t, "text/x-toml", mc.Req.Header.Get("Content-Type"))
-	assert.Equal(t, "/api/v1/blueprints/workspace", mc.Req.URL.Path)
+	require.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, "BlueprintsError", r.Errors[0].ID)
 }
 
 func TestTagBlueprint(t *testing.T) {
-	// Test the TagBlueprint function
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("{\"status\": true}"))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	r, err := tc.TagBlueprint("test-tag-blueprint")
+	r, err := testState.client.TagBlueprint("cli-test-bp-1")
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.True(t, r.Status)
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
-	require.Nil(t, err)
-	assert.Equal(t, []byte{}, sentBody)
-	assert.Equal(t, "/api/v1/blueprints/tag/test-tag-blueprint", mc.Req.URL.Path)
 }
 
 func TestTagBlueprintError(t *testing.T) {
-	// Test the TagBlueprint function
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			json := `{
-		"errors": [
-        {
-            "id": "BlueprintsError",
-            "msg": "Unknown blueprint"
-        }
-    ],
-    "status": false
-}`
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	r, err := tc.TagBlueprint("not-a-blueprint")
+	r, err := testState.client.TagBlueprint("not-a-blueprint")
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
-	assert.Equal(t, 1, len(r.Errors))
+	require.Equal(t, 1, len(r.Errors))
 	assert.Equal(t, APIErrorMsg{"BlueprintsError", "Unknown blueprint"}, r.Errors[0])
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
-	require.Nil(t, err)
-	assert.Equal(t, []byte{}, sentBody)
-	assert.Equal(t, "/api/v1/blueprints/tag/not-a-blueprint", mc.Req.URL.Path)
 }
 
 func TestUndoBlueprint(t *testing.T) {
-	// Test the UndoBlueprint function
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("{\"status\": true}"))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
+	// Get the list of changes and pick the 2nd one.
+	changes, errors, err := testState.client.GetBlueprintsChanges([]string{"cli-test-bp-1"})
+	require.Nil(t, err)
+	require.Nil(t, errors)
+	require.NotNil(t, changes)
+	require.Equal(t, len(changes), 1)
+	assert.Equal(t, changes[0].Name, "cli-test-bp-1")
+	assert.GreaterOrEqual(t, len(changes[0].Changes), 2)
 
-	r, err := tc.UndoBlueprint("test-undo-blueprint", "c3c3605b7051ce40c1061ecdbe601c206cb0fbb3")
+	r, err := testState.client.UndoBlueprint("cli-test-bp-1", changes[0].Changes[1].Commit)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.True(t, r.Status)
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+
+	// Get the blueprint and check the version
+	blueprints, errors, err := testState.client.GetBlueprintsJSON([]string{"cli-test-bp-1"})
 	require.Nil(t, err)
-	assert.Equal(t, []byte{}, sentBody)
-	assert.Equal(t, "/api/v1/blueprints/undo/test-undo-blueprint/c3c3605b7051ce40c1061ecdbe601c206cb0fbb3", mc.Req.URL.Path)
+	require.Nil(t, errors)
+	require.NotNil(t, blueprints)
+	require.Equal(t, len(blueprints), 1)
+	version, ok := blueprints[0].(map[string]interface{})["version"].(string)
+	require.True(t, ok)
+	assert.Equal(t, "0.0.1", version)
 }
 
 func TestUndoMissingBlueprint(t *testing.T) {
-	// Test the UndoBlueprint function
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			json := `{
-		"errors": [
-        {
-            "id": "BlueprintsError",
-            "msg": "Unknown blueprint"
-        }
-    ],
-    "status": false
-}`
-			return &http.Response{
-				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	r, err := tc.UndoBlueprint("not-a-blueprint", "46ba3d541d623062794c44857ac65f3e575ef863")
+	r, err := testState.client.UndoBlueprint("not-a-blueprint", "46ba3d541d623062794c44857ac65f3e575ef863")
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
-	assert.Equal(t, 1, len(r.Errors))
-	assert.Equal(t, APIErrorMsg{"BlueprintsError", "Unknown blueprint"}, r.Errors[0])
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
-	require.Nil(t, err)
-	assert.Equal(t, []byte{}, sentBody)
-	assert.Equal(t, "/api/v1/blueprints/undo/not-a-blueprint/46ba3d541d623062794c44857ac65f3e575ef863", mc.Req.URL.Path)
+	require.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"UnknownCommit", "Unknown blueprint"}, r.Errors[0])
 }
 
 func TestUndoMissingCommit(t *testing.T) {
-	// Test the UndoBlueprint function with an error response
-	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
-			json := `{
-		"errors": [
-        {
-            "id": "UnknownCommit",
-            "msg": "Unknown commit"
-        }
-    ],
-    "status": false
-}`
-			return &http.Response{
-				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
-			}, nil
-		},
-	}
-	tc := NewClient(context.Background(), &mc, 1, "")
-
-	r, err := tc.UndoBlueprint("test-undo-blueprint", "46ba3d541d623062794c44857ac65f3e575ef863")
+	r, err := testState.client.UndoBlueprint("cli-test-bp-1", "46ba3d541d623062794c44857ac65f3e575ef863")
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
-	assert.Equal(t, 1, len(r.Errors))
+	require.Equal(t, 1, len(r.Errors))
 	assert.Equal(t, APIErrorMsg{"UnknownCommit", "Unknown commit"}, r.Errors[0])
-	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+}
+
+func TestBlueprintsChanges(t *testing.T) {
+	changes, errors, err := testState.client.GetBlueprintsChanges([]string{"cli-test-bp-1", "unknown-cli-bp"})
 	require.Nil(t, err)
-	assert.Equal(t, []byte{}, sentBody)
-	assert.Equal(t, "/api/v1/blueprints/undo/test-undo-blueprint/46ba3d541d623062794c44857ac65f3e575ef863", mc.Req.URL.Path)
+	require.NotNil(t, errors)
+	require.NotNil(t, changes)
+	require.GreaterOrEqual(t, len(changes), 1)
+	assert.Equal(t, changes[0].Name, "cli-test-bp-1")
+	assert.GreaterOrEqual(t, len(changes[0].Changes), 1)
+	require.GreaterOrEqual(t, len(errors), 1)
+	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp"}, errors[0])
 }
