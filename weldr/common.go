@@ -178,30 +178,42 @@ func (c Client) GetRaw(method, path string) ([]byte, *APIResponse, error) {
 // The path passed to GetJSONAll should not include the limit or offset query parameters
 // Errors from the API are returned as an APIResponse, client errors are returned as error
 func (c Client) GetJSONAll(path string) ([]byte, *APIResponse, error) {
+	return c.GetJSONAllFnTotal(path, func(body []byte) (float64, error) {
+		// Most paginated responses have total at the top level
+		var j interface{}
+		err := json.Unmarshal(body, &j)
+		if err != nil {
+			return 0, err
+		}
+		m := j.(map[string]interface{})
+
+		var v interface{}
+		var ok bool
+		if v, ok = m["total"]; !ok {
+			return 0, errors.New("Response is missing the total value")
+		}
+
+		switch total := v.(type) {
+		case float64:
+			return total, nil
+		}
+		return 0, errors.New("Response 'total' is not a float64")
+	})
+}
+
+func (c Client) GetJSONAllFnTotal(path string, total_fn func([]byte) (float64, error)) ([]byte, *APIResponse, error) {
 	body, api, err := c.GetRaw("GET", path+"?limit=0")
 	if api != nil || err != nil {
 		return nil, api, err
 	}
 
-	// We just want the total
-	var j interface{}
-	err = json.Unmarshal(body, &j)
+	total, err := total_fn(body)
 	if err != nil {
 		return nil, nil, err
 	}
-	m := j.(map[string]interface{})
-	var v interface{}
-	var ok bool
-	if v, ok = m["total"]; !ok {
-		return nil, nil, errors.New("Response is missing the total value")
-	}
 
-	switch total := v.(type) {
-	case float64:
-		allResults := fmt.Sprintf("%s?limit=%v", path, total)
-		return c.GetRaw("GET", allResults)
-	}
-	return nil, nil, errors.New("Response 'total' is not a float64")
+	allResults := fmt.Sprintf("%s?limit=%v", path, total)
+	return c.GetRaw("GET", allResults)
 }
 
 // PostRaw sends a POST with raw data and returns the raw response body

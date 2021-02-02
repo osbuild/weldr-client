@@ -3,6 +3,7 @@ package weldr
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -416,6 +417,49 @@ func TestGetJSONAllBadType(t *testing.T) {
 	require.NotNil(t, err)
 	assert.Contains(t, fmt.Sprintf("%s", err), "'total' is not a float64")
 	assert.Equal(t, "/api/v1/testroute", mc.Req.URL.Path)
+}
+
+func TestGetJSONAllFnTotal(t *testing.T) {
+	// Test the GetJSONAllFnTotal function with total inside nested items (eg. blueprint/changes)
+	changes := `{"blueprints": [{"name": "bp-1", "total": 15, "changes": [{"commit": "foo"}]}, {"name": "bp-2", "total": 42, "changes": [{"commit": "bar"}]}], "errors": [], "offset": 0, "limit": %d}`
+	mc := MockClient{
+		DoFunc: func(request *http.Request) (*http.Response, error) {
+			query := request.URL.Query()
+			v := query.Get("limit")
+			limit, _ := strconv.ParseUint(v, 10, 64)
+			jsonResponse := fmt.Sprintf(changes, limit)
+
+			return &http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonResponse))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	body, r, err := tc.GetJSONAllFnTotal("/testroute", func(body []byte) (float64, error) {
+		// blueprints/changes has a different total for each blueprint, pick the largest one
+		var bpc BlueprintsChangesV0
+		err := json.Unmarshal(body, &bpc)
+		if err != nil {
+			return 0, err
+		}
+		maxTotal := 0
+		for _, b := range bpc.Changes {
+			if b.Total > maxTotal {
+				maxTotal = b.Total
+			}
+		}
+
+		return float64(maxTotal), nil
+	})
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, body)
+	expected := fmt.Sprintf(changes, 42)
+	assert.Equal(t, []byte(expected), body)
+	assert.Equal(t, "/api/v1/testroute", mc.Req.URL.Path)
+	assert.Equal(t, "42", mc.Req.URL.Query().Get("limit"))
 }
 
 func TestPostRaw(t *testing.T) {
