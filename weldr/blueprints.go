@@ -193,7 +193,22 @@ func (c Client) UndoBlueprint(name, commit string) (*APIResponse, error) {
 func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIErrorMsg, error) {
 	var errors []APIErrorMsg
 	route := fmt.Sprintf("/blueprints/changes/%s", strings.Join(names, ","))
-	j, resp, err := c.GetRaw("GET", route)
+	j, resp, err := c.GetJSONAllFnTotal(route, func(body []byte) (float64, error) {
+		// blueprints/changes has a different total for each blueprint, pick the largest one
+		var bpc BlueprintsChangesV0
+		err := json.Unmarshal(body, &bpc)
+		if err != nil {
+			return 0, err
+		}
+		maxTotal := 0
+		for _, b := range bpc.Changes {
+			if b.Total > maxTotal {
+				maxTotal = b.Total
+			}
+		}
+
+		return float64(maxTotal), nil
+	})
 	if err != nil {
 		return nil, nil, err
 	}
