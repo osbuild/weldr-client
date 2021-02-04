@@ -225,7 +225,7 @@ func (c Client) PostRaw(path, body string, headers map[string]string) ([]byte, *
 	}
 
 	// Convert the API's JSON error response to an APIResponse
-	if resp.StatusCode == 400 || resp.StatusCode == 404 {
+	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
 		apiResponse, err := c.apiError(resp)
 		return nil, apiResponse, err
 	}
