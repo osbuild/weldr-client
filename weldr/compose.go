@@ -1,4 +1,4 @@
-// Copyright 2020 by Red Hat, Inc. All rights reserved.
+// Copyright 2020-2021 by Red Hat, Inc. All rights reserved.
 // Use of this source is goverend by the Apache License
 // that can be found in the LICENSE file.
 
@@ -116,6 +116,13 @@ func (c Client) GetComposeTypes() ([]string, *APIResponse, error) {
 // StartCompose will start a compose of a blueprint
 // Returns the UUID of the build that was started
 func (c Client) StartCompose(blueprint, composeType string, size uint) (string, *APIResponse, error) {
+	return c.StartComposeTest(blueprint, composeType, size, 0)
+}
+
+// StartComposeTest will start a compose of a blueprint, optionally starting a test compose
+// test = 1 creates a fake failed compose
+// test = 2 creates a fake successful compose
+func (c Client) StartComposeTest(blueprint, composeType string, size uint, test uint) (string, *APIResponse, error) {
 	var settings struct {
 		Name   string `json:"blueprint_name"`
 		Type   string `json:"compose_type"`
@@ -132,7 +139,13 @@ func (c Client) StartCompose(blueprint, composeType string, size uint) (string, 
 		return "", nil, err
 	}
 
-	body, resp, err := c.PostJSON("/compose", string(data))
+	var route string
+	if test > 0 {
+		route = fmt.Sprintf("/compose?test=%d", test)
+	} else {
+		route = "/compose"
+	}
+	body, resp, err := c.PostJSON(route, string(data))
 	if resp != nil || err != nil {
 		return "", resp, err
 	}
