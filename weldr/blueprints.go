@@ -230,3 +230,36 @@ func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIE
 	}
 	return changes.Changes, errors, nil
 }
+
+// DepsolveBlueprints returns the blueprints, their dependencies, and any errors
+// It uses interface{} for the response so that it is not tightly coupled to the server's response
+// schema.
+func (c Client) DepsolveBlueprints(names []string) (blueprints []interface{}, errors []APIErrorMsg, err error) {
+	route := fmt.Sprintf("/blueprints/depsolve/%s", strings.Join(names, ","))
+	j, resp, err := c.GetRaw("GET", route)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp != nil {
+		errors = append(errors, resp.Errors...)
+		return nil, errors, nil
+	}
+
+	// flexible response unmarshaling, be strict about the error message
+	var r struct {
+		Blueprints []interface{}
+		Errors     []APIErrorMsg
+	}
+	err = json.Unmarshal(j, &r)
+	if err != nil {
+		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
+	}
+	if len(errors) > 0 {
+		return nil, errors, nil
+	}
+	if len(r.Errors) > 0 {
+		errors = append(errors, r.Errors...)
+	}
+
+	return r.Blueprints, errors, nil
+}

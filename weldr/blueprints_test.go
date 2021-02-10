@@ -7,6 +7,8 @@
 package weldr
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -218,4 +220,47 @@ func TestBlueprintsChanges(t *testing.T) {
 	assert.GreaterOrEqual(t, len(changes[0].Changes), 1)
 	require.GreaterOrEqual(t, len(errors), 1)
 	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp"}, errors[0])
+}
+
+func TestDepsolveBlueprints(t *testing.T) {
+	bps, errors, err := testState.client.DepsolveBlueprints([]string{"cli-test-bp-1", "unknown-cli-bp"})
+	require.Nil(t, err)
+	require.NotNil(t, errors)
+	require.NotNil(t, bps)
+	require.Equal(t, 1, len(errors))
+	require.GreaterOrEqual(t, len(bps), 1)
+
+	// Decode a bit of the response for testing
+	type depsolvedBlueprint struct {
+		Blueprint struct {
+			Name    string
+			Version string
+		}
+		Dependencies []struct {
+			Name string
+		}
+	}
+
+	// Encode it using json
+	data := new(bytes.Buffer)
+	err = json.NewEncoder(data).Encode(bps[0])
+	require.Nil(t, err)
+
+	// Decode the parts we care about
+	var parts depsolvedBlueprint
+	err = json.Unmarshal(data.Bytes(), &parts)
+	require.Nil(t, err)
+
+	assert.Equal(t, "cli-test-bp-1", parts.Blueprint.Name)
+	assert.Equal(t, "0.0.1", parts.Blueprint.Version)
+	require.GreaterOrEqual(t, len(parts.Dependencies), 5)
+
+	// Do not depend on exact version numbers for dependencies, just check some package names
+	var pkgs []string
+	for _, p := range parts.Dependencies {
+		pkgs = append(pkgs, p.Name)
+	}
+	assert.True(t, isStringInSlice(pkgs, "bash"))
+	assert.True(t, isStringInSlice(pkgs, "filesystem"))
+	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp: blueprint not found"}, errors[0])
 }
