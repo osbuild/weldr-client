@@ -201,13 +201,18 @@ func (c Client) GetJSONAll(path string) ([]byte, *APIResponse, error) {
 	})
 }
 
-func (c Client) GetJSONAllFnTotal(path string, total_fn func([]byte) (float64, error)) ([]byte, *APIResponse, error) {
+// GetJSONAllFnTotal will retrieve all the results for a paginated route
+// It makes 2 calls to the route, the first with limit=0, the results are
+// passed to the user function which determines how many total results
+// there are, and this value is then used in a second call to retrieve
+// all of them.
+func (c Client) GetJSONAllFnTotal(path string, fn func([]byte) (float64, error)) ([]byte, *APIResponse, error) {
 	body, api, err := c.GetRaw("GET", path+"?limit=0")
 	if api != nil || err != nil {
 		return nil, api, err
 	}
 
-	total, err := total_fn(body)
+	total, err := fn(body)
 	if err != nil {
 		return nil, nil, err
 	}

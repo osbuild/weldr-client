@@ -99,11 +99,15 @@ type BlueprintsChangesV0 struct {
 	Limit   uint               `json:"limit"`
 	Offset  uint               `json:"offset"`
 }
+
+// BlueprintChanges contains the list of changes to a specific blueprint
 type BlueprintChanges struct {
 	Changes []Change `json:"changes"`
 	Name    string   `json:"name"`
 	Total   int      `json:"total"`
 }
+
+// Change is a single change to a blueprint
 type Change struct {
 	Commit    string `json:"commit" toml:"commit"`
 	Message   string `json:"message" toml:"message"`

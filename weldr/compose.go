@@ -189,7 +189,7 @@ func (c Client) DeleteComposes(ids []string) ([]ComposeDeleteV0, []APIErrorMsg, 
 	return r.UUIDs, errors, nil
 }
 
-// CancelComposes cancels a compose that is waiting or running on the server
+// CancelCompose cancels a compose that is waiting or running on the server
 func (c Client) CancelCompose(id string) (ComposeCancelV0, []APIErrorMsg, error) {
 	var r ComposeCancelV0
 	var errors []APIErrorMsg

@@ -3,6 +3,7 @@
 // that can be found in the LICENSE file.
 
 // nolint: deadcode,unused // These functions are only used by the *_test.go code
+
 package weldr
 
 import (
@@ -16,6 +17,8 @@ import (
 	"strconv"
 )
 
+// TestState holds the state of the mocked testing client and information about the
+// environment for the tests to use.
 type TestState struct {
 	client     *Client
 	apiVersion int
@@ -33,7 +36,7 @@ func setUpTestState(socketPath string, unitTest bool) (*TestState, error) {
 		return nil, fmt.Errorf("status request failed with client error: %s", err)
 	}
 	if resp != nil {
-		return nil, fmt.Errorf("status request failed: %v\n", resp)
+		return nil, fmt.Errorf("status request failed: %v", resp)
 	}
 	apiVersion, e := strconv.Atoi(status.API)
 	if e != nil {
@@ -45,7 +48,7 @@ func setUpTestState(socketPath string, unitTest bool) (*TestState, error) {
 	return &state, nil
 }
 
-// Create a temporary repository
+// SetUpTemporaryRepository creates a temporary repository
 func SetUpTemporaryRepository() (string, error) {
 	dir, err := ioutil.TempDir("/tmp", "osbuild-composer-test-")
 	if err != nil {
@@ -63,7 +66,7 @@ func SetUpTemporaryRepository() (string, error) {
 	return dir, nil
 }
 
-// Remove the temporary repository
+// TearDownTemporaryRepository removes the temporary repository
 func TearDownTemporaryRepository(dir string) error {
 	return os.RemoveAll(dir)
 }
