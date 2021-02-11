@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/BurntSushi/toml"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -220,6 +222,90 @@ func TestBlueprintsChanges(t *testing.T) {
 	assert.GreaterOrEqual(t, len(changes[0].Changes), 1)
 	require.GreaterOrEqual(t, len(errors), 1)
 	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp"}, errors[0])
+}
+
+// Decode a bit of the response for testing
+type frozenBlueprint struct {
+	Name    string
+	Version string
+	Modules []struct {
+		Name    string
+		Version string
+	}
+	Packages []struct {
+		Name    string
+		Version string
+	}
+}
+
+func TestGetFrozenBlueprintsTOML(t *testing.T) {
+	bps, resp, err := testState.client.GetFrozenBlueprintsTOML([]string{"cli-test-bp-1"})
+	require.Nil(t, err)
+	require.Nil(t, resp)
+	require.NotNil(t, bps)
+	require.GreaterOrEqual(t, len(bps), 1)
+
+	// Decode the parts we care about into blueprintParts
+	var parts frozenBlueprint
+	_, err = toml.Decode(bps[0], &parts)
+	require.Nil(t, err)
+
+	assert.Equal(t, "cli-test-bp-1", parts.Name)
+	assert.Equal(t, "0.0.1", parts.Version)
+	require.GreaterOrEqual(t, len(parts.Packages), 1)
+
+	// Do not depend on exact version numbers for dependencies, just check some package names
+	var pkgs []string
+	for _, p := range parts.Packages {
+		pkgs = append(pkgs, p.Name)
+	}
+	assert.True(t, isStringInSlice(pkgs, "bash"), pkgs)
+
+	require.GreaterOrEqual(t, len(parts.Modules), 1)
+	var modules []string
+	for _, m := range parts.Modules {
+		modules = append(modules, m.Name)
+	}
+	assert.True(t, isStringInSlice(modules, "util-linux"))
+}
+
+func TestGetFrozenBlueprintsJSON(t *testing.T) {
+	bps, errors, err := testState.client.GetFrozenBlueprintsJSON([]string{"cli-test-bp-1", "unknown-cli-bp"})
+	require.Nil(t, err)
+	require.NotNil(t, errors)
+	require.NotNil(t, bps)
+	require.Equal(t, 1, len(errors))
+	require.GreaterOrEqual(t, len(bps), 1)
+
+	// Encode it using json
+	data := new(bytes.Buffer)
+	err = json.NewEncoder(data).Encode(bps[0])
+	require.Nil(t, err)
+
+	// Decode the parts we care about
+	var parts frozenBlueprint
+	err = json.Unmarshal(data.Bytes(), &parts)
+	require.Nil(t, err)
+
+	assert.Equal(t, "cli-test-bp-1", parts.Name)
+	assert.Equal(t, "0.0.1", parts.Version)
+	require.GreaterOrEqual(t, len(parts.Packages), 1)
+
+	// Do not depend on exact version numbers for dependencies, just check some package names
+	var pkgs []string
+	for _, p := range parts.Packages {
+		pkgs = append(pkgs, p.Name)
+	}
+	assert.True(t, isStringInSlice(pkgs, "bash"), pkgs)
+
+	require.GreaterOrEqual(t, len(parts.Modules), 1)
+	var modules []string
+	for _, m := range parts.Modules {
+		modules = append(modules, m.Name)
+	}
+	assert.True(t, isStringInSlice(modules, "util-linux"))
+
+	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp: blueprint not found"}, errors[0])
 }
 
 func TestDepsolveBlueprints(t *testing.T) {
