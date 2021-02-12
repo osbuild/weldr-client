@@ -6,6 +6,7 @@ package compose
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -39,7 +40,7 @@ func status(cmd *cobra.Command, args []string) (rcErr error) {
 	}
 	if len(errors) > 0 {
 		for _, e := range errors {
-			fmt.Println(e.String())
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
 		}
 		rcErr = root.ExecutionError(cmd, "")
 	}

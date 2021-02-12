@@ -6,6 +6,7 @@ package compose
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -36,7 +37,7 @@ func cancelComposes(cmd *cobra.Command, args []string) error {
 	}
 	if len(errors) > 0 {
 		for _, e := range errors {
-			fmt.Println(e.String())
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
 		}
 		return root.ExecutionError(cmd, "")
 	}
