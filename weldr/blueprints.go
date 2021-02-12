@@ -34,7 +34,7 @@ func (c Client) GetBlueprintsTOML(names []string) ([]string, *APIResponse, error
 			return nil, resp, err
 		}
 		if resp != nil {
-			continue
+			return nil, resp, nil
 		}
 		result = append(result, string(body))
 	}

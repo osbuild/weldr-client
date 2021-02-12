@@ -49,7 +49,7 @@ func TestCmdBlueprintsChanges(t *testing.T) {
 
 	cmd, out, err := root.ExecuteTest("blueprints", "changes", "cli-test-bp-1,test-no-bp")
 	defer out.Close()
-	require.Nil(t, err)
+	require.NotNil(t, err)
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
@@ -58,10 +58,9 @@ func TestCmdBlueprintsChanges(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "cli-test-bp-1")
 	assert.Contains(t, string(stdout), "reverted to commit f48b415828fa7179acd17b1f1b69e11c2c3fcd17")
-	assert.Contains(t, string(stdout), "ERROR: {UnknownBlueprint no-bp-test}")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
-	assert.Equal(t, []byte(""), stderr)
+	assert.Contains(t, string(stderr), "ERROR: {UnknownBlueprint no-bp-test}")
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/changes/cli-test-bp-1,test-no-bp", mc.Req.URL.Path)
 }

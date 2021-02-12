@@ -72,7 +72,7 @@ func freeze(cmd *cobra.Command, args []string) (rcErr error) {
 	}
 	if len(errors) > 0 {
 		for _, e := range errors {
-			fmt.Println(e.String())
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
 		}
 		rcErr = root.ExecutionError(cmd, "")
 	}
@@ -81,12 +81,16 @@ func freeze(cmd *cobra.Command, args []string) (rcErr error) {
 		// Encode it using toml
 		data := new(bytes.Buffer)
 		if err := toml.NewEncoder(data).Encode(bp); err != nil {
-			rcErr = root.ExecutionError(cmd, "Error converting blueprint: %s", err)
+			fmt.Fprintf(os.Stderr, "ERROR: converting blueprint: %s\n", err)
+			rcErr = root.ExecutionError(cmd, "")
+			continue
 		}
 		// Decode the parts we care about into blueprintParts
 		var parts blueprintParts
 		if _, err := toml.Decode(data.String(), &parts); err != nil {
-			rcErr = root.ExecutionError(cmd, "Error decoding blueprint: %s", err)
+			fmt.Fprintf(os.Stderr, "ERROR: decoding blueprint: %s\n", err)
+			rcErr = root.ExecutionError(cmd, "")
+			continue
 		}
 
 		if len(parts.Version) > 0 {
@@ -131,7 +135,7 @@ func freezeSave(cmd *cobra.Command, args []string) (rcErr error) {
 	}
 	if len(errors) > 0 {
 		for _, e := range errors {
-			fmt.Println(e.String())
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
 		}
 		rcErr = root.ExecutionError(cmd, "")
 	}
@@ -139,7 +143,8 @@ func freezeSave(cmd *cobra.Command, args []string) (rcErr error) {
 	for _, bp := range bps {
 		name, ok := bp.(map[string]interface{})["name"].(string)
 		if !ok {
-			rcErr = root.ExecutionError(cmd, "ERROR: no 'name' in blueprint")
+			fmt.Fprintf(os.Stderr, "ERROR: no 'name' in blueprint\n")
+			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
 
@@ -148,18 +153,21 @@ func freezeSave(cmd *cobra.Command, args []string) (rcErr error) {
 		filename := strings.ReplaceAll(name, " ", "-") + ".frozen.toml"
 		filename = filepath.Base(filename)
 		if filename == "/" || filename == "." || filename == ".." {
-			rcErr = root.ExecutionError(cmd, "ERROR: Invalid blueprint filename: %s\n", name)
+			fmt.Fprintf(os.Stderr, "ERROR: Invalid blueprint filename: %s\n", name)
+			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
 		f, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 		if err != nil {
-			rcErr = root.ExecutionError(cmd, "Error opening file %s: %s\n", "file.toml", err)
+			fmt.Fprintf(os.Stderr, "ERROR: opening file %s: %s\n", "file.toml", err)
+			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
 		defer f.Close()
 		err = toml.NewEncoder(f).Encode(bp)
 		if err != nil {
-			rcErr = root.ExecutionError(cmd, "Error encoding TOML file: %s\n", err)
+			fmt.Fprintf(os.Stderr, "ERROR: encoding TOML file: %s\n", err)
+			rcErr = root.ExecutionError(cmd, "")
 		}
 	}
 

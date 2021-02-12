@@ -54,3 +54,38 @@ version = "0.1.0"
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/info/simple", mc.Req.URL.Path)
 }
+
+func TestCmdBlueprintsShowError(t *testing.T) {
+	// Test the "blueprints show" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+    "errors": [
+        {
+            "id": "UnknownBlueprint",
+            "msg": "unknown: "
+        }
+    ],
+    "status": false
+}`
+		return &http.Response{
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	cmd, out, err := root.ExecuteTest("blueprints", "show", "unknown")
+	defer out.Close()
+	require.NotNil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, showCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Equal(t, []byte(""), stdout)
+	assert.Nil(t, err)
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stderr), "UnknownBlueprint:")
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/blueprints/info/unknown", mc.Req.URL.Path)
+}

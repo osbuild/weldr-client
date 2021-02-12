@@ -137,7 +137,7 @@ func AddRootCommand(cmd *cobra.Command) {
 func ExecutionError(cmd *cobra.Command, format string, a ...interface{}) error {
 	s := fmt.Sprintf(format, a...)
 	if len(s) > 0 {
-		fmt.Fprintln(os.Stderr, s)
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", s)
 	}
 	cmd.SilenceErrors = true // cobra will not print errors returned from commands after this
 	cmd.SilenceUsage = true  // cobra will not print usage on errors after this

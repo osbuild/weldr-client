@@ -80,10 +80,9 @@ func TestCmdBlueprintsDepsolve(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "cli-test-bp-1")
 	assert.Contains(t, string(stdout), "acl-2.2.53-9.fc33.x86_64")
-	assert.Contains(t, string(stdout), "UnknownBlueprint: test-no-bp: blueprint not found")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
-	assert.Equal(t, []byte(""), stderr)
+	assert.Contains(t, string(stderr), "UnknownBlueprint: test-no-bp: blueprint not found")
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/depsolve/cli-test-bp-1,test-no-bp", mc.Req.URL.Path)
 }

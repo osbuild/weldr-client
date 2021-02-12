@@ -15,7 +15,7 @@ var (
 		Use:   "diff BLUEPRINT FROM-COMMIT TO-COMMIT",
 		Short: "list the differences between two blueprint commits",
 		Long:  "list the differences between two blueprint commits where FROM-COMMIT is a commit hash or NEWEST, and TO-COMMIT is a commit hash, NEWEST, or WORKSPACE",
-		Run:   diff,
+		RunE:  diff,
 		Args:  cobra.ExactArgs(3),
 	}
 )
@@ -24,6 +24,8 @@ func init() {
 	blueprintsCmd.AddCommand(diffCmd)
 }
 
-func diff(cmd *cobra.Command, args []string) {
+func diff(cmd *cobra.Command, args []string) (rcErr error) {
 	fmt.Printf("Ran the blueprints diff: %v command\n", args)
+
+	return nil
 }

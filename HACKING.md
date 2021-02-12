@@ -82,13 +82,29 @@ subcommand.
 
 Developer documentation should go into a doc.go file.
 
+Commands are hooked into the root command parser by adding them to the include
+list in `cmd/composer-cli/main.go` with a preceeding `_` so that the compiler
+won't complain about unused symbols.
+
 
 ## Adding new subcommands
 
-Subcommands should go into their own fine, and be members of the command's
+Subcommands should go into their own file, and be members of the command's
 package. The file should only contain the functions needed to implement the
 user interface for this command. Any helper functions or API related functions
 that could be useful to other developers should go into the `weldr/` library.
+
+## Error handling for cli commands
+
+Commands should use the Cobra RunE method which returns an error to the root command handler.
+If the command exits immediately on error it should return a
+`root.ExecutionError` with a string describing the error, and embedding the `err` if there was one.
+See `cmd/composer-cli/blueprints/list.go` for an example of this type of handling.
+
+If there could be more than one error, eg. when processing a list of
+blueprints, the command function should print them to `os.Stderr` as `ERROR: ...\n`
+and return a blank root.ExecutionError(cmd, "")` to the root handler. See
+`cmd/composer-cli/blueprints/push.go` for an example.
 
 
 ## Unit tests for cli commands

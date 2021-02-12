@@ -6,6 +6,7 @@ package blueprints
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -26,7 +27,7 @@ func init() {
 	blueprintsCmd.AddCommand(changesCmd)
 }
 
-func changes(cmd *cobra.Command, args []string) error {
+func changes(cmd *cobra.Command, args []string) (rcErr error) {
 	// TODO -- check root.JSONOutput and do a json request and output as a map with names as keys
 	names := root.GetCommaArgs(args)
 	blueprints, resp, err := root.Client.GetBlueprintsChanges(names)
@@ -35,9 +36,9 @@ func changes(cmd *cobra.Command, args []string) error {
 	}
 	if len(resp) > 0 {
 		for _, r := range resp {
-			fmt.Printf("ERROR: %s\n", r)
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", r)
 		}
-		fmt.Println()
+		rcErr = root.ExecutionError(cmd, "")
 	}
 	for _, bp := range blueprints {
 		fmt.Println(bp.Name)
@@ -50,5 +51,5 @@ func changes(cmd *cobra.Command, args []string) error {
 			fmt.Printf("    %s\n\n", ch.Message)
 		}
 	}
-	return nil
+	return rcErr
 }

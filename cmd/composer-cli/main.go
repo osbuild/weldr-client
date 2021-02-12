@@ -17,7 +17,7 @@ import (
 func main() {
 	root.Init()
 
-	// Printing errors is handled by the commands, just return 1
+	// Printing errors is handled by the commands or ExecutionError(), just return 1
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
 	}

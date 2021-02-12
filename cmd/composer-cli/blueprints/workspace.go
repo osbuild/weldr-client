@@ -5,8 +5,9 @@
 package blueprints
 
 import (
+	"fmt"
 	"io/ioutil"
-	"strings"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -32,19 +33,24 @@ func workspace(cmd *cobra.Command, args []string) (rcErr error) {
 	for _, filename := range files {
 		data, err := ioutil.ReadFile(filename)
 		if err != nil {
-			rcErr = root.ExecutionError(cmd, "Missing blueprint file: %s\n", filename)
+			fmt.Fprintf(os.Stderr, "ERROR: Missing blueprint file: %s\n", filename)
+			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
 		resp, err := root.Client.PushBlueprintWorkspaceTOML(string(data))
 		if err != nil {
-			rcErr = root.ExecutionError(cmd, "Push TOML Error: %s", err)
+			fmt.Fprintf(os.Stderr, "ERROR: Push TOML: %s\n", err)
+			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
 		if root.JSONOutput {
 			continue
 		}
 		if resp != nil && !resp.Status {
-			rcErr = root.ExecutionError(cmd, strings.Join(resp.AllErrors(), "\n"))
+			for _, e := range resp.AllErrors() {
+				fmt.Fprintf(os.Stderr, "ERROR: %s\n", e)
+			}
+			rcErr = root.ExecutionError(cmd, "")
 		}
 	}
 

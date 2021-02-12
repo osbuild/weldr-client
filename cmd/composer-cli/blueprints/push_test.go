@@ -92,7 +92,6 @@ version = "*"`))
 	cmd, out, err := root.ExecuteTest("blueprints", "push", tmpBp.Name())
 	defer out.Close()
 	require.NotNil(t, err)
-	assert.Contains(t, err.Error(), "BlueprintsError")
 
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)

@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -62,7 +63,7 @@ func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
 	}
 	if len(errors) > 0 {
 		for _, e := range errors {
-			fmt.Println(e.String())
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
 		}
 		rcErr = root.ExecutionError(cmd, "")
 	}
@@ -71,13 +72,17 @@ func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
 		// Encode it using json
 		data := new(bytes.Buffer)
 		if err := json.NewEncoder(data).Encode(bp); err != nil {
-			rcErr = root.ExecutionError(cmd, "Error converting depsolved blueprint: %s", err)
+			fmt.Fprintf(os.Stderr, "ERROR: converting depsolved blueprint: %s\n", err)
+			rcErr = root.ExecutionError(cmd, "")
+			continue
 		}
 
 		// Decode the parts we care about
 		var parts depsolvedBlueprint
 		if err = json.Unmarshal(data.Bytes(), &parts); err != nil {
-			rcErr = root.ExecutionError(cmd, "Error decoding depsolved blueprint: %s", err)
+			fmt.Fprintf(os.Stderr, "ERROR: decoding depsolved blueprint: %s\n", err)
+			rcErr = root.ExecutionError(cmd, "")
+			continue
 		}
 
 		fmt.Printf("blueprint: %s v%s\n", parts.Blueprint.Name, parts.Blueprint.Version)
