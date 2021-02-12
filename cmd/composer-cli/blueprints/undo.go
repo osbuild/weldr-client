@@ -5,9 +5,9 @@
 package blueprints
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
+
+	"weldr-client/cmd/composer-cli/root"
 )
 
 var (
@@ -15,7 +15,7 @@ var (
 		Use:   "undo BLUEPRINT COMMIT",
 		Short: "Undo a blueprint change",
 		Long:  "Undo a blueprint change and revert to COMMIT",
-		Run:   undo,
+		RunE:  undo,
 		Args:  cobra.ExactArgs(2),
 	}
 )
@@ -24,6 +24,17 @@ func init() {
 	blueprintsCmd.AddCommand(undoCmd)
 }
 
-func undo(cmd *cobra.Command, args []string) {
-	fmt.Printf("Ran the blueprints undo: %v command\n", args)
+func undo(cmd *cobra.Command, args []string) error {
+	resp, err := root.Client.UndoBlueprint(args[0], args[1])
+	if err != nil {
+		return root.ExecutionError(cmd, "Undo Error: %s", err)
+	}
+	if root.JSONOutput {
+		return nil
+	}
+	if resp != nil && !resp.Status {
+		return root.ExecutionError(cmd, "Undo Error: %s", resp.String())
+	}
+
+	return nil
 }
