@@ -71,6 +71,7 @@ func saveToml(cmd *cobra.Command, args []string) (rcErr error) {
 		if err != nil {
 			rcErr = root.ExecutionError(cmd, "Error encoding TOML file: %s\n", err)
 		}
+		f.Close()
 	}
 
 	// If there were any errors, even if other blueprints succeeded, it returns an error
