@@ -28,11 +28,13 @@ func init() {
 }
 
 func changes(cmd *cobra.Command, args []string) (rcErr error) {
-	// TODO -- check root.JSONOutput and do a json request and output as a map with names as keys
 	names := root.GetCommaArgs(args)
 	blueprints, resp, err := root.Client.GetBlueprintsChanges(names)
 	if err != nil {
 		return root.ExecutionError(cmd, "Changes Error: %s", err)
+	}
+	if root.JSONOutput {
+		return nil
 	}
 	if len(resp) > 0 {
 		for _, r := range resp {

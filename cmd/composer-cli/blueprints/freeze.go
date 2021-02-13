@@ -111,8 +111,15 @@ func freeze(cmd *cobra.Command, args []string) (rcErr error) {
 }
 
 func freezeShow(cmd *cobra.Command, args []string) error {
-	// TODO -- check root.JSONOutput and do a json request and output as a map with names as keys
 	names := root.GetCommaArgs(args)
+	if root.JSONOutput {
+		_, _, err := root.Client.GetFrozenBlueprintsJSON(names)
+		if err != nil {
+			return root.ExecutionError(cmd, "Save Error: %s", err)
+		}
+		return nil
+	}
+
 	blueprints, resp, err := root.Client.GetFrozenBlueprintsTOML(names)
 	if resp != nil || err != nil {
 		return root.ExecutionError(cmd, "Show Error: %s", err)
