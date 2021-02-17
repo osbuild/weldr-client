@@ -31,10 +31,6 @@ var (
 		Use:   path.Base(os.Args[0]),
 		Short: "composer commandline tool",
 		Long:  "commandline tool for osbuild-composer",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Printf("Ran the root command")
-			return nil
-		},
 	}
 	docCmd = &cobra.Command{
 		Use:   "doc DIRECTORY",
