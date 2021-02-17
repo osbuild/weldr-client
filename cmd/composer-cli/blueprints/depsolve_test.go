@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"weldr-client/cmd/composer-cli/root"
+	"github.com/weldr/weldr-client/cmd/composer-cli/root"
 )
 
 func TestCmdBlueprintsDepsolve(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"weldr-client/cmd/composer-cli/root"
+	"github.com/weldr/weldr-client/cmd/composer-cli/root"
 )
 
 var (

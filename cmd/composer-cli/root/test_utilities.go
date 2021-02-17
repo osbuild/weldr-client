@@ -12,7 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"weldr-client/weldr"
+	"github.com/weldr/weldr-client/weldr"
 )
 
 // OutputCapture holds the details used for capturing output during testing

@@ -8,10 +8,10 @@ package main
 import (
 	"os"
 
-	_ "weldr-client/cmd/composer-cli/blueprints"
-	_ "weldr-client/cmd/composer-cli/compose"
-	"weldr-client/cmd/composer-cli/root"
-	_ "weldr-client/cmd/composer-cli/status"
+	_ "github.com/weldr/weldr-client/cmd/composer-cli/blueprints"
+	_ "github.com/weldr/weldr-client/cmd/composer-cli/compose"
+	"github.com/weldr/weldr-client/cmd/composer-cli/root"
+	_ "github.com/weldr/weldr-client/cmd/composer-cli/status"
 )
 
 func main() {
