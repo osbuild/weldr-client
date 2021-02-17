@@ -30,6 +30,8 @@ install: composer-cli composer-cli-tests
 	install -m 0755 -vp composer-cli-tests ${DESTDIR}/usr/libexec/tests/composer-cli/
 	install -m 0755 -vd ${DESTDIR}/etc/bash_completion.d/
 	install -m 0755 -vp etc/bash_completion.d/composer-cli ${DESTDIR}/etc/bash_completion.d/
+	install -m 0755 -vd ${DESTDIR}/usr/share/man/man1/
+	./composer-cli doc ${DESTDIR}/usr/share/man/man1/
 
 weldr-client.spec: weldr-client.spec.in
 	sed -e "s/%%VERSION%%/$(VERSION)/" < $< > $@

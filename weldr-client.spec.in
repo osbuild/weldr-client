@@ -83,6 +83,7 @@ make GOBUILDFLAGS="%{gotestflags}" test
 %license LICENSE
 %{_bindir}/composer-cli
 %{_sysconfdir}/bash_completion.d/composer-cli
+%{_mandir}/man1/composer-cli*
 
 %if %{with tests} || 0%{?rhel}
 
