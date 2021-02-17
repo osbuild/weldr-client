@@ -1,0 +1,99 @@
+# Pass --with tests to rpmbuild to build composer-cli-tests
+%bcond_with tests
+
+%global goipath         github.com/weldr/weldr-client
+
+Name:      weldr-client
+Version:   %%VERSION%%
+Release:   1%{?dist}
+License:   GPLv2 and MIT
+Summary:   Command line utility to control osbuild-composer
+Url:       %{gourl}
+Source0:   %{name}-%{version}.tar.gz
+Source1:   %{name}-%{version}.tar.gz.asc
+
+Obsoletes: composer-cli < 34.0
+Provides: composer-cli = %{version}-%{release}
+
+%gometa
+
+BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
+%if 0%{?fedora}
+BuildRequires:  golang(github.com/BurntSushi/toml)
+BuildRequires:  golang(github.com/spf13/cobra)
+%endif
+
+%if %{with tests} || 0%{?rhel}
+BuildRequires:  golang(github.com/stretchr/testify)
+%endif
+
+BuildRequires: git
+BuildRequires: make
+
+%description
+Command line utility to control osbuild-composer
+
+%prep
+%if 0%{?rhel}
+%forgeautosetup -p1
+%else
+%goprep
+%endif
+
+%build
+%if 0%{?rhel}
+GO_BUILD_PATH=$PWD/_build
+install -m 0755 -vd $(dirname $GO_BUILD_PATH/src/%{goipath})
+ln -fs $PWD $GO_BUILD_PATH/src/%{goipath}
+cd $GO_BUILD_PATH/src/%{goipath}
+install -m 0755 -vd _bin
+export PATH=$PWD/_bin${PATH:+:$PATH}
+export GOPATH=$GO_BUILD_PATH:%{gopath}
+export GOFLAGS=-mod=vendor
+%endif
+
+make GOBUILDFLAGS="%{gobuildflags}" build
+
+## TODO
+##make man
+
+%if %{with tests} || 0%{?rhel}
+
+# Build test binaries with `go test -c`, so that they can take advantage of
+# golang's testing package. The golang rpm macros don't support building them
+# directly. Thus, do it manually, taking care to also include a build id.
+#
+# On Fedora, also turn off go modules and set the path to the one into which
+# the golang-* packages install source code.
+%if 0%{?fedora}
+export GO111MODULE=off
+export GOPATH=%{gobuilddir}:%{gopath}
+%endif
+
+make GOBUILDFLAGS="%{gobuildflags}" integration
+%endif
+
+%install
+make DESTDIR=%{buildroot} install
+
+%check
+make GOBUILDFLAGS="%{gotestflags}" test
+
+%files
+%license LICENSE
+%{_bindir}/composer-cli
+
+%if %{with tests} || 0%{?rhel}
+
+%package tests
+Summary:    Integration tests for composer-cli
+
+%description tests
+Integration tests to be run on a pristine-dedicated system to test the composer-cli package.
+
+%files tests
+%{_libexecdir}/tests/composer-cli/
+%endif
+
+
+%changelog
