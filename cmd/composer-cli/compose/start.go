@@ -5,6 +5,7 @@
 package compose
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -20,7 +21,12 @@ var (
 		Short: "Start a compose using the selected blueprint and output type",
 		Long:  "Start a compose using the selected blueprint and output type. Optionally start an upload. --size is supported by osbuild-composer, and is in MiB",
 		RunE:  start,
-		Args:  cobra.MinimumNArgs(2),
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 2 || len(args) == 4 {
+				return nil
+			}
+			return errors.New("Invalid number of arguments")
+		},
 	}
 	size uint
 )
@@ -37,6 +43,9 @@ func start(cmd *cobra.Command, args []string) error {
 	// 2 args is uploads
 	if len(args) == 2 {
 		uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
+	} else if len(args) == 4 {
+		uuid, resp, err = root.Client.StartComposeUpload(args[0], args[1], args[2], args[3], size)
+
 	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Push TOML Error: %s", err)
