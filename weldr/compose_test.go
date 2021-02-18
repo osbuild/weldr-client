@@ -7,6 +7,8 @@
 package weldr
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,6 +46,27 @@ func TestStartComposeSize(t *testing.T) {
 	assert.Greater(t, len(id), 0)
 }
 
+func TestStartComposeUpload(t *testing.T) {
+	// Need a temporary test file
+	tmpProfile, err := ioutil.TempFile("", "test-profile-p*.toml")
+	require.Nil(t, err)
+	defer os.Remove(tmpProfile.Name())
+
+	_, err = tmpProfile.Write([]byte(`provider = "aws"
+[settings]
+aws_access_key = "AWS Access Key"
+aws_bucket = "AWS Bucket"
+aws_region = "AWS Region"
+aws_secret_key = "AWS Secret Key"
+`))
+	require.Nil(t, err)
+
+	id, r, err := testState.client.StartComposeTestUpload("cli-test-bp-1", "qcow2", "test-image", tmpProfile.Name(), 0, 2)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Greater(t, len(id), 0)
+}
+
 func TestStartOSTreeCompose(t *testing.T) {
 	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "", 0, 2)
 	require.Nil(t, err)
@@ -53,6 +76,37 @@ func TestStartOSTreeCompose(t *testing.T) {
 
 func TestStartOSTreeComposeUrl(t *testing.T) {
 	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "", "parenturl", 0, 2)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Greater(t, len(id), 0)
+}
+
+func TestStartOSTreeComposeUrlError(t *testing.T) {
+	// Sending both the parent url and the parent id should return an error
+	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "parenturl", 0, 2)
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.False(t, r.Status)
+	assert.Equal(t, APIErrorMsg{"OSTreeOptionsError", "Supply at most one of Parent and URL"}, r.Errors[0])
+	assert.Equal(t, len(id), 0)
+}
+
+func TestStartOSTreeComposeUpload(t *testing.T) {
+	// Need a temporary test file
+	tmpProfile, err := ioutil.TempFile("", "test-profile-p*.toml")
+	require.Nil(t, err)
+	defer os.Remove(tmpProfile.Name())
+
+	_, err = tmpProfile.Write([]byte(`provider = "aws"
+[settings]
+aws_access_key = "AWS Access Key"
+aws_bucket = "AWS Bucket"
+aws_region = "AWS Region"
+aws_secret_key = "AWS Secret Key"
+`))
+	require.Nil(t, err)
+
+	id, r, err := testState.client.StartOSTreeComposeTestUpload("cli-test-bp-1", "qcow2", "test-image", tmpProfile.Name(), "refid", "", "parenturl", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)

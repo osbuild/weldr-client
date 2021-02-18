@@ -8,6 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/BurntSushi/toml"
 )
 
 // ListComposes returns details about the composes on the server
@@ -136,6 +138,43 @@ func (c Client) StartComposeTest(blueprint, composeType string, size uint, test 
 	return c.startComposeTest(settings, test)
 }
 
+// StartComposeUpload will start a compose of a blueprint and upload it to a provider
+// Returns the UUID of the build that was started
+func (c Client) StartComposeUpload(blueprint, composeType, imageName, profileFile string, size uint) (string, *APIResponse, error) {
+	return c.StartComposeTestUpload(blueprint, composeType, imageName, profileFile, size, 0)
+}
+
+// StartComposeTestUpload will start a compose of a blueprint, optionally starting a test compose
+// it will also upload the image to a provider.
+// test = 1 creates a fake failed compose
+// test = 2 creates a fake successful compose
+func (c Client) StartComposeTestUpload(blueprint, composeType, imageName, profileFile string, size uint, test uint) (string, *APIResponse, error) {
+	var settings struct {
+		Name   string `json:"blueprint_name"`
+		Type   string `json:"compose_type"`
+		Branch string `json:"branch"`
+		Size   uint   `json:"size"`
+		Upload struct {
+			Provider  string      `json:"provider" toml:"provider"`
+			ImageName string      `json:"image_name" toml:"image_name"`
+			Settings  interface{} `json:"settings" toml:"settings"`
+		} `json:"upload"`
+	}
+	settings.Name = blueprint
+	settings.Type = composeType
+	settings.Branch = "master"
+	settings.Size = size
+
+	// Read the profile toml file into settings.Upload
+	_, err := toml.DecodeFile(profileFile, &settings.Upload)
+	if err != nil {
+		return "", nil, err
+	}
+	settings.Upload.ImageName = imageName
+
+	return c.startComposeTest(settings, test)
+}
+
 // StartOSTreeCompose will start a compose of a blueprint
 // Returns the UUID of the build that was started
 func (c Client) StartOSTreeCompose(blueprint, composeType, ref, parent, url string, size uint) (string, *APIResponse, error) {
@@ -164,6 +203,50 @@ func (c Client) StartOSTreeComposeTest(blueprint, composeType, ref, parent, url 
 	settings.OSTree.Ref = ref
 	settings.OSTree.Parent = parent
 	settings.OSTree.URL = url
+
+	return c.startComposeTest(settings, test)
+}
+
+// StartOSTreeComposeUpload will start a compose of a blueprint and upload it to a provider
+// Returns the UUID of the build that was started
+func (c Client) StartOSTreeComposeUpload(blueprint, composeType, imageName, profileFile, ref, parent, url string, size uint) (string, *APIResponse, error) {
+	return c.StartOSTreeComposeTestUpload(blueprint, composeType, imageName, profileFile, ref, parent, url, size, 0)
+}
+
+// StartOSTreeComposeTestUpload will start a compose of a blueprint, optionally starting a test compose
+// test = 1 creates a fake failed compose
+// test = 2 creates a fake successful compose
+func (c Client) StartOSTreeComposeTestUpload(blueprint, composeType, imageName, profileFile, ref, parent, url string, size uint, test uint) (string, *APIResponse, error) {
+	var settings struct {
+		Name   string `json:"blueprint_name"`
+		Type   string `json:"compose_type"`
+		Branch string `json:"branch"`
+		Size   uint   `json:"size"`
+		OSTree struct {
+			Ref    string `json:"ref"`
+			Parent string `json:"parent"`
+			URL    string `json:"url"`
+		} `json:"ostree"`
+		Upload struct {
+			Provider  string      `json:"provider" toml:"provider"`
+			ImageName string      `json:"image_name" toml:"image_name"`
+			Settings  interface{} `json:"settings" toml:"settings"`
+		} `json:"upload"`
+	}
+	settings.Name = blueprint
+	settings.Type = composeType
+	settings.Branch = "master"
+	settings.Size = size
+	settings.OSTree.Ref = ref
+	settings.OSTree.Parent = parent
+	settings.OSTree.URL = url
+
+	// Read the profile toml file into settings.Upload
+	_, err := toml.DecodeFile(profileFile, &settings.Upload)
+	if err != nil {
+		return "", nil, err
+	}
+	settings.Upload.ImageName = imageName
 
 	return c.startComposeTest(settings, test)
 }
