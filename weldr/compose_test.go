@@ -44,6 +44,20 @@ func TestStartComposeSize(t *testing.T) {
 	assert.Greater(t, len(id), 0)
 }
 
+func TestStartOSTreeCompose(t *testing.T) {
+	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "", 0, 2)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Greater(t, len(id), 0)
+}
+
+func TestStartOSTreeComposeUrl(t *testing.T) {
+	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "", "parenturl", 0, 2)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Greater(t, len(id), 0)
+}
+
 func TestStartComposeUnknownBlueprint(t *testing.T) {
 	_, r, err := testState.client.StartCompose("thingy", "qcow2", 0)
 	require.Nil(t, err)

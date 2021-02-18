@@ -133,8 +133,46 @@ func (c Client) StartComposeTest(blueprint, composeType string, size uint, test 
 	settings.Type = composeType
 	settings.Branch = "master"
 	settings.Size = size
+	return c.startComposeTest(settings, test)
+}
 
-	data, err := json.Marshal(settings)
+// StartOSTreeCompose will start a compose of a blueprint
+// Returns the UUID of the build that was started
+func (c Client) StartOSTreeCompose(blueprint, composeType, ref, parent, url string, size uint) (string, *APIResponse, error) {
+	return c.StartOSTreeComposeTest(blueprint, composeType, ref, parent, url, size, 0)
+}
+
+// StartOSTreeComposeTest will start a compose of a blueprint, optionally starting a test compose
+// test = 1 creates a fake failed compose
+// test = 2 creates a fake successful compose
+func (c Client) StartOSTreeComposeTest(blueprint, composeType, ref, parent, url string, size uint, test uint) (string, *APIResponse, error) {
+	var settings struct {
+		Name   string `json:"blueprint_name"`
+		Type   string `json:"compose_type"`
+		Branch string `json:"branch"`
+		Size   uint   `json:"size"`
+		OSTree struct {
+			Ref    string `json:"ref"`
+			Parent string `json:"parent"`
+			URL    string `json:"url"`
+		} `json:"ostree"`
+	}
+	settings.Name = blueprint
+	settings.Type = composeType
+	settings.Branch = "master"
+	settings.Size = size
+	settings.OSTree.Ref = ref
+	settings.OSTree.Parent = parent
+	settings.OSTree.URL = url
+
+	return c.startComposeTest(settings, test)
+}
+
+// startComposeTest is the common function for starting composes
+// It passes through the request to the server, only setting the test flag if it is > 0
+// And returns the server response to the caller
+func (c Client) startComposeTest(request interface{}, test uint) (string, *APIResponse, error) {
+	data, err := json.Marshal(request)
 	if err != nil {
 		return "", nil, err
 	}
