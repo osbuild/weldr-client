@@ -315,9 +315,9 @@ func SortComposeStatusV0(composes []ComposeStatusV0) []ComposeStatusV0 {
 	return composes
 }
 
-// isStringInSlice returns true if the string is present, false if not
+// IsStringInSlice returns true if the string is present, false if not
 // slice must be sorted
-func isStringInSlice(slice []string, s string) bool {
+func IsStringInSlice(slice []string, s string) bool {
 	i := sort.SearchStrings(slice, s)
 	if i < len(slice) && slice[i] == s {
 		return true

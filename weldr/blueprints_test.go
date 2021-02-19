@@ -23,8 +23,8 @@ func TestListBlueprints(t *testing.T) {
 	require.Nil(t, r)
 	require.NotNil(t, blueprints)
 	assert.GreaterOrEqual(t, len(blueprints), 2)
-	assert.True(t, isStringInSlice(blueprints, "cli-test-bp-1"))
-	assert.True(t, isStringInSlice(blueprints, "cli-test-bp-2"))
+	assert.True(t, IsStringInSlice(blueprints, "cli-test-bp-1"))
+	assert.True(t, IsStringInSlice(blueprints, "cli-test-bp-2"))
 }
 
 func TestGetBlueprintsTOML(t *testing.T) {
@@ -259,14 +259,14 @@ func TestGetFrozenBlueprintsTOML(t *testing.T) {
 	for _, p := range parts.Packages {
 		pkgs = append(pkgs, p.Name)
 	}
-	assert.True(t, isStringInSlice(pkgs, "bash"), pkgs)
+	assert.True(t, IsStringInSlice(pkgs, "bash"), pkgs)
 
 	require.GreaterOrEqual(t, len(parts.Modules), 1)
 	var modules []string
 	for _, m := range parts.Modules {
 		modules = append(modules, m.Name)
 	}
-	assert.True(t, isStringInSlice(modules, "util-linux"))
+	assert.True(t, IsStringInSlice(modules, "util-linux"))
 }
 
 func TestGetFrozenBlueprintsJSON(t *testing.T) {
@@ -296,14 +296,14 @@ func TestGetFrozenBlueprintsJSON(t *testing.T) {
 	for _, p := range parts.Packages {
 		pkgs = append(pkgs, p.Name)
 	}
-	assert.True(t, isStringInSlice(pkgs, "bash"), pkgs)
+	assert.True(t, IsStringInSlice(pkgs, "bash"), pkgs)
 
 	require.GreaterOrEqual(t, len(parts.Modules), 1)
 	var modules []string
 	for _, m := range parts.Modules {
 		modules = append(modules, m.Name)
 	}
-	assert.True(t, isStringInSlice(modules, "util-linux"))
+	assert.True(t, IsStringInSlice(modules, "util-linux"))
 
 	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp: blueprint not found"}, errors[0])
 }
@@ -346,7 +346,7 @@ func TestDepsolveBlueprints(t *testing.T) {
 	for _, p := range parts.Dependencies {
 		pkgs = append(pkgs, p.Name)
 	}
-	assert.True(t, isStringInSlice(pkgs, "bash"))
-	assert.True(t, isStringInSlice(pkgs, "filesystem"))
+	assert.True(t, IsStringInSlice(pkgs, "bash"))
+	assert.True(t, IsStringInSlice(pkgs, "filesystem"))
 	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp: blueprint not found"}, errors[0])
 }
