@@ -7,10 +7,12 @@ package compose
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/spf13/cobra"
 
 	"github.com/weldr/weldr-client/cmd/composer-cli/root"
+	"github.com/weldr/weldr-client/weldr"
 )
 
 var (
@@ -43,22 +45,23 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 		rcErr = root.ExecutionError(cmd, "")
 	}
 
-	var status string
-	if len(args) == 1 {
-		switch args[0] {
+	var filter []string
+	for _, arg := range args {
+		switch arg {
 		case "waiting":
-			status = "WAITING"
+			filter = append(filter, "WAITING")
 		case "running":
-			status = "RUNNING"
+			filter = append(filter, "RUNNING")
 		case "finished":
-			status = "FINISHED"
+			filter = append(filter, "FINISHED")
 		case "failed":
-			status = "FAILED"
+			filter = append(filter, "FAILED")
 		}
 	}
+	sort.Strings(filter)
 
 	for i := range composes {
-		if len(args) > 0 && status != composes[i].Status {
+		if len(filter) > 0 && !weldr.IsStringInSlice(filter, composes[i].Status) {
 			continue
 		}
 		fmt.Printf("%s %s %s %s %s\n", composes[i].ID, composes[i].Status,

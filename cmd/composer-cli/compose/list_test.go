@@ -161,4 +161,23 @@ func TestCmdComposeList(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
+
+	// List all of the finished and failed composes
+	cmd, out, err = root.ExecuteTest("compose", "list", "finished", "failed")
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, listCmd)
+	stdout, err = ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.NotContains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
+	assert.NotContains(t, string(stdout), "6d185e04-b56e-4705-97b6-21d6c6c85f06")
+	assert.Contains(t, string(stdout), "cefd01c3-629f-493e-af72-3f12981bb77b")
+	assert.Contains(t, string(stdout), "d5903571-55e2-4a18-8643-2d90611fcb11")
+	stderr, err = ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
 }
