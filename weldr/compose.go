@@ -331,3 +331,16 @@ func (c Client) CancelCompose(id string) (ComposeCancelV0, []APIErrorMsg, error)
 	}
 	return r, errors, nil
 }
+
+// ComposeLog returns the last 1k of logs from a running compose
+func (c Client) ComposeLog(id string, size int) (string, *APIResponse, error) {
+	route := fmt.Sprintf("/compose/log/%s?size=%d", id, size)
+	body, resp, err := c.GetRaw("GET", route)
+	if err != nil {
+		return "", resp, err
+	}
+	if resp != nil {
+		return "", resp, nil
+	}
+	return string(body), nil, nil
+}

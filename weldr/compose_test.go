@@ -190,3 +190,16 @@ func TestCancelComposeUnknown(t *testing.T) {
 	require.NotNil(t, status)
 	assert.Equal(t, APIErrorMsg{ID: "UnknownUUID", Msg: "Compose ac188b76-138a-452c-82fb-5cc651986991 doesn't exist"}, r[0])
 }
+
+func TestComposeLogUnknown(t *testing.T) {
+	// This is a difficult one to test, you would have to catch it in the running state, with logs.
+	// Test errors instead
+	log, r, err := testState.client.ComposeLog("ac188b76-138a-452c-82fb-5cc651986991", 1024)
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	require.Greater(t, len(r.Errors), 0)
+	require.NotNil(t, log)
+	assert.Equal(t, "", log)
+	assert.False(t, r.Status)
+	assert.Equal(t, APIErrorMsg{ID: "UnknownUUID", Msg: "Compose ac188b76-138a-452c-82fb-5cc651986991 doesn't exist"}, r.Errors[0])
+}
