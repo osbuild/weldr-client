@@ -834,3 +834,8 @@ func TestSortComposeStatus(t *testing.T) {
 	}
 	assert.Equal(t, sorted, SortComposeStatusV0(unsorted))
 }
+
+func TestIsStringInSlice(t *testing.T) {
+	assert.True(t, IsStringInSlice([]string{"bar", "baz", "foo"}, "foo"))
+	assert.False(t, IsStringInSlice([]string{"bar", "baz", "foo"}, "troz"))
+}
