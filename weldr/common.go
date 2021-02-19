@@ -147,7 +147,7 @@ func (c Client) GetRawBody(method, path string) (io.ReadCloser, *APIResponse, er
 
 	// Convert the API's JSON error response to an error type and return it
 	// lorax-composer (wrongly) returns 404 for some of its json responses
-	if resp.StatusCode == 400 || resp.StatusCode == 404 {
+	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
 		apiResponse, err := c.apiError(resp)
 		return nil, apiResponse, err
 	}
