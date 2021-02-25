@@ -221,6 +221,40 @@ func (c Client) GetJSONAllFnTotal(path string, fn func([]byte) (float64, error))
 	return c.GetRaw("GET", allResults)
 }
 
+// GetFile writes a to a temporary file and returns the path, content-disposition, and content-type
+// to the caller.
+func (c Client) GetFile(path string) (fileName, cDisposition, cType string, apiResponse *APIResponse, err error) {
+	resp, err := c.Request("GET", path, "", map[string]string{})
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+
+	// Convert the API's JSON error response to an error type and return it
+	// lorax-composer (wrongly) returns 404 for some of its json responses
+	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
+		apiResponse, err = c.apiError(resp)
+		return
+	}
+
+	// Write the body to a temporary file (caller is responsible for cleanup)
+	tmpFile, err := ioutil.TempFile("", "composer-cli-file-*")
+	if err != nil {
+		return
+	}
+	if _, err = io.Copy(tmpFile, resp.Body); err != nil {
+		return
+	}
+	if err = tmpFile.Close(); err != nil {
+		return
+	}
+
+	cDisposition = resp.Header.Get("content-disposition")
+	cType = resp.Header.Get("content-type")
+
+	return tmpFile.Name(), cDisposition, cType, nil, nil
+}
+
 // PostRaw sends a POST with raw data and returns the raw response body
 // Errors from the API are returned as an APIResponse, client errors are returned as error
 func (c Client) PostRaw(path, body string, headers map[string]string) ([]byte, *APIResponse, error) {

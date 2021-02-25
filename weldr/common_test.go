@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"testing"
 
@@ -740,6 +741,61 @@ func TestRawCallbackResponse(t *testing.T) {
 	assert.Equal(t, 1, len(r.Errors))
 	assert.Equal(t, APIErrorMsg{"ERROR400", "Sent a 400"}, r.Errors[0])
 	assert.Equal(t, []byte(json), rawData)
+}
+
+func TestGetFile(t *testing.T) {
+	// Test retrieving a file
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+
+			resp := http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Header:     http.Header{},
+			}
+			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
+			resp.Header.Set("Content-Type", "text/plain")
+
+			return &resp, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	tf, cd, ct, r, err := tc.GetFile("/file/a-very-short-file")
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "attachment; filename=a-very-short-file.txt", cd)
+	assert.Equal(t, "text/plain", ct)
+	require.Greater(t, len(tf), 0)
+	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
+	_, err = os.Stat(tf)
+	require.Nil(t, err)
+	data, err := ioutil.ReadFile(tf)
+	assert.Equal(t, []byte("A Very Short File."), data)
+	os.Remove(tf)
+}
+
+func TestGetFileError400(t *testing.T) {
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
+			return &http.Response{
+				StatusCode: 400,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	tf, cd, ct, r, err := tc.GetFile("/file/not-even-a-file")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"ERROR400", "Sent a 400"}, r.Errors[0])
+	assert.Equal(t, "", ct)
+	assert.Equal(t, "", cd)
+	assert.Equal(t, "", tf)
 }
 
 func TestSortComposeStatus(t *testing.T) {
