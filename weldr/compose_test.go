@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -202,4 +203,53 @@ func TestComposeLogUnknown(t *testing.T) {
 	assert.Equal(t, "", log)
 	assert.False(t, r.Status)
 	assert.Equal(t, APIErrorMsg{ID: "UnknownUUID", Msg: "Compose ac188b76-138a-452c-82fb-5cc651986991 doesn't exist"}, r.Errors[0])
+}
+
+func TestComposeLogs(t *testing.T) {
+	// We need a finished compose to download the logs for
+	id, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Greater(t, len(id), 0)
+
+	// It should be available immediately, but just in case, try 3 times with a delay
+	var found bool
+	for i := 0; i < 3 && !found; i++ {
+		composes, r, err := testState.client.ListComposes()
+		require.Nil(t, err)
+		require.Nil(t, r)
+		require.NotNil(t, composes)
+		for _, c := range composes {
+			if c.ID == id && c.Status == "FINISHED" {
+				found = true
+				break
+			}
+		}
+		time.Sleep(5 * time.Second)
+	}
+	require.True(t, found)
+
+	// Download the log file
+	tf, cd, ct, r, err := testState.client.ComposeLogs(id)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "application/x-tar", ct)
+	assert.Contains(t, cd, "filename=")
+	require.Greater(t, len(tf), 0)
+	_, err = os.Stat(tf)
+	require.Nil(t, err)
+	os.Remove(tf)
+}
+
+func TestComposeLogsUnknown(t *testing.T) {
+	// Test handling of unknown uuid
+	tf, cd, ct, r, err := testState.client.ComposeLogs("90eafe5a-00f3-40f8-8416-d6809a94e25d")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"UnknownUUID", "Compose 90eafe5a-00f3-40f8-8416-d6809a94e25d doesn't exist"}, r.Errors[0])
+	assert.Equal(t, "", ct)
+	assert.Equal(t, "", cd)
+	assert.Equal(t, "", tf)
 }

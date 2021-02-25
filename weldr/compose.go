@@ -344,3 +344,11 @@ func (c Client) ComposeLog(id string, size int) (string, *APIResponse, error) {
 	}
 	return string(body), nil, nil
 }
+
+// ComposeLogs returns the tar file of logs from the selected compose
+// It returns a temporary filename, the name of the file from the server, and the type.
+// The caller must clean up the temporary file when finished
+func (c Client) ComposeLogs(id string) (fileName, cDisposition, cType string, apiResponse *APIResponse, err error) {
+	route := fmt.Sprintf("/compose/logs/%s", id)
+	return c.GetFile(route)
+}
