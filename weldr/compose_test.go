@@ -7,6 +7,7 @@
 package weldr
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -230,11 +231,11 @@ func TestComposeLogs(t *testing.T) {
 	require.True(t, found)
 
 	// Download the log file
-	tf, cd, ct, r, err := testState.client.ComposeLogs(id)
+	tf, fn, ct, r, err := testState.client.ComposeLogs(id)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Equal(t, "application/x-tar", ct)
-	assert.Contains(t, cd, "filename=")
+	assert.Equal(t, fmt.Sprintf("%s-logs.tar", id), fn)
 	require.Greater(t, len(tf), 0)
 	_, err = os.Stat(tf)
 	require.Nil(t, err)
@@ -243,13 +244,13 @@ func TestComposeLogs(t *testing.T) {
 
 func TestComposeLogsUnknown(t *testing.T) {
 	// Test handling of unknown uuid
-	tf, cd, ct, r, err := testState.client.ComposeLogs("90eafe5a-00f3-40f8-8416-d6809a94e25d")
+	tf, fn, ct, r, err := testState.client.ComposeLogs("90eafe5a-00f3-40f8-8416-d6809a94e25d")
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.Equal(t, false, r.Status)
 	assert.Equal(t, 1, len(r.Errors))
 	assert.Equal(t, APIErrorMsg{"UnknownUUID", "Compose 90eafe5a-00f3-40f8-8416-d6809a94e25d doesn't exist"}, r.Errors[0])
 	assert.Equal(t, "", ct)
-	assert.Equal(t, "", cd)
+	assert.Equal(t, "", fn)
 	assert.Equal(t, "", tf)
 }
