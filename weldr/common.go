@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -380,4 +381,26 @@ func GetContentFilename(header string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("No filename in header: %s", header)
+}
+
+// MoveFile will copy the src file to the destination file and remove the source on success
+// It assumes the destination file doesn't exist, or if it does that it should be overwritten
+func MoveFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+	_, err = io.Copy(dstFile, srcFile)
+	if err == nil {
+		srcFile.Close()
+		os.Remove(src)
+	}
+	return err
 }

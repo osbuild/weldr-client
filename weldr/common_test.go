@@ -923,3 +923,25 @@ func TestGetContentFilenameError(t *testing.T) {
 	_, err = GetContentFilename("attachment; filename=. ;")
 	assert.NotNil(t, err)
 }
+
+func TestMoveFile(t *testing.T) {
+	dir, err := ioutil.TempDir("", "test-move-file-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	f, err := ioutil.TempFile("", "test-move-file-*")
+	require.Nil(t, err)
+	f.Write([]byte("This is just a test file\n"))
+	f.Close()
+
+	dstFile := fmt.Sprintf("%s/dest-file.txt", dir)
+	err = MoveFile(f.Name(), dstFile)
+	require.Nil(t, err)
+	_, err = os.Stat(dstFile)
+	require.Nil(t, err)
+}
+
+func TestMoveFileError(t *testing.T) {
+	err := MoveFile("/tmp/no-such-testfile", "/tmp/no-such-destfile")
+	require.NotNil(t, err)
+}
