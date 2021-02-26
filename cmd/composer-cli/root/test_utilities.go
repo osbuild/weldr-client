@@ -1,10 +1,12 @@
-// Copyright 2020 by Red Hat, Inc. All rights reserved.
+// Copyright 2020-2021 by Red Hat, Inc. All rights reserved.
 // Use of this source is goverend by the Apache License
 // that can be found in the LICENSE file.
 
 package root
 
 import (
+	"archive/tar"
+	"bytes"
 	"context"
 	"io/ioutil"
 	"net/http"
@@ -110,4 +112,27 @@ func SetupCmdTest(f func(request *http.Request) (*http.Response, error)) *weldr.
 		Client = weldr.NewClient(context.Background(), &mc, 1, "")
 	})
 	return &mc
+}
+
+// MakeTarBytes makes a simple tar file with a filename and some data in it
+// it returns it as a slice of bytes.
+func MakeTarBytes(filename, data string) ([]byte, error) {
+	var buf bytes.Buffer
+	tw := tar.NewWriter(&buf)
+	hdr := &tar.Header{
+		Name: filename,
+		Mode: 0600,
+		Size: int64(len(data)),
+	}
+	if err := tw.WriteHeader(hdr); err != nil {
+		return nil, err
+	}
+	if _, err := tw.Write([]byte(data)); err != nil {
+		return nil, err
+	}
+	if err := tw.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }
