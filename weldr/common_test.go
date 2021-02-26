@@ -895,3 +895,31 @@ func TestIsStringInSlice(t *testing.T) {
 	assert.True(t, IsStringInSlice([]string{"bar", "baz", "foo"}, "foo"))
 	assert.False(t, IsStringInSlice([]string{"bar", "baz", "foo"}, "troz"))
 }
+
+func TestGetContentFilename(t *testing.T) {
+	filename, err := GetContentFilename("attachment; filename=875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar")
+	assert.Nil(t, err)
+	assert.Equal(t, "875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar", filename)
+	filename, err = GetContentFilename("attachment; filename=875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar; donuts=glazed;")
+	assert.Nil(t, err)
+	assert.Equal(t, "875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar", filename)
+	filename, err = GetContentFilename("attachment; filename=875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar ; ")
+	assert.Nil(t, err)
+	assert.Equal(t, "875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar", filename)
+	filename, err = GetContentFilename("filename=875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar")
+	assert.Nil(t, err)
+	assert.Equal(t, "875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar", filename)
+}
+
+func TestGetContentFilenameError(t *testing.T) {
+	_, err := GetContentFilename("attachment; filename=../../")
+	assert.NotNil(t, err)
+	_, err = GetContentFilename("")
+	assert.NotNil(t, err)
+	_, err = GetContentFilename("attachment;")
+	assert.NotNil(t, err)
+	_, err = GetContentFilename("attachment; filename=;")
+	assert.NotNil(t, err)
+	_, err = GetContentFilename("attachment; filename=. ;")
+	assert.NotNil(t, err)
+}

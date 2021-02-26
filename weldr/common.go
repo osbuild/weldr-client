@@ -14,7 +14,9 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"path/filepath"
 	"sort"
+	"strings"
 )
 
 // HTTPClient make it easier to swap out the client socket for testing
@@ -357,4 +359,25 @@ func IsStringInSlice(slice []string, s string) bool {
 		return true
 	}
 	return false
+}
+
+// GetContentFilename returns the filename from a content disposition header
+func GetContentFilename(header string) (string, error) {
+
+	// Get the filename from the content-disposition header
+	// Split it on ; and strip whitespace
+	parts := strings.Split(header, ";")
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		fields := strings.Split(p, "=")
+		if len(fields) == 2 && fields[0] == "filename" {
+			filename := filepath.Base(strings.TrimSpace(fields[1]))
+
+			if filename == "/" || filename == "." || filename == ".." {
+				return "", fmt.Errorf("Invalid filename in header: %s", p)
+			}
+			return filename, nil
+		}
+	}
+	return "", fmt.Errorf("No filename in header: %s", header)
 }
