@@ -206,12 +206,12 @@ func TestComposeLogUnknown(t *testing.T) {
 	assert.Equal(t, APIErrorMsg{ID: "UnknownUUID", Msg: "Compose ac188b76-138a-452c-82fb-5cc651986991 doesn't exist"}, r.Errors[0])
 }
 
-func TestComposeLogs(t *testing.T) {
-	// We need a finished compose to download the logs for
+func MakeFinishedCompose(t *testing.T) string {
+	// We need a finished compose to download from
 	id, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
-	assert.Greater(t, len(id), 0)
+	require.Greater(t, len(id), 0)
 
 	// It should be available immediately, but just in case, try 3 times with a delay
 	var found bool
@@ -230,6 +230,12 @@ func TestComposeLogs(t *testing.T) {
 	}
 	require.True(t, found)
 
+	return id
+}
+
+func TestComposeLogs(t *testing.T) {
+	id := MakeFinishedCompose(t)
+
 	// Download the log file
 	tf, fn, ct, r, err := testState.client.ComposeLogs(id)
 	require.Nil(t, err)
@@ -245,6 +251,34 @@ func TestComposeLogs(t *testing.T) {
 func TestComposeLogsUnknown(t *testing.T) {
 	// Test handling of unknown uuid
 	tf, fn, ct, r, err := testState.client.ComposeLogs("90eafe5a-00f3-40f8-8416-d6809a94e25d")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"UnknownUUID", "Compose 90eafe5a-00f3-40f8-8416-d6809a94e25d doesn't exist"}, r.Errors[0])
+	assert.Equal(t, "", ct)
+	assert.Equal(t, "", fn)
+	assert.Equal(t, "", tf)
+}
+
+func TestComposeMetadata(t *testing.T) {
+	id := MakeFinishedCompose(t)
+
+	// Download the metadata file
+	tf, fn, ct, r, err := testState.client.ComposeMetadata(id)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "application/x-tar", ct)
+	assert.Equal(t, fmt.Sprintf("%s-metadata.tar", id), fn)
+	require.Greater(t, len(tf), 0)
+	_, err = os.Stat(tf)
+	require.Nil(t, err)
+	os.Remove(tf)
+}
+
+func TestComposeMetadataUnknown(t *testing.T) {
+	// Test handling of unknown uuid
+	tf, fn, ct, r, err := testState.client.ComposeMetadata("90eafe5a-00f3-40f8-8416-d6809a94e25d")
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.Equal(t, false, r.Status)
