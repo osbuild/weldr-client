@@ -316,3 +316,35 @@ func TestComposeResultsUnknown(t *testing.T) {
 	assert.Equal(t, "", fn)
 	assert.Equal(t, "", tf)
 }
+
+func TestComposeImageError(t *testing.T) {
+	id := MakeFinishedCompose(t)
+
+	// Test composes don't actually have an image file, so this is going to fail with an error.
+	// test that instead.
+
+	// Download the image file
+	tf, fn, ct, r, err := testState.client.ComposeImage(id)
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, "InternalServerError", r.Errors[0].ID)
+	assert.Contains(t, r.Errors[0].Msg, "Error accessing image file for compose")
+	assert.Equal(t, "", ct)
+	assert.Equal(t, "", fn)
+	assert.Equal(t, "", tf)
+}
+
+func TestComposeImageUnknown(t *testing.T) {
+	// Test handling of unknown uuid
+	tf, fn, ct, r, err := testState.client.ComposeImage("90eafe5a-00f3-40f8-8416-d6809a94e25d")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"UnknownUUID", "Compose 90eafe5a-00f3-40f8-8416-d6809a94e25d doesn't exist"}, r.Errors[0])
+	assert.Equal(t, "", ct)
+	assert.Equal(t, "", fn)
+	assert.Equal(t, "", tf)
+}
