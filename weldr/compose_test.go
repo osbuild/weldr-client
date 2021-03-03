@@ -288,3 +288,31 @@ func TestComposeMetadataUnknown(t *testing.T) {
 	assert.Equal(t, "", fn)
 	assert.Equal(t, "", tf)
 }
+
+func TestComposeResults(t *testing.T) {
+	id := MakeFinishedCompose(t)
+
+	// Download the results file
+	tf, fn, ct, r, err := testState.client.ComposeResults(id)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "application/x-tar", ct)
+	assert.Equal(t, fmt.Sprintf("%s.tar", id), fn)
+	require.Greater(t, len(tf), 0)
+	_, err = os.Stat(tf)
+	require.Nil(t, err)
+	os.Remove(tf)
+}
+
+func TestComposeResultsUnknown(t *testing.T) {
+	// Test handling of unknown uuid
+	tf, fn, ct, r, err := testState.client.ComposeResults("90eafe5a-00f3-40f8-8416-d6809a94e25d")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"UnknownUUID", "Compose 90eafe5a-00f3-40f8-8416-d6809a94e25d doesn't exist"}, r.Errors[0])
+	assert.Equal(t, "", ct)
+	assert.Equal(t, "", fn)
+	assert.Equal(t, "", tf)
+}

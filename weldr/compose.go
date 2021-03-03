@@ -372,3 +372,17 @@ func (c Client) ComposeMetadata(id string) (tempFile, fileName, cType string, ap
 	fileName, err = GetContentFilename(cDisposition)
 	return
 }
+
+// ComposeResults returns the tar file of compose's results
+// It returns a temporary filename, the name of the file from the server, and the type.
+// The caller must clean up the temporary file when finished
+func (c Client) ComposeResults(id string) (tempFile, fileName, cType string, apiResponse *APIResponse, err error) {
+	route := fmt.Sprintf("/compose/results/%s", id)
+	tempFile, cDisposition, cType, apiResponse, err := c.GetFile(route)
+
+	if err != nil || apiResponse != nil {
+		return
+	}
+	fileName, err = GetContentFilename(cDisposition)
+	return
+}
