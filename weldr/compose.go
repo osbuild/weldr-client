@@ -400,3 +400,22 @@ func (c Client) ComposeImage(id string) (tempFile, fileName, cType string, apiRe
 	fileName, err = GetContentFilename(cDisposition)
 	return
 }
+
+// ComposeInfo returns details about a specific compose
+func (c Client) ComposeInfo(id string) (info ComposeInfoV0, resp *APIResponse, err error) {
+
+	route := fmt.Sprintf("/compose/info/%s", id)
+	j, resp, err := c.GetRaw("GET", route)
+	if err != nil {
+		return info, nil, err
+	}
+	if resp != nil {
+		return info, resp, nil
+	}
+
+	err = json.Unmarshal(j, &info)
+	if err != nil {
+		resp = &APIResponse{false, []APIErrorMsg{{"JSONError", err.Error()}}}
+	}
+	return info, resp, nil
+}

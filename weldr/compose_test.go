@@ -348,3 +348,29 @@ func TestComposeImageUnknown(t *testing.T) {
 	assert.Equal(t, "", fn)
 	assert.Equal(t, "", tf)
 }
+
+func TestComposeInfo(t *testing.T) {
+	id := MakeFinishedCompose(t)
+
+	// Get the details about the compose
+	info, r, err := testState.client.ComposeInfo(id)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, info)
+	assert.Equal(t, id, info.ID)
+	assert.Equal(t, "qcow2", info.ComposeType)
+	assert.Equal(t, "FINISHED", info.QueueStatus)
+	assert.Equal(t, "cli-test-bp-1", info.Blueprint.Name)
+	require.Greater(t, len(info.Blueprint.Packages), 0)
+}
+
+func TestComposeInfoUnknown(t *testing.T) {
+	// Get the details about the compose
+	info, r, err := testState.client.ComposeInfo("fcb032c5-5734-4cda-bc60-c4e72c0f76fd")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"UnknownUUID", "fcb032c5-5734-4cda-bc60-c4e72c0f76fd is not a valid build uuid"}, r.Errors[0])
+	require.Equal(t, ComposeInfoV0{}, info)
+}
