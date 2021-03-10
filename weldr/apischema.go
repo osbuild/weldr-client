@@ -73,6 +73,24 @@ func (c Client) apiError(resp *http.Response) (*APIResponse, error) {
 	return NewAPIResponse(body)
 }
 
+// PackageNEVRA contains the details about a package
+type PackageNEVRA struct {
+	Arch    string `json:"arch"`
+	Epoch   int    `json:"epoch"`
+	Name    string `json:"name"`
+	Version string `json:"version"`
+	Release string `json:"release"`
+}
+
+// String returns the package name, epoch, version and release as a string
+func (pkg PackageNEVRA) String() string {
+	if pkg.Epoch == 0 {
+		return fmt.Sprintf("%s-%s-%s.%s", pkg.Name, pkg.Version, pkg.Release, pkg.Arch)
+	}
+
+	return fmt.Sprintf("%s-%d:%s-%s.%s", pkg.Name, pkg.Epoch, pkg.Version, pkg.Release, pkg.Arch)
+}
+
 // StatusV0 is the response to /api/status from a v0+ server
 type StatusV0 struct {
 	API           string   `json:"api"`
@@ -150,4 +168,39 @@ type ComposeDeleteV0 struct {
 type ComposeCancelV0 struct {
 	ID     string `json:"uuid"`
 	Status bool   `json:"status"`
+}
+
+// infoBlueprint contains the parts of a Blueprint useful for the compose info command
+type infoBlueprint struct {
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Version     string    `json:"version,omitempty"`
+	Packages    []Package `json:"packages"`
+	Modules     []Package `json:"modules"`
+	Groups      []Group   `json:"groups"`
+}
+
+// A Package specifies an RPM package.
+type Package struct {
+	Name    string `json:"name" toml:"name"`
+	Version string `json:"version,omitempty" toml:"version,omitempty"`
+}
+
+// Group specifies a package group.
+type Group struct {
+	Name string `json:"name" toml:"name"`
+}
+
+// ComposeInfoV0 is the response to a compose/info request
+type ComposeInfoV0 struct {
+	ID        string        `json:"id"`
+	Config    string        `json:"config"`    // anaconda config, let's ignore this field
+	Blueprint infoBlueprint `json:"blueprint"` // blueprint parts that info cares about
+	Commit    string        `json:"commit"`    // empty for now
+	Deps      struct {
+		Packages []PackageNEVRA `json:"packages"`
+	} `json:"deps"`
+	ComposeType string `json:"compose_type"`
+	QueueStatus string `json:"queue_status"`
+	ImageSize   uint64 `json:"image_size"`
 }
