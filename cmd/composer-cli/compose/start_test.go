@@ -20,8 +20,7 @@ import (
 func TestCmdComposeStart(t *testing.T) {
 	// Test the "compose start" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
 			"status": true
 }`
@@ -61,8 +60,7 @@ func TestCmdComposeStart(t *testing.T) {
 func TestCmdComposeStartSize(t *testing.T) {
 	// Test the "compose start" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
 			"status": true
 }`
@@ -102,8 +100,7 @@ func TestCmdComposeStartSize(t *testing.T) {
 func TestCmdComposeStartUpload(t *testing.T) {
 	// Test the "compose start" command with upload
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
 			"status": true
 }`

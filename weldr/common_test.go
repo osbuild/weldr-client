@@ -770,7 +770,7 @@ func TestGetFile(t *testing.T) {
 	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
 	_, err = os.Stat(tf)
 	require.Nil(t, err)
-	data, err := ioutil.ReadFile(tf)
+	data, _ := ioutil.ReadFile(tf)
 	assert.Equal(t, []byte("A Very Short File."), data)
 	os.Remove(tf)
 }
@@ -931,7 +931,8 @@ func TestMoveFile(t *testing.T) {
 
 	f, err := ioutil.TempFile("", "test-move-file-*")
 	require.Nil(t, err)
-	f.Write([]byte("This is just a test file\n"))
+	_, err = f.Write([]byte("This is just a test file\n"))
+	require.Nil(t, err)
 	f.Close()
 
 	dstFile := fmt.Sprintf("%s/dest-file.txt", dir)

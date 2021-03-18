@@ -19,8 +19,7 @@ import (
 func TestCmdStatusShow(t *testing.T) {
 	// Test the "status show" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{"api":"1","db_supported":true,"db_version":"0","schema_version":"0","backend":"osbuild-composer","build":"devel","msgs":[]}`
+		json := `{"api":"1","db_supported":true,"db_version":"0","schema_version":"0","backend":"osbuild-composer","build":"devel","msgs":[]}`
 
 		return &http.Response{
 			StatusCode: 200,

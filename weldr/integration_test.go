@@ -6,6 +6,7 @@
 package weldr
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -65,7 +66,14 @@ func executeTests(m *testing.M) int {
 		name="root"
 		password="qweqweqwe"
 		`
-	testState.client.PushBlueprintTOML(bp)
+	//nolint:errcheck
+	resp, err := testState.client.PushBlueprintTOML(bp)
+	if err != nil {
+		panic(err)
+	}
+	if resp == nil {
+		panic(errors.New("No response for PushBlueprintTOML"))
+	}
 
 	// Push a 2nd version of the first blueprint for use in undo test
 	bp = `
@@ -88,7 +96,14 @@ func executeTests(m *testing.M) int {
 		name="root"
 		password="asdasdasd"
 		`
-	testState.client.PushBlueprintTOML(bp)
+	resp, err = testState.client.PushBlueprintTOML(bp)
+	if err != nil {
+		panic(err)
+	}
+	if resp == nil {
+		panic(errors.New("No response for PushBlueprintTOML"))
+	}
+
 	bp = `
 		name="cli-test-bp-2"
 		description="composer-cli blueprint test 2"
@@ -107,7 +122,14 @@ func executeTests(m *testing.M) int {
 		`
 
 	// Push a blueprint that cannot be depsolved (version == 0)
-	testState.client.PushBlueprintTOML(bp)
+	resp, err = testState.client.PushBlueprintTOML(bp)
+	if err != nil {
+		panic(err)
+	}
+	if resp == nil {
+		panic(errors.New("No response for PushBlueprintTOML"))
+	}
+
 	bp = `
 		name="cli-test-bp-3"
 		description="composer-cli blueprint test 3"
@@ -116,16 +138,34 @@ func executeTests(m *testing.M) int {
 		name="tmux"
 		version="0"
 		`
-	testState.client.PushBlueprintTOML(bp)
+	resp, err = testState.client.PushBlueprintTOML(bp)
+	if err != nil {
+		panic(err)
+	}
+	if resp == nil {
+		panic(errors.New("No response for PushBlueprintTOML"))
+	}
 
 	// Create some fake successful composes
 	for _, bp := range []string{"cli-test-bp-1", "cli-test-bp-2"} {
-		testState.client.StartComposeTest(bp, "qcow2", 0, 2)
+		_, resp, err := testState.client.StartComposeTest(bp, "qcow2", 0, 2)
+		if err != nil {
+			panic(err)
+		}
+		if resp != nil {
+			panic(errors.New("StartComposeTest failed"))
+		}
 	}
 
 	// Create some fake failed composes
 	for _, bp := range []string{"cli-test-bp-1", "cli-test-bp-2"} {
-		testState.client.StartComposeTest(bp, "qcow2", 0, 1)
+		_, resp, err := testState.client.StartComposeTest(bp, "qcow2", 0, 1)
+		if err != nil {
+			panic(err)
+		}
+		if resp != nil {
+			panic(errors.New("StartComposeTest failed"))
+		}
 	}
 
 	// TODO Push test source(s)

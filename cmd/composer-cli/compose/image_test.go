@@ -43,6 +43,7 @@ func TestCmdComposeImage(t *testing.T) {
 	prevDir, _ := os.Getwd()
 	err = os.Chdir(dir)
 	require.Nil(t, err)
+	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
 	// Get the logs

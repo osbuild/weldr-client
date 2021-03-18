@@ -19,8 +19,7 @@ import (
 func TestCmdComposeTypes(t *testing.T) {
 	// Test the "compose types" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
     "types": [
         {
             "name": "ami",

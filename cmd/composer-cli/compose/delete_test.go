@@ -19,8 +19,7 @@ import (
 func TestCmdComposeDelete(t *testing.T) {
 	// Test the "compose delete" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 		"uuids": [
         {
             "uuid": "ac188b76-138a-452c-82fb-5cc651986991",
@@ -61,8 +60,7 @@ func TestCmdComposeDelete(t *testing.T) {
 func TestCmdComposeDeleteUnknown(t *testing.T) {
 	// Test the "compose delete" command with one unknown uuid
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 		"uuids": [
         {
             "uuid": "ac188b76-138a-452c-82fb-5cc651986991",

@@ -19,8 +19,7 @@ import (
 func TestCmdComposeCancel(t *testing.T) {
 	// Test the "compose cancel" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 		"uuids": [
         {
             "uuid": "ac188b76-138a-452c-82fb-5cc651986991",
@@ -61,8 +60,7 @@ func TestCmdComposeCancel(t *testing.T) {
 func TestCmdComposeCancelUnknown(t *testing.T) {
 	// Test the "compose cancel" command with one unknown uuid
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
     "status": false,
     "errors": [
         {

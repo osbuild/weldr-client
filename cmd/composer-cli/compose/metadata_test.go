@@ -46,6 +46,7 @@ And should do the job.`
 	prevDir, _ := os.Getwd()
 	err = os.Chdir(dir)
 	require.Nil(t, err)
+	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
 	// Get the logs

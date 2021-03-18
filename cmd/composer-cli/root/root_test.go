@@ -59,7 +59,8 @@ func TestOutputCapture(t *testing.T) {
 	fmt.Println("Testing capture of stdout\nfooblitzky")
 	fmt.Fprintf(os.Stderr, "Testing capture of stderr\nfrobozz\n")
 
-	oc.Rewind()
+	err = oc.Rewind()
+	require.Nil(t, err)
 	stdout, err := ioutil.ReadAll(oc.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "fooblitzky")

@@ -58,6 +58,7 @@ func TestCmdBlueprintsSave(t *testing.T) {
 	prevDir, _ := os.Getwd()
 	err = os.Chdir(dir)
 	require.Nil(t, err)
+	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
 	cmd, out, err := root.ExecuteTest("blueprints", "save", "simple")

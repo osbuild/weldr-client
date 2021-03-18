@@ -20,8 +20,7 @@ import (
 func TestCmdComposeStartOSTree(t *testing.T) {
 	// Test the "compose start-ostree" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
 			"status": true
 }`
@@ -64,8 +63,7 @@ func TestCmdComposeStartOSTree(t *testing.T) {
 func TestCmdComposeStartOSTreeURL(t *testing.T) {
 	// Test the "compose start-ostree" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
 			"status": true
 }`
@@ -108,8 +106,7 @@ func TestCmdComposeStartOSTreeURL(t *testing.T) {
 func TestCmdComposeStartOSTreeSize(t *testing.T) {
 	// Test the "compose start" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
 			"status": true
 }`
@@ -152,8 +149,7 @@ func TestCmdComposeStartOSTreeSize(t *testing.T) {
 func TestCmdComposeStartOSTreeUpload(t *testing.T) {
 	// Test the "compose start" command with upload
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		var json string
-		json = `{
+		json := `{
 			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
 			"status": true
 }`
