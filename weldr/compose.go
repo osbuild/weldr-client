@@ -87,13 +87,11 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 
 // GetComposeTypes returns a list of the compose types
 func (c Client) GetComposeTypes() ([]string, *APIResponse, error) {
-	var errors []APIErrorMsg
 	j, resp, err := c.GetRaw("GET", "/compose/types")
 	if err != nil {
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
 		return nil, resp, nil
 	}
 
