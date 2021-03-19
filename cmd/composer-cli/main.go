@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/weldr/weldr-client/cmd/composer-cli/blueprints"
 	_ "github.com/weldr/weldr-client/cmd/composer-cli/compose"
+	_ "github.com/weldr/weldr-client/cmd/composer-cli/modules"
 	"github.com/weldr/weldr-client/cmd/composer-cli/root"
 	_ "github.com/weldr/weldr-client/cmd/composer-cli/status"
 )
