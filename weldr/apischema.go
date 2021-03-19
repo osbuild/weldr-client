@@ -204,3 +204,17 @@ type ComposeInfoV0 struct {
 	QueueStatus string `json:"queue_status"`
 	ImageSize   uint64 `json:"image_size"`
 }
+
+// ModulesListV0 is the response to /modules/list request
+type ModulesListV0 struct {
+	Total   uint       `json:"total"`
+	Offset  uint       `json:"offset"`
+	Limit   uint       `json:"limit"`
+	Modules []ModuleV0 `json:"modules"`
+}
+
+// ModuleV0 is the name and type of a module
+type ModuleV0 struct {
+	Name string `json:"name"`
+	Type string `json:"group_type"`
+}
