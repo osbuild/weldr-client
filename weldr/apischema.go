@@ -218,3 +218,40 @@ type ModuleV0 struct {
 	Name string `json:"name"`
 	Type string `json:"group_type"`
 }
+
+// ProjectsListV0 is the response to /projects/list request
+type ProjectsListV0 struct {
+	Total    uint        `json:"total"`
+	Offset   uint        `json:"offset"`
+	Limit    uint        `json:"limit"`
+	Projects []ProjectV0 `json:"projects"`
+}
+
+// ProjectV0 holds details about a project
+type ProjectV0 struct {
+	Name        string           `json:"name"`
+	Summary     string           `json:"summary"`
+	Description string           `json:"description"`
+	Homepage    string           `json:"homepage"`
+	UpstreamVCS string           `json:"upstream_vcs"`
+	Builds      []ProjectBuildV0 `json:"builds"`
+}
+
+// ProjectBuildV0 holds details about a single project build
+type ProjectBuildV0 struct {
+	Arch           string `json:"arch"`
+	BuildTime      string `json:"build_time"`
+	Epoch          uint   `json:"epoch"`
+	Release        string `json:"release"`
+	Source         ProjectSourceV0
+	Changelog      string `json:"changelog"`
+	BuildConfigRef string `json:"build_config_ref"`
+	BuildEnvRef    string `json:"build_env_ref"`
+}
+
+// ProjectSourceV0 holds details about the source of a project
+type ProjectSourceV0 struct {
+	License   string `json:"license"`
+	Version   string `json:"version"`
+	SourceRef string `json:"source_ref"`
+}
