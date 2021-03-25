@@ -250,6 +250,24 @@ type ProjectBuildV0 struct {
 	BuildEnvRef    string `json:"build_env_ref"`
 }
 
+// ProjectSourceV0 holds details about the source of a project
+type ProjectSourceV0 struct {
+	License   string `json:"license"`
+	Version   string `json:"version"`
+	SourceRef string `json:"source_ref"`
+}
+
+// String returns the package name, epoch, version and release as a string
+func (p ProjectBuildV0) String() string {
+	if p.Epoch == 0 {
+		return fmt.Sprintf("%s-%s.%s at %s for %s",
+			p.Source.Version, p.Release, p.Arch, p.BuildTime, p.Changelog)
+	}
+
+	return fmt.Sprintf("%d:%s-%s.%s at %s for %s",
+		p.Epoch, p.Source.Version, p.Release, p.Arch, p.BuildTime, p.Changelog)
+}
+
 // ProjectSpecV0 holds details about a project release
 type ProjectSpecV0 struct {
 	Name           string `json:"name"`
@@ -261,11 +279,4 @@ type ProjectSpecV0 struct {
 	Checksum       string `json:"checksum,omitempty"`
 	Secrets        string `json:"secrets,omitempty"`
 	CheckGPG       bool   `json:"check_gpg,omitempty"`
-}
-
-// ProjectSourceV0 holds details about the source of a project
-type ProjectSourceV0 struct {
-	License   string `json:"license"`
-	Version   string `json:"version"`
-	SourceRef string `json:"source_ref"`
 }
