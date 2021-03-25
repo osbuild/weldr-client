@@ -229,12 +229,13 @@ type ProjectsListV0 struct {
 
 // ProjectV0 holds details about a project
 type ProjectV0 struct {
-	Name        string           `json:"name"`
-	Summary     string           `json:"summary"`
-	Description string           `json:"description"`
-	Homepage    string           `json:"homepage"`
-	UpstreamVCS string           `json:"upstream_vcs"`
-	Builds      []ProjectBuildV0 `json:"builds"`
+	Name         string           `json:"name"`
+	Summary      string           `json:"summary"`
+	Description  string           `json:"description"`
+	Homepage     string           `json:"homepage"`
+	UpstreamVCS  string           `json:"upstream_vcs"`
+	Builds       []ProjectBuildV0 `json:"builds"`
+	Dependencies []ProjectSpecV0  `json:"dependencies,omitempty"`
 }
 
 // ProjectBuildV0 holds details about a single project build
@@ -247,6 +248,19 @@ type ProjectBuildV0 struct {
 	Changelog      string `json:"changelog"`
 	BuildConfigRef string `json:"build_config_ref"`
 	BuildEnvRef    string `json:"build_env_ref"`
+}
+
+// ProjectSpecV0 holds details about a project release
+type ProjectSpecV0 struct {
+	Name           string `json:"name"`
+	Epoch          uint   `json:"epoch"`
+	Version        string `json:"version"`
+	Release        string `json:"release"`
+	Arch           string `json:"arch"`
+	RemoteLocation string `json:"remote_location,omitempty"`
+	Checksum       string `json:"checksum,omitempty"`
+	Secrets        string `json:"secrets,omitempty"`
+	CheckGPG       bool   `json:"check_gpg,omitempty"`
 }
 
 // ProjectSourceV0 holds details about the source of a project

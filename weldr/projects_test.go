@@ -20,3 +20,38 @@ func TestListProjects(t *testing.T) {
 	require.NotNil(t, projects)
 	assert.GreaterOrEqual(t, len(projects), 2)
 }
+
+func TestProjectsInfo(t *testing.T) {
+	projects, r, err := testState.client.ProjectsInfo([]string{"bash"})
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, projects)
+	assert.Equal(t, 1, len(projects))
+}
+
+func TestProjectsInfoMultiple(t *testing.T) {
+	projects, r, err := testState.client.ProjectsInfo([]string{"bash", "filesystem", "tmux"})
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, projects)
+	assert.Equal(t, 3, len(projects))
+}
+
+func TestProjectsInfoOneError(t *testing.T) {
+	projects, r, err := testState.client.ProjectsInfo([]string{"bart"})
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	require.Nil(t, projects)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, "UnknownProject", r.Errors[0].ID)
+	assert.Equal(t, "No packages have been found.", r.Errors[0].Msg)
+}
+
+func TestProjectsInfoMultipleOneError(t *testing.T) {
+	projects, r, err := testState.client.ProjectsInfo([]string{"bash", "filesystem", "bart"})
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, projects)
+	assert.Equal(t, 2, len(projects))
+}
