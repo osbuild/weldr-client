@@ -6,6 +6,8 @@ package weldr
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 )
 
 // ListModules returns a list of all of the modules available
@@ -21,4 +23,25 @@ func (c Client) ListModules() ([]ModuleV0, *APIResponse, error) {
 		return nil, nil, err
 	}
 	return list.Modules, nil, nil
+}
+
+// ModulesInfo returns a list of detailed info about the modules, including deps
+func (c Client) ModulesInfo(names []string) ([]ProjectV0, *APIResponse, error) {
+	route := fmt.Sprintf("/modules/info/%s", strings.Join(names, ","))
+	j, resp, err := c.GetRaw("GET", route)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp != nil {
+		return nil, resp, nil
+	}
+
+	var r struct {
+		Modules []ProjectV0
+	}
+	err = json.Unmarshal(j, &r)
+	if err != nil {
+		resp = &APIResponse{Status: false, Errors: []APIErrorMsg{{"JSONError", err.Error()}}}
+	}
+	return r.Modules, resp, nil
 }

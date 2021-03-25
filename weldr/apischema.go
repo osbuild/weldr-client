@@ -280,3 +280,12 @@ type ProjectSpecV0 struct {
 	Secrets        string `json:"secrets,omitempty"`
 	CheckGPG       bool   `json:"check_gpg,omitempty"`
 }
+
+// String returns the package name, epoch, version and release as a string
+func (p ProjectSpecV0) String() string {
+	if p.Epoch == 0 {
+		return fmt.Sprintf("%s-%s-%s.%s", p.Name, p.Version, p.Release, p.Arch)
+	}
+
+	return fmt.Sprintf("%s-%d:%s-%s.%s", p.Name, p.Epoch, p.Version, p.Release, p.Arch)
+}
