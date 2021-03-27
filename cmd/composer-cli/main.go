@@ -13,6 +13,7 @@ import (
 	_ "github.com/weldr/weldr-client/cmd/composer-cli/modules"
 	_ "github.com/weldr/weldr-client/cmd/composer-cli/projects"
 	"github.com/weldr/weldr-client/cmd/composer-cli/root"
+	_ "github.com/weldr/weldr-client/cmd/composer-cli/sources"
 	_ "github.com/weldr/weldr-client/cmd/composer-cli/status"
 )
 
