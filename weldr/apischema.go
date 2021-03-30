@@ -69,7 +69,7 @@ func (c Client) apiError(resp *http.Response) (*APIResponse, error) {
 		return nil, err
 	}
 	// Pass the body to the callback function
-	c.rawFunc(body)
+	c.rawFunc(resp.Request.Method, resp.Request.URL.RequestURI(), resp.StatusCode, body)
 	return NewAPIResponse(body)
 }
 

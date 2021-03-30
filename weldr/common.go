@@ -38,7 +38,7 @@ func NewClient(ctx context.Context, socket HTTPClient, apiVersion int, socketPat
 		version:    apiVersion,
 		protocol:   "http",
 		host:       "localhost",
-		rawFunc:    func([]byte) {},
+		rawFunc:    func(string, string, int, []byte) {},
 	}
 }
 
@@ -64,11 +64,12 @@ type Client struct {
 	host       string // defaults to localhost
 	socketPath string
 	version    int
-	rawFunc    func([]byte) // Pass the raw json data to a user function
+	rawFunc    func(string, string, int, []byte) // Pass the raw json data to a user function
 }
 
-// SetRawCallback sets a function that will be called with the raw body bytes from the server response
-func (c *Client) SetRawCallback(f func([]byte)) {
+// SetRawCallback sets a function that will be called with from the server response
+// It is passed the method, path, result status, and body bytes
+func (c *Client) SetRawCallback(f func(string, string, int, []byte)) {
 	c.rawFunc = f
 }
 
@@ -171,7 +172,7 @@ func (c Client) GetRaw(method, path string) ([]byte, *APIResponse, error) {
 		return nil, nil, err
 	}
 	// Pass the body to the callback function
-	c.rawFunc(bodyBytes)
+	c.rawFunc(method, path, 200, bodyBytes)
 	return bodyBytes, nil, nil
 }
 
@@ -278,7 +279,7 @@ func (c Client) PostRaw(path, body string, headers map[string]string) ([]byte, *
 		return nil, nil, err
 	}
 	// Pass the body to the callback function
-	c.rawFunc(responseBody)
+	c.rawFunc("POST", path, 200, responseBody)
 	return responseBody, nil, nil
 }
 
@@ -315,7 +316,7 @@ func (c Client) DeleteRaw(path string) ([]byte, *APIResponse, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	c.rawFunc(responseBody)
+	c.rawFunc("DELETE", path, 200, responseBody)
 	return responseBody, nil, nil
 }
 

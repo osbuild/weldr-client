@@ -29,7 +29,7 @@ func (c Client) ServerStatus() (StatusV0, *APIResponse, error) {
 		return StatusV0{}, nil, err
 	}
 	// Pass the body to the callback function
-	c.rawFunc(bodyBytes)
+	c.rawFunc("GET", "/api/status", 200, bodyBytes)
 
 	var status StatusV0
 	err = json.Unmarshal(bodyBytes, &status)

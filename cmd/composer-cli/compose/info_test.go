@@ -106,6 +106,7 @@ func TestCmdComposeInfoUnknown(t *testing.T) {
     "status": false
 }`
 		return &http.Response{
+			Request:    request,
 			StatusCode: 400,
 			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil

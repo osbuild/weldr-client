@@ -90,8 +90,9 @@ func TestRequestPostBody(t *testing.T) {
 func TestRequestMethods404(t *testing.T) {
 	// Test the GET, POST, DELETE methods
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
+				Request:    req,
 				StatusCode: 404,
 				Body:       nil,
 			}, nil
@@ -114,8 +115,9 @@ func TestRequestMethods404(t *testing.T) {
 func TestRequestMethods400(t *testing.T) {
 	// Test the GET, POST, DELETE methods with a 400 response and a response body
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
+				Request:    req,
 				StatusCode: 400,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte("error response json"))),
 			}, nil
@@ -203,9 +205,10 @@ func TestGetRawBodyMethods(t *testing.T) {
 func TestGetRawBodyMethods404(t *testing.T) {
 	// Test the GetRawBody function with the GET, POST, DELETE methods returning a 404 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR404", "msg": "Sent a 404"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 404,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -231,9 +234,10 @@ func TestGetRawBodyMethods404(t *testing.T) {
 func TestGetRawBodyMethods400(t *testing.T) {
 	// Test the GetRawBody function with the GET, POST, DELETE methods returning a 400 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 400,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -284,9 +288,10 @@ func TestGetRaw(t *testing.T) {
 func TestGetRaw404(t *testing.T) {
 	// Test the GetRaw function with the GET, POST, DELETE methods returning a 404 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR404", "msg": "Sent a 404"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 404,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -312,9 +317,10 @@ func TestGetRaw404(t *testing.T) {
 func TestGetRaw400(t *testing.T) {
 	// Test the GetRaw function with the GET, POST, DELETE methods returning a 400 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 400,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -526,9 +532,10 @@ func TestPostRawHeaders(t *testing.T) {
 func TestPostRaw400(t *testing.T) {
 	// Test the PostRaw function returning a 400 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 400,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -550,9 +557,10 @@ func TestPostRaw400(t *testing.T) {
 func TestPostRaw404(t *testing.T) {
 	// Test the PostRaw function returning a 404 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR404", "msg": "Sent a 404"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 404,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -647,9 +655,10 @@ func TestDeleteRaw(t *testing.T) {
 func TestDeleteRaw400(t *testing.T) {
 	// Test the DeleteRaw function returning a 400 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 400,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -671,9 +680,10 @@ func TestDeleteRaw400(t *testing.T) {
 func TestDeleteRaw404(t *testing.T) {
 	// Test the DeleteRaw function returning a 404 and apiResponse
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR404", "msg": "Sent a 404"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 404,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
@@ -703,8 +713,14 @@ func TestRawCallbackBody(t *testing.T) {
 		},
 	}
 	tc := NewClient(context.Background(), &mc, 1, "")
+	var rawMethod string
+	var rawPath string
+	var rawStatus int
 	var rawData []byte
-	tc.SetRawCallback(func(data []byte) {
+	tc.SetRawCallback(func(method string, path string, status int, data []byte) {
+		rawMethod = method
+		rawPath = path
+		rawStatus = status
 		rawData = data
 	})
 
@@ -712,6 +728,9 @@ func TestRawCallbackBody(t *testing.T) {
 	require.Nil(t, err)
 	require.Nil(t, r)
 	require.NotNil(t, body)
+	assert.Equal(t, "GET", rawMethod)
+	assert.Equal(t, "/testroute", rawPath)
+	assert.Equal(t, 200, rawStatus)
 	assert.Equal(t, []byte("raw body data"), body)
 	assert.Equal(t, []byte("raw body data"), rawData)
 }
@@ -720,16 +739,23 @@ func TestRawCallbackResponse(t *testing.T) {
 	// Test using a custom callback to capture the raw error response data
 	json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			return &http.Response{
+				Request:    req,
 				StatusCode: 400,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
 	tc := NewClient(context.Background(), &mc, 1, "")
+	var rawMethod string
+	var rawPath string
+	var rawStatus int
 	var rawData []byte
-	tc.SetRawCallback(func(data []byte) {
+	tc.SetRawCallback(func(method string, path string, status int, data []byte) {
+		rawMethod = method
+		rawPath = path
+		rawStatus = status
 		rawData = data
 	})
 
@@ -740,6 +766,9 @@ func TestRawCallbackResponse(t *testing.T) {
 	assert.False(t, r.Status)
 	assert.Equal(t, 1, len(r.Errors))
 	assert.Equal(t, APIErrorMsg{"ERROR400", "Sent a 400"}, r.Errors[0])
+	assert.Equal(t, "GET", rawMethod)
+	assert.Equal(t, "/api/v1/testroute", rawPath)
+	assert.Equal(t, 400, rawStatus)
 	assert.Equal(t, []byte(json), rawData)
 }
 
@@ -777,9 +806,10 @@ func TestGetFile(t *testing.T) {
 
 func TestGetFileError400(t *testing.T) {
 	mc := MockClient{
-		DoFunc: func(*http.Request) (*http.Response, error) {
+		DoFunc: func(req *http.Request) (*http.Response, error) {
 			json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
 			return &http.Response{
+				Request:    req,
 				StatusCode: 400,
 				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil

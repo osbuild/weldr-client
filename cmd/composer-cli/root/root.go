@@ -104,14 +104,22 @@ func initConfig() {
 	Client = weldr.InitClientUnixSocket(ctx, apiVersion, socketPath)
 
 	if JSONOutput {
-		Client.SetRawCallback(func(data []byte) {
+		Client.SetRawCallback(func(method string, path string, status int, data []byte) {
 			// Convert the data to a generic data structure, then pretty-print it
-			var rawJSON map[string]interface{}
-			err := json.Unmarshal(data, &rawJSON)
+			var r struct {
+				Method string                 `json:"method"`
+				Path   string                 `json:"path"`
+				Status int                    `json:"status"`
+				Body   map[string]interface{} `json:"body"`
+			}
+			r.Method = method
+			r.Path = path
+			r.Status = status
+			err := json.Unmarshal(data, &r.Body)
 			if err == nil {
-				json, err := json.MarshalIndent(rawJSON, "", "    ")
+				s, err := json.MarshalIndent(r, "", "    ")
 				if err == nil {
-					fmt.Println(string(json))
+					fmt.Println(string(s))
 				}
 			}
 		})
