@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/weldr/weldr-client/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/cmd/composer-cli/root"
 )
 
 func TestCmdComposeLogs(t *testing.T) {

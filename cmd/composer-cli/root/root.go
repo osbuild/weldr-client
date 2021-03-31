@@ -23,7 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 
-	"github.com/weldr/weldr-client/weldr"
+	"github.com/osbuild/weldr-client/weldr"
 )
 
 var (

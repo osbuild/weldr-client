@@ -1,4 +1,4 @@
-module github.com/weldr/weldr-client
+module github.com/osbuild/weldr-client
 
 go 1.14
 

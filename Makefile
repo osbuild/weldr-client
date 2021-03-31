@@ -6,7 +6,7 @@ COMMITS := $(shell git log --pretty=oneline --no-merges ${PREVTAG}..HEAD | wc -l
 GPGKEY ?= $(shell git config user.signingkey)
 GITEMAIL := $(shell git config user.email)
 GITNAME := $(shell git config user.name)
-BUILDFLAGS ?= -ldflags="-X github.com/weldr/weldr-client/cmd/composer-cli/root.Version=${VERSION}"
+BUILDFLAGS ?= -ldflags="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=${VERSION}"
 GOBUILDFLAGS ?= 
 
 build: composer-cli

@@ -1,7 +1,7 @@
 # Pass --with tests to rpmbuild to build composer-cli-tests
 %bcond_with tests
 
-%global goipath         github.com/weldr/weldr-client
+%global goipath         github.com/osbuild/weldr-client
 
 Name:      weldr-client
 Version:   %%VERSION%%
