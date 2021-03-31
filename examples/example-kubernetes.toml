@@ -1,0 +1,19 @@
+name = "example-kubernetes"
+description = "An example kubernetes master"
+version = "0.0.1"
+
+[[packages]]
+name = "kubernetes"
+version = "*"
+
+[[packages]]
+name = "docker"
+version = "*"
+
+[[packages]]
+name = "etcd"
+version = "*"
+
+[[packages]]
+name = "flannel"
+version = "*"

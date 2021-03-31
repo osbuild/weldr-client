@@ -1,0 +1,14 @@
+name = "example-glusterfs"
+description = "An example GlusterFS server with samba"
+
+[[packages]]
+name = "glusterfs"
+version = "*"
+
+[[packages]]
+name = "glusterfs-cli"
+version = "*"
+
+[[packages]]
+name = "samba"
+version = "*"

@@ -1,0 +1,35 @@
+name = "example-http-server"
+description = "An example http server with PHP and MySQL support."
+version = "0.0.1"
+
+[[packages]]
+name = "httpd"
+version = "*"
+
+[[packages]]
+name = "mod_auth_openid"
+version = "*"
+
+[[packages]]
+name = "mod_ssl"
+version = "*"
+
+[[packages]]
+name = "php"
+version = "*"
+
+[[packages]]
+name = "php-mysqlnd"
+version = "*"
+
+[[packages]]
+name = "tmux"
+version = "*"
+
+[[packages]]
+name = "openssh-server"
+version = "*"
+
+[[packages]]
+name = "rsync"
+version = "*"
