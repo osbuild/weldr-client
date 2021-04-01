@@ -9,8 +9,8 @@ Release:   1%{?dist}
 License:   GPLv2 and MIT
 Summary:   Command line utility to control osbuild-composer
 Url:       %{gourl}
-Source0:   %{name}-%{version}.tar.gz
-Source1:   %{name}-%{version}.tar.gz.asc
+Source0:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz
+Source1:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz.asc
 
 Obsoletes: composer-cli < 34.0
 Provides: composer-cli = %{version}-%{release}
