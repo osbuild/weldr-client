@@ -76,6 +76,10 @@ make GOBUILDFLAGS="%{gobuildflags}" integration
 %install
 make DESTDIR=%{buildroot} install
 
+%if %{with tests} || 0%{?rhel}
+make DESTDIR=%{buildroot} install-tests
+%endif
+
 %check
 make GOBUILDFLAGS="%{gotestflags}" test
 

@@ -23,15 +23,17 @@ integration: composer-cli-tests
 composer-cli-tests:
 	go test -c -tags=integration ${BUILDFLAGS} ${GOBUILDFLAGS} -o composer-cli-tests ./weldr/
 
-install: composer-cli composer-cli-tests
+install: composer-cli
 	install -m 0755 -vd ${DESTDIR}/usr/bin/
 	install -m 0755 -vp composer-cli ${DESTDIR}/usr/bin/
-	install -m 0755 -vd ${DESTDIR}/usr/libexec/tests/composer-cli/
-	install -m 0755 -vp composer-cli-tests ${DESTDIR}/usr/libexec/tests/composer-cli/
 	install -m 0755 -vd ${DESTDIR}/etc/bash_completion.d/
 	install -m 0755 -vp etc/bash_completion.d/composer-cli ${DESTDIR}/etc/bash_completion.d/
 	install -m 0755 -vd ${DESTDIR}/usr/share/man/man1/
 	./composer-cli doc ${DESTDIR}/usr/share/man/man1/
+
+install-tests: composer-cli-tests
+	install -m 0755 -vd ${DESTDIR}/usr/libexec/tests/composer-cli/
+	install -m 0755 -vp composer-cli-tests ${DESTDIR}/usr/libexec/tests/composer-cli/
 
 weldr-client.spec: weldr-client.spec.in
 	sed -e "s/%%VERSION%%/$(VERSION)/" < $< > $@
