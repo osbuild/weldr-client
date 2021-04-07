@@ -27,7 +27,7 @@ BuildRequires:  golang(github.com/spf13/cobra)
 BuildRequires:  golang(github.com/stretchr/testify)
 %endif
 
-BuildRequires: git
+BuildRequires: git-core
 BuildRequires: make
 
 %description
