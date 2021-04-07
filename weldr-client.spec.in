@@ -6,6 +6,7 @@
 Name:      weldr-client
 Version:   %%VERSION%%
 Release:   1%{?dist}
+# Upstream license specification: Apache-2.0
 License:   ASL 2.0
 Summary:   Command line utility to control osbuild-composer
 Url:       %{gourl}
@@ -88,12 +89,13 @@ make GOBUILDFLAGS="%{gotestflags}" test
 
 %files
 %license LICENSE
+%doc examples HACKING.md README.md
 %{_bindir}/composer-cli
+%dir %{_sysconfdir}/bash_completion.d
 %{_sysconfdir}/bash_completion.d/composer-cli
 %{_mandir}/man1/composer-cli*
 
 %if %{with tests} || 0%{?rhel}
-
 %package tests
 Summary:    Integration tests for composer-cli
 
@@ -101,6 +103,7 @@ Summary:    Integration tests for composer-cli
 Integration tests to be run on a pristine-dedicated system to test the composer-cli package.
 
 %files tests
+%license LICENSE
 %{_libexecdir}/tests/composer-cli/
 %endif
 
