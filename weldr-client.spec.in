@@ -5,7 +5,7 @@
 
 Name:      weldr-client
 Version:   %%VERSION%%
-Release:   1%{?dist}
+Release:   2%{?dist}
 # Upstream license specification: Apache-2.0
 License:   ASL 2.0
 Summary:   Command line utility to control osbuild-composer
