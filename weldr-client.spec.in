@@ -11,6 +11,7 @@ Summary:   Command line utility to control osbuild-composer
 Url:       %{gourl}
 Source0:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz
 Source1:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz.asc
+Source2:   https://keys.openpgp.org/vks/v1/by-fingerprint/%%GPGKEY%%#/gpg-%%GPGKEY%%.key
 
 Obsoletes: composer-cli < 34.0
 Provides: composer-cli = %{version}-%{release}
@@ -29,11 +30,13 @@ BuildRequires:  golang(github.com/stretchr/testify)
 
 BuildRequires: git-core
 BuildRequires: make
+BuildRequires: gnupg2
 
 %description
 Command line utility to control osbuild-composer
 
 %prep
+%{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
 %if 0%{?rhel}
 %forgeautosetup -p1
 %else

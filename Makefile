@@ -36,7 +36,7 @@ install-tests: composer-cli-tests
 	install -m 0755 -vp composer-cli-tests ${DESTDIR}/usr/libexec/tests/composer-cli/
 
 weldr-client.spec: weldr-client.spec.in
-	sed -e "s/%%VERSION%%/$(VERSION)/" < $< > $@
+	sed -e "s/%%VERSION%%/$(VERSION)/g" -e "s/%%GPGKEY%%/$(GPGKEY)/g" < $< > $@
 	$(MAKE) -s changelog >> $@
 
 tag:
@@ -52,6 +52,7 @@ release:
 sign:
 	@if [ -z "$(GPGKEY)" ]; then echo "ERROR: The git config user.signingkey must be set" ; exit 1; fi
 	gpg --armor --detach-sign -u $(GPGKEY) weldr-client-$(VERSION).tar.gz
+	gpg2 --export --export-options export-minimal $(GPGKEY) > gpg-$(GPGKEY).key
 
 changelog:
 	@echo "* $(shell date '+%a %b %d %Y') ${GITNAME} <${GITEMAIL}> - ${VERSION}-1"
@@ -77,7 +78,7 @@ $(RPM_SPECFILE): weldr-client.spec
 
 $(RPM_TARBALL): archive sign
 	mkdir -p $(CURDIR)/rpmbuild/SOURCES
-	cp weldr-client-$(VERSION).tar.gz* rpmbuild/SOURCES/
+	cp weldr-client-$(VERSION).tar.gz* gpg-$(GPGKEY).key rpmbuild/SOURCES/
 
 srpm: $(RPM_SPECFILE) $(RPM_TARBALL)
 	rpmbuild -bs \
