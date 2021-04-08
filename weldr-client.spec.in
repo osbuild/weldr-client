@@ -25,13 +25,14 @@ BuildRequires:  golang(github.com/BurntSushi/toml)
 BuildRequires:  golang(github.com/spf13/cobra)
 %endif
 
-%if %{with tests} || 0%{?rhel}
-BuildRequires:  golang(github.com/stretchr/testify)
-%endif
-
 BuildRequires: git-core
 BuildRequires: make
 BuildRequires: gnupg2
+
+# Required for tests and %check
+BuildRequires:  golang(github.com/stretchr/testify/assert)
+BuildRequires:  golang(github.com/stretchr/testify/require)
+
 
 %description
 Command line utility to control osbuild-composer
