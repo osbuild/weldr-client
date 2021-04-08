@@ -26,7 +26,7 @@ install: composer-cli
 	install -m 0755 -vd ${DESTDIR}/usr/bin/
 	install -m 0755 -vp composer-cli ${DESTDIR}/usr/bin/
 	install -m 0755 -vd ${DESTDIR}/etc/bash_completion.d/
-	install -m 0755 -vp etc/bash_completion.d/composer-cli ${DESTDIR}/etc/bash_completion.d/
+	install -m 0644 -vp etc/bash_completion.d/composer-cli ${DESTDIR}/etc/bash_completion.d/
 	install -m 0755 -vd ${DESTDIR}/usr/share/man/man1/
 	./composer-cli doc ${DESTDIR}/usr/share/man/man1/
 
