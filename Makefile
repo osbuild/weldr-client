@@ -6,22 +6,21 @@ COMMITS := $(shell git log --pretty=oneline --no-merges ${PREVTAG}..HEAD | wc -l
 GPGKEY ?= $(shell git config user.signingkey)
 GITEMAIL := $(shell git config user.email)
 GITNAME := $(shell git config user.name)
-BUILDFLAGS ?= -ldflags="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=${VERSION}"
-GOBUILDFLAGS ?= 
+GOBUILDFLAGS ?= -ldflags="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=${VERSION}"
 
 build: composer-cli
 composer-cli:
-	go build ${BUILDFLAGS} ${GOBUILDFLAGS} ./cmd/composer-cli
+	go build ${GOBUILDFLAGS} ./cmd/composer-cli
 
 check:
 	go vet ./... && golint -set_exit_status ./... && golangci-lint --build-tags=integration run ./...
 
 test:
-	go test ${BUILDFLAGS} ${GOBUILDFLAGS} -v -covermode=atomic -coverprofile=coverage.txt -coverpkg=./... ./...
+	go test ${GOBUILDFLAGS} -v -covermode=atomic -coverprofile=coverage.txt -coverpkg=./... ./...
 
 integration: composer-cli-tests
 composer-cli-tests:
-	go test -c -tags=integration ${BUILDFLAGS} ${GOBUILDFLAGS} -o composer-cli-tests ./weldr/
+	go test -c -tags=integration ${GOBUILDFLAGS} -o composer-cli-tests ./weldr/
 
 install: composer-cli
 	install -m 0755 -vd ${DESTDIR}/usr/bin/

@@ -54,15 +54,18 @@ install -m 0755 -vd _bin
 export PATH=$PWD/_bin${PATH:+:$PATH}
 export GOPATH=$GO_BUILD_PATH:%{gopath}
 export GOFLAGS=-mod=vendor
+%else
+export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
+export GO111MODULE=off
 %endif
 
+export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
 make GOBUILDFLAGS="%{gobuildflags}" build
 
 ## TODO
 ##make man
 
 %if %{with tests} || 0%{?rhel}
-
 # Build test binaries with `go test -c`, so that they can take advantage of
 # golang's testing package. The golang rpm macros don't support building them
 # directly. Thus, do it manually, taking care to also include a build id.
@@ -70,10 +73,12 @@ make GOBUILDFLAGS="%{gobuildflags}" build
 # On Fedora, also turn off go modules and set the path to the one into which
 # the golang-* packages install source code.
 %if 0%{?fedora}
+export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
-export GOPATH=%{gobuilddir}:%{gopath}
 %endif
 
+export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
+export BUILDTAGS="integration"
 make GOBUILDFLAGS="%{gobuildflags}" integration
 %endif
 
@@ -85,6 +90,12 @@ make DESTDIR=%{buildroot} install-tests
 %endif
 
 %check
+%if 0%{?fedora}
+export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
+export GO111MODULE=off
+%endif
+
+export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
 make GOBUILDFLAGS="%{gotestflags}" test
 
 %files
@@ -100,7 +111,8 @@ make GOBUILDFLAGS="%{gotestflags}" test
 Summary:    Integration tests for composer-cli
 
 %description tests
-Integration tests to be run on a pristine-dedicated system to test the composer-cli package.
+Integration tests to be run on a pristine-dedicated system to test the
+composer-cli package.
 
 %files tests
 %license LICENSE
