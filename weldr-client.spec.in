@@ -20,10 +20,8 @@ Provides: composer-cli = %{version}-%{release}
 %gometa
 
 BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
-%if 0%{?fedora}
 BuildRequires:  golang(github.com/BurntSushi/toml)
 BuildRequires:  golang(github.com/spf13/cobra)
-%endif
 
 BuildRequires: git-core
 BuildRequires: make
@@ -39,27 +37,11 @@ Command line utility to control osbuild-composer
 
 %prep
 %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
-%if 0%{?rhel}
-%forgeautosetup -p1
-%else
 %goprep
-%endif
 
 %build
-%if 0%{?rhel}
-GO_BUILD_PATH=$PWD/_build
-install -m 0755 -vd $(dirname $GO_BUILD_PATH/src/%{goipath})
-ln -fs $PWD $GO_BUILD_PATH/src/%{goipath}
-cd $GO_BUILD_PATH/src/%{goipath}
-install -m 0755 -vd _bin
-export PATH=$PWD/_bin${PATH:+:$PATH}
-export GOPATH=$GO_BUILD_PATH:%{gopath}
-export GOFLAGS=-mod=vendor
-%else
 export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
-%endif
-
 export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
 make GOBUILDFLAGS="%{gobuildflags}" build
 
@@ -73,11 +55,8 @@ make GOBUILDFLAGS="%{gobuildflags}" build
 #
 # On Fedora, also turn off go modules and set the path to the one into which
 # the golang-* packages install source code.
-%if 0%{?fedora}
 export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
-%endif
-
 export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
 export BUILDTAGS="integration"
 make GOBUILDFLAGS="%{gobuildflags}" integration
@@ -91,11 +70,8 @@ make DESTDIR=%{buildroot} install-tests
 %endif
 
 %check
-%if 0%{?fedora}
 export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
-%endif
-
 export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
 make GOBUILDFLAGS="%{gotestflags}" test
 
