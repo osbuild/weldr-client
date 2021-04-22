@@ -14,7 +14,7 @@ Source0:   https://github.com/osbuild/weldr-client/releases/download/v%{version}
 Source1:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz.asc
 Source2:   https://keys.openpgp.org/vks/v1/by-fingerprint/%%GPGKEY%%#/gpg-%%GPGKEY%%.key
 
-Obsoletes: composer-cli < 34.0
+Obsoletes: composer-cli < 35.0
 Provides: composer-cli = %{version}-%{release}
 
 %gometa
