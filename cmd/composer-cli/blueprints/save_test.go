@@ -17,6 +17,16 @@ import (
 	"github.com/osbuild/weldr-client/cmd/composer-cli/root"
 )
 
+func TestCmdBlueprintsSaveShouldErrorWithNonExistingName(t *testing.T) {
+	_, out, err := root.ExecuteTest("blueprints", "save", "non-existing")
+	defer out.Close()
+	require.Error(t, err)
+
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	require.NoError(t, err)
+	require.Contains(t, string(stderr), "BlueprintsError")
+}
+
 func TestCmdBlueprintsSave(t *testing.T) {
 	// Test the "blueprints save " command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
@@ -79,4 +89,15 @@ func TestCmdBlueprintsSave(t *testing.T) {
 
 	_, err = os.Stat("simple.toml")
 	assert.Nil(t, err)
+}
+
+
+func TestCmdBlueprintsSaveShouldReturnNilWhenJsonOutputIsActive(t *testing.T) {
+	_, out, err := root.ExecuteTest("blueprints", "save", "--json", "non-existing")
+	defer out.Close()
+	require.NoError(t, err)
+
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	require.NoError(t, err)
+	require.Equal(t, []byte(""), stderr)
 }
