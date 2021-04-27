@@ -91,12 +91,12 @@ func ExecuteTest(args ...string) (*cobra.Command, *OutputCapture, error) {
 
 	output, err := NewOutputCapture()
 	if err != nil {
-		return nil, nil, nil
+		return nil, nil, err
 	}
 	ranCmd, err := rootCmd.ExecuteC()
 	if rewErr := output.Rewind(); rewErr != nil {
 		output.Close()
-		return nil, nil, err
+		return nil, nil, rewErr
 	}
 
 	return ranCmd, output, err
