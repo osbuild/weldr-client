@@ -5,6 +5,7 @@
 package compose
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -48,6 +49,8 @@ func getResults(cmd *cobra.Command, args []string) (rcErr error) {
 	if err != nil {
 		return root.ExecutionError(cmd, "problem moving file: %s", err)
 	}
+
+	fmt.Println(fn)
 
 	return nil
 }
