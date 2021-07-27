@@ -79,6 +79,9 @@ $(RPM_TARBALL): archive sign
 	mkdir -p $(CURDIR)/rpmbuild/SOURCES
 	cp weldr-client-$(VERSION).tar.gz* gpg-$(GPGKEY).key rpmbuild/SOURCES/
 
+builddep: $(RPM_SPECFILE)
+	dnf builddep -y --spec -D 'with 1' $(RPM_SPECFILE)
+
 srpm: $(RPM_SPECFILE) $(RPM_TARBALL)
 	rpmbuild -bs \
 		--define "_topdir $(CURDIR)/rpmbuild" \
@@ -87,11 +90,30 @@ srpm: $(RPM_SPECFILE) $(RPM_TARBALL)
 		$(RPM_SPECFILE)
 
 rpm: $(RPM_SPECFILE) $(RPM_TARBALL)
-	dnf builddep -y --spec -D 'with 1' $(RPM_SPECFILE)
 	rpmbuild -bb \
 		--define "_topdir $(CURDIR)/rpmbuild" \
 		--define "commit $(VERSION)" \
 		--with tests \
+		$(RPM_SPECFILE)
+
+scratch-srpm: $(RPM_SPECFILE) archive
+	mkdir -p $(CURDIR)/rpmbuild/SOURCES
+	cp weldr-client-$(VERSION).tar.gz* rpmbuild/SOURCES/
+	rpmbuild -bs \
+		--define "_topdir $(CURDIR)/rpmbuild" \
+		--define "commit $(VERSION)" \
+		--with tests \
+		--without signed \
+		$(RPM_SPECFILE)
+
+scratch-rpm: $(RPM_SPECFILE) archive
+	mkdir -p $(CURDIR)/rpmbuild/SOURCES
+	cp weldr-client-$(VERSION).tar.gz* rpmbuild/SOURCES/
+	rpmbuild -bb \
+		--define "_topdir $(CURDIR)/rpmbuild" \
+		--define "commit $(VERSION)" \
+		--with tests \
+		--without signed \
 		$(RPM_SPECFILE)
 
 

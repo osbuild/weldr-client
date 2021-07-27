@@ -1,5 +1,7 @@
 # Pass --with tests to rpmbuild to build composer-cli-tests
 %bcond_with tests
+# Pass --without signed to skip gpg signed tar.gz (DO NOT DO THAT IN PRODUCTION)
+%bcond_without signed
 
 %global goipath         github.com/osbuild/weldr-client
 
@@ -11,8 +13,10 @@ License:   ASL 2.0
 Summary:   Command line utility to control osbuild-composer
 Url:       %{gourl}
 Source0:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz
+%if %{with signed}
 Source1:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz.asc
 Source2:   https://keys.openpgp.org/vks/v1/by-fingerprint/%%GPGKEY%%#/gpg-%%GPGKEY%%.key
+%endif
 
 Obsoletes: composer-cli < 35.0
 Provides: composer-cli = %{version}-%{release}
@@ -37,7 +41,9 @@ BuildRequires: gnupg2
 Command line utility to control osbuild-composer
 
 %prep
+%if %{with signed}
 %{gpgverify} --keyring='%{SOURCE2}' --signature='%{SOURCE1}' --data='%{SOURCE0}'
+%endif
 %if 0%{?rhel}
 %forgeautosetup -p1
 %else
