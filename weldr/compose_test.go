@@ -30,7 +30,7 @@ func TestGetComposeTypes(t *testing.T) {
 	require.Nil(t, err)
 	require.Nil(t, r)
 	require.NotNil(t, types)
-	assert.Equal(t, 6, len(types))
+	assert.GreaterOrEqual(t, len(types), 6)
 	assert.Contains(t, types, "openstack")
 }
 
@@ -44,7 +44,7 @@ func TestGetComposeTypesDistro(t *testing.T) {
 	require.Nil(t, err)
 	require.Nil(t, r)
 	require.NotNil(t, types)
-	assert.Equal(t, 6, len(types))
+	assert.GreaterOrEqual(t, len(types), 6)
 	assert.Contains(t, types, "openstack")
 }
 
@@ -141,7 +141,7 @@ func TestStartComposeBadType(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
-	assert.Equal(t, APIErrorMsg{"UnknownComposeType", "Unknown compose type for architecture: punchcard"}, r.Errors[0])
+	assert.Equal(t, APIErrorMsg{"ComposeError", "Failed to get compose type \"punchcard\": invalid image type: punchcard"}, r.Errors[0])
 }
 
 func TestStartComposeBadDepsolve(t *testing.T) {

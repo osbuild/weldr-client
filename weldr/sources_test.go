@@ -7,6 +7,7 @@
 package weldr
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,7 @@ func TestGetSourcesJSON(t *testing.T) {
 	assert.Equal(t, names[0], id)
 	sourceType, ok := sources[names[0]].(map[string]interface{})["type"].(string)
 	require.True(t, ok)
-	assert.Equal(t, "yum-metalink", sourceType)
+	assert.True(t, strings.HasPrefix(sourceType, "yum-"))
 }
 
 func TestGetSourcesJSONError(t *testing.T) {
