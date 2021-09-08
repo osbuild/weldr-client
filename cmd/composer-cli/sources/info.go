@@ -12,8 +12,8 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 
-	"github.com/osbuild/weldr-client/cmd/composer-cli/root"
-	"github.com/osbuild/weldr-client/weldr"
+	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
 var (

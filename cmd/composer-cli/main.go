@@ -8,14 +8,14 @@ package main
 import (
 	"os"
 
-	_ "github.com/osbuild/weldr-client/cmd/composer-cli/blueprints"
-	_ "github.com/osbuild/weldr-client/cmd/composer-cli/compose"
-	_ "github.com/osbuild/weldr-client/cmd/composer-cli/distros"
-	_ "github.com/osbuild/weldr-client/cmd/composer-cli/modules"
-	_ "github.com/osbuild/weldr-client/cmd/composer-cli/projects"
-	"github.com/osbuild/weldr-client/cmd/composer-cli/root"
-	_ "github.com/osbuild/weldr-client/cmd/composer-cli/sources"
-	_ "github.com/osbuild/weldr-client/cmd/composer-cli/status"
+	_ "github.com/osbuild/weldr-client/v2/cmd/composer-cli/blueprints"
+	_ "github.com/osbuild/weldr-client/v2/cmd/composer-cli/compose"
+	_ "github.com/osbuild/weldr-client/v2/cmd/composer-cli/distros"
+	_ "github.com/osbuild/weldr-client/v2/cmd/composer-cli/modules"
+	_ "github.com/osbuild/weldr-client/v2/cmd/composer-cli/projects"
+	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
+	_ "github.com/osbuild/weldr-client/v2/cmd/composer-cli/sources"
+	_ "github.com/osbuild/weldr-client/v2/cmd/composer-cli/status"
 )
 
 func main() {
