@@ -116,5 +116,9 @@ scratch-rpm: $(RPM_SPECFILE) archive
 		--without signed \
 		$(RPM_SPECFILE)
 
+update-mods:
+	go get -u ./...
+	go mod vendor
+	$(MAKE) test
 
-.PHONY: build check test integration install srpm rpm weldr-client.spec
+.PHONY: build check test integration install srpm rpm weldr-client.spec update-mods
