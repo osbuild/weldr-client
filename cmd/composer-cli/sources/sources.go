@@ -7,7 +7,7 @@ package sources
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/osbuild/weldr-client/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
 )
 
 var (
