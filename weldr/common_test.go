@@ -828,6 +828,92 @@ func TestGetFileError400(t *testing.T) {
 	assert.Equal(t, "", tf)
 }
 
+func TestGetFilePath(t *testing.T) {
+	// Test retrieving a file
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+
+			resp := http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Header:     http.Header{},
+			}
+			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
+			resp.Header.Set("Content-Type", "text/plain")
+
+			return &resp, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	filename, r, err := tc.GetFilePath("/file/a-very-short-file", "/tmp")
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "/tmp/a-very-short-file.txt", filename)
+	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
+	_, err = os.Stat(filename)
+	require.Nil(t, err)
+	data, _ := ioutil.ReadFile(filename)
+	assert.Equal(t, []byte("A Very Short File."), data)
+
+	// Test that downloading again returns an error
+	_, _, err = tc.GetFilePath("/file/a-very-short-file", "/tmp")
+	require.NotNil(t, err)
+	assert.Contains(t, fmt.Sprintf("%s", err), "exists, skipping download")
+	os.Remove(filename)
+}
+
+func TestGetFileBadPath(t *testing.T) {
+	// Test retrieving a file but to a non-existant path
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+
+			resp := http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Header:     http.Header{},
+			}
+			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
+			resp.Header.Set("Content-Type", "text/plain")
+
+			return &resp, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	filename, r, err := tc.GetFilePath("/file/a-very-short-file", "/tmp/no-path-here")
+	require.NotNil(t, err)
+	require.Nil(t, r)
+	assert.Contains(t, fmt.Sprintf("%s", err), "no such file or directory")
+	assert.Equal(t, "/tmp/no-path-here/a-very-short-file.txt", filename)
+	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
+	_, err = os.Stat(filename)
+	require.NotNil(t, err)
+	assert.Contains(t, fmt.Sprintf("%s", err), "no such file or directory")
+}
+
+func TestGetFilePathError400(t *testing.T) {
+	mc := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			json := `{"status": false, "errors": [{"id": "ERROR400", "msg": "Sent a 400"}]}`
+			return &http.Response{
+				Request:    req,
+				StatusCode: 400,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	filename, r, err := tc.GetFilePath("/file/not-even-a-file", "/tmp")
+	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"ERROR400", "Sent a 400"}, r.Errors[0])
+	assert.Equal(t, "", filename)
+}
+
 func TestSortComposeStatus(t *testing.T) {
 	unsorted := []ComposeStatusV0{
 		{
