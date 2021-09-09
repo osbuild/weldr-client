@@ -5,12 +5,11 @@
 package compose
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
-	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
 var (
@@ -28,7 +27,7 @@ func init() {
 }
 
 func getImage(cmd *cobra.Command, args []string) (rcErr error) {
-	tf, fn, _, resp, err := root.Client.ComposeImage(args[0])
+	fn, resp, err := root.Client.ComposeImage(args[0])
 	if err != nil {
 		return root.ExecutionError(cmd, "Image error: %s", err)
 	}
@@ -36,18 +35,7 @@ func getImage(cmd *cobra.Command, args []string) (rcErr error) {
 		return root.ExecutionError(cmd, "Image error: %s", resp.String())
 	}
 
-	// Move the temporary file to the server provided filename in the current directory
-	// if it doesn't already exist.
-	_, err = os.Stat(fn)
-	if err == nil {
-		os.Remove(tf)
-		return root.ExecutionError(cmd, "%s already exists", fn)
-	}
-
-	err = weldr.MoveFile(tf, fn)
-	if err != nil {
-		return root.ExecutionError(cmd, "problem moving file: %s", err)
-	}
+	fmt.Println(fn)
 
 	return nil
 }

@@ -377,15 +377,9 @@ func (c Client) ComposeResults(id string) (fileName string, apiResponse *APIResp
 // ComposeImage returns the tar file of compose's image
 // It returns a temporary filename, the name of the file from the server, and the type.
 // The caller must clean up the temporary file when finished
-func (c Client) ComposeImage(id string) (tempFile, fileName, cType string, apiResponse *APIResponse, err error) {
+func (c Client) ComposeImage(id string) (fileName string, apiResponse *APIResponse, err error) {
 	route := fmt.Sprintf("/compose/image/%s", id)
-	tempFile, cDisposition, cType, apiResponse, err := c.GetFile(route)
-
-	if err != nil || apiResponse != nil {
-		return
-	}
-	fileName, err = GetContentFilename(cDisposition)
-	return
+	return c.GetFilePath(route, "")
 }
 
 // ComposeInfo returns details about a specific compose
