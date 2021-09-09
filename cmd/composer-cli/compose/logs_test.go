@@ -59,7 +59,7 @@ And should do the job.`
 	assert.Equal(t, cmd, logsCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
-	assert.Equal(t, []byte(""), stdout)
+	assert.Contains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7-logs.tar")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
