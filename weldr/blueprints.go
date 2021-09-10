@@ -64,16 +64,13 @@ func (c Client) GetFrozenBlueprintsTOML(names []string) ([]string, *APIResponse,
 // It uses interface{} for the blueprints so that it is not tightly coupled to the server's blueprint
 // schema.
 func (c Client) GetBlueprintsJSON(names []string) ([]interface{}, []APIErrorMsg, error) {
-
-	var errors []APIErrorMsg
 	route := fmt.Sprintf("/blueprints/info/%s", strings.Join(names, ","))
 	j, resp, err := c.GetRaw("GET", route)
 	if err != nil {
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// flexible blueprint unmarshaling, be strict about the error message
@@ -86,9 +83,9 @@ func (c Client) GetBlueprintsJSON(names []string) ([]interface{}, []APIErrorMsg,
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
-		errors = append(errors, r.Errors...)
+		return r.Blueprints, r.Errors, nil
 	}
-	return r.Blueprints, errors, nil
+	return r.Blueprints, nil, nil
 }
 
 // GetFrozenBlueprintsJSON returns the blueprints and errors
@@ -101,8 +98,7 @@ func (c Client) GetFrozenBlueprintsJSON(names []string) (blueprints []interface{
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// flexible blueprint unmarshaling, be strict about the error message
@@ -114,9 +110,6 @@ func (c Client) GetFrozenBlueprintsJSON(names []string) (blueprints []interface{
 	if err != nil {
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
-	if len(r.Errors) > 0 {
-		errors = append(errors, r.Errors...)
-	}
 
 	// In the current version of the API the frozen blueprints are buried a bit.
 	// Extract them all and return them as a list of interface{}
@@ -126,8 +119,10 @@ func (c Client) GetFrozenBlueprintsJSON(names []string) (blueprints []interface{
 			blueprints = append(blueprints, bp)
 		}
 	}
-
-	return blueprints, errors, nil
+	if len(r.Errors) > 0 {
+		return blueprints, r.Errors, nil
+	}
+	return blueprints, nil, nil
 }
 
 // DeleteBlueprint deletes a blueprint and returns the server result
@@ -185,7 +180,6 @@ func (c Client) UndoBlueprint(name, commit string) (*APIResponse, error) {
 
 // GetBlueprintsChanges requests the list of commits made to a list of blueprints
 func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIErrorMsg, error) {
-	var errors []APIErrorMsg
 	route := fmt.Sprintf("/blueprints/changes/%s", strings.Join(names, ","))
 	j, resp, err := c.GetJSONAllFnTotal(route, func(body []byte) (float64, error) {
 		// blueprints/changes has a different total for each blueprint, pick the largest one
@@ -207,8 +201,7 @@ func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIE
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	var changes BlueprintsChangesV0
@@ -217,9 +210,9 @@ func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIE
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(changes.Errors) > 0 {
-		errors = append(errors, changes.Errors...)
+		return changes.Changes, changes.Errors, nil
 	}
-	return changes.Changes, errors, nil
+	return changes.Changes, nil, nil
 }
 
 // DepsolveBlueprints returns the blueprints, their dependencies, and any errors
@@ -232,8 +225,7 @@ func (c Client) DepsolveBlueprints(names []string) (blueprints []interface{}, er
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// flexible response unmarshaling, be strict about the error message
@@ -246,8 +238,7 @@ func (c Client) DepsolveBlueprints(names []string) (blueprints []interface{}, er
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
-		errors = append(errors, r.Errors...)
+		return r.Blueprints, r.Errors, nil
 	}
-
-	return r.Blueprints, errors, nil
+	return r.Blueprints, nil, nil
 }

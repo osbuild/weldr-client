@@ -36,15 +36,13 @@ func (c Client) ListSources() ([]string, *APIResponse, error) {
 // It uses interface{} for the sources so that it is not tightly coupled to the server's source
 // schema.
 func (c Client) GetSourcesJSON(names []string) (map[string]interface{}, []APIErrorMsg, error) {
-	var errors []APIErrorMsg
 	route := fmt.Sprintf("/projects/source/info/%s", strings.Join(names, ","))
 	j, resp, err := c.GetRaw("GET", route)
 	if err != nil {
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// flexible source unmarshaling, be strict about the error message
@@ -57,9 +55,9 @@ func (c Client) GetSourcesJSON(names []string) (map[string]interface{}, []APIErr
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
-		errors = append(errors, r.Errors...)
+		return r.Sources, r.Errors, nil
 	}
-	return r.Sources, errors, nil
+	return r.Sources, nil, nil
 }
 
 // NewSourceTOML adds (or updates if it already exists) a source using TOML

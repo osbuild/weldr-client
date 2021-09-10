@@ -70,8 +70,7 @@ func (c Client) DepsolveProjects(names []string, distro string) (deps []interfac
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// flexible response unmarshaling, be strict about the error message
@@ -84,8 +83,7 @@ func (c Client) DepsolveProjects(names []string, distro string) (deps []interfac
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
-		errors = append(errors, r.Errors...)
+		return r.Projects, r.Errors, nil
 	}
-
-	return r.Projects, errors, nil
+	return r.Projects, nil, nil
 }
