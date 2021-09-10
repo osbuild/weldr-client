@@ -148,6 +148,14 @@ func ExecutionError(cmd *cobra.Command, format string, a ...interface{}) error {
 	return fmt.Errorf(s)
 }
 
+// ExecutionErrors prints a list of errors to stderr, then calls ExecutionError
+func ExecutionErrors(cmd *cobra.Command, errors []string) error {
+	for _, s := range errors {
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", s)
+	}
+	return ExecutionError(cmd, "")
+}
+
 // GetCommaArgs returns a list of the arguments, split by commas and spaces
 // They can be grouped or separated, the return list should be the same for all variations
 // empty fields, eg. ,, are ignored by collapsing repeated , and spaces into one.
