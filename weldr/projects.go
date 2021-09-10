@@ -51,7 +51,7 @@ func (c Client) ProjectsInfo(projs []string, distro string) ([]ProjectV0, *APIRe
 	}
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		resp = &APIResponse{Status: false, Errors: []APIErrorMsg{{"JSONError", err.Error()}}}
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	return r.Projects, resp, nil
 }
@@ -81,10 +81,7 @@ func (c Client) DepsolveProjects(names []string, distro string) (deps []interfac
 	}
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	}
-	if len(errors) > 0 {
-		return nil, errors, nil
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
 		errors = append(errors, r.Errors...)

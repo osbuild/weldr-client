@@ -83,10 +83,7 @@ func (c Client) GetBlueprintsJSON(names []string) ([]interface{}, []APIErrorMsg,
 	}
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	}
-	if len(errors) > 0 {
-		return nil, errors, nil
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
 		errors = append(errors, r.Errors...)
@@ -115,10 +112,7 @@ func (c Client) GetFrozenBlueprintsJSON(names []string) (blueprints []interface{
 	}
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	}
-	if len(errors) > 0 {
-		return nil, errors, nil
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
 		errors = append(errors, r.Errors...)
@@ -220,10 +214,7 @@ func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIE
 	var changes BlueprintsChangesV0
 	err = json.Unmarshal(j, &changes)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	}
-	if len(errors) > 0 {
-		return nil, errors, nil
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(changes.Errors) > 0 {
 		errors = append(errors, changes.Errors...)
@@ -252,10 +243,7 @@ func (c Client) DepsolveBlueprints(names []string) (blueprints []interface{}, er
 	}
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	}
-	if len(errors) > 0 {
-		return nil, errors, nil
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
 		errors = append(errors, r.Errors...)

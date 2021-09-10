@@ -53,7 +53,7 @@ func (c Client) ModulesInfo(names []string, distro string) ([]ProjectV0, *APIRes
 	}
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		resp = &APIResponse{Status: false, Errors: []APIErrorMsg{{"JSONError", err.Error()}}}
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	return r.Modules, resp, nil
 }
