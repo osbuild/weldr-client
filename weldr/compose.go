@@ -33,11 +33,10 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 	}
 	err = json.Unmarshal(j, &queue)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	} else {
-		composes = append(composes, queue.New...)
-		composes = append(composes, queue.Run...)
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
+	composes = append(composes, queue.New...)
+	composes = append(composes, queue.Run...)
 
 	j, resp, err = c.GetRaw("GET", "/compose/finished")
 	if err != nil {
@@ -54,10 +53,9 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 	}
 	err = json.Unmarshal(j, &finished)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	} else {
-		composes = append(composes, finished.Finished...)
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
+	composes = append(composes, finished.Finished...)
 
 	j, resp, err = c.GetRaw("GET", "/compose/failed")
 	if err != nil {
@@ -74,10 +72,9 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 	}
 	err = json.Unmarshal(j, &failed)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	} else {
-		composes = append(composes, failed.Failed...)
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
+	composes = append(composes, failed.Failed...)
 	if len(errors) > 0 {
 		return nil, errors, nil
 	}
@@ -304,10 +301,7 @@ func (c Client) DeleteComposes(ids []string) ([]ComposeDeleteV0, []APIErrorMsg, 
 	}
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
-	}
-	if len(errors) > 0 {
-		return nil, errors, nil
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
 		errors = append(errors, r.Errors...)
@@ -332,9 +326,9 @@ func (c Client) CancelCompose(id string) (ComposeCancelV0, []APIErrorMsg, error)
 	// cancel returns the status of the single build id it was asked to cancel
 	err = json.Unmarshal(j, &r)
 	if err != nil {
-		errors = append(errors, APIErrorMsg{"JSONError", err.Error()})
+		return r, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
-	return r, errors, nil
+	return r, nil, nil
 }
 
 // ComposeLog returns the last 1k of logs from a running compose
@@ -396,7 +390,7 @@ func (c Client) ComposeInfo(id string) (info ComposeInfoV0, resp *APIResponse, e
 
 	err = json.Unmarshal(j, &info)
 	if err != nil {
-		resp = &APIResponse{false, []APIErrorMsg{{"JSONError", err.Error()}}}
+		return info, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	return info, resp, nil
 }
