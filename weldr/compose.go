@@ -14,14 +14,12 @@ import (
 
 // ListComposes returns details about the composes on the server
 func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
-	var errors []APIErrorMsg
 	j, resp, err := c.GetRaw("GET", "/compose/queue")
 	if err != nil {
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	var composes []ComposeStatusV0
@@ -43,8 +41,7 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// finished returns finished list
@@ -62,8 +59,7 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// failed returns failed list
@@ -75,10 +71,6 @@ func (c Client) ListComposes() ([]ComposeStatusV0, []APIErrorMsg, error) {
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	composes = append(composes, failed.Failed...)
-	if len(errors) > 0 {
-		return nil, errors, nil
-	}
-
 	return composes, nil, nil
 }
 
@@ -283,15 +275,13 @@ func (c Client) startComposeTest(request interface{}, test uint) (string, *APIRe
 
 // DeleteComposes removes a list of composes from the server
 func (c Client) DeleteComposes(ids []string) ([]ComposeDeleteV0, []APIErrorMsg, error) {
-	var errors []APIErrorMsg
 	route := fmt.Sprintf("/compose/delete/%s", strings.Join(ids, ","))
 	j, resp, err := c.DeleteRaw(route)
 	if err != nil {
 		return nil, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return nil, errors, nil
+		return nil, resp.Errors, nil
 	}
 
 	// delete returns the status of each build id it was asked to delete
@@ -304,23 +294,21 @@ func (c Client) DeleteComposes(ids []string) ([]ComposeDeleteV0, []APIErrorMsg, 
 		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	if len(r.Errors) > 0 {
-		errors = append(errors, r.Errors...)
+		return r.UUIDs, r.Errors, nil
 	}
-	return r.UUIDs, errors, nil
+	return r.UUIDs, nil, nil
 }
 
 // CancelCompose cancels a compose that is waiting or running on the server
 func (c Client) CancelCompose(id string) (ComposeCancelV0, []APIErrorMsg, error) {
 	var r ComposeCancelV0
-	var errors []APIErrorMsg
 	route := fmt.Sprintf("/compose/cancel/%s", id)
 	j, resp, err := c.DeleteRaw(route)
 	if err != nil {
 		return r, nil, err
 	}
 	if resp != nil {
-		errors = append(errors, resp.Errors...)
-		return r, errors, nil
+		return r, resp.Errors, nil
 	}
 
 	// cancel returns the status of the single build id it was asked to cancel
