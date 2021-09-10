@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.14'
+          go-version: '1.15'
       - name: Install golint
         run: GO111MODULE=off go get golang.org/x/lint/golint
       - name: Install golangci-lint
@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
-          go-version: '1.14'
+          go-version: '1.15'
       - name: Run unit tests
         run: make test
 
