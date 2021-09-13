@@ -18,7 +18,7 @@ type APIErrorMsg struct {
 }
 
 // String returns the error id and message as a string
-func (r *APIErrorMsg) String() string {
+func (r APIErrorMsg) String() string {
 	return fmt.Sprintf("%s: %s", r.ID, r.Msg)
 }
 
@@ -32,7 +32,7 @@ type APIResponse struct {
 }
 
 // String returns the description of the first error, if there is one
-func (r *APIResponse) String() string {
+func (r APIResponse) String() string {
 	if len(r.Errors) == 0 {
 		return ""
 	}
