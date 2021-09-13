@@ -29,14 +29,11 @@ func init() {
 
 func list(cmd *cobra.Command, args []string) error {
 	projects, resp, err := root.Client.ListProjects(distro)
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "List Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "List Error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	for _, p := range projects {
