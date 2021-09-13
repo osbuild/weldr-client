@@ -60,7 +60,7 @@ func TestCmdBlueprintsChanges(t *testing.T) {
 	assert.Contains(t, string(stdout), "reverted to commit f48b415828fa7179acd17b1f1b69e11c2c3fcd17")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
-	assert.Contains(t, string(stderr), "ERROR: {UnknownBlueprint no-bp-test}")
+	assert.Contains(t, string(stderr), "ERROR: UnknownBlueprint: no-bp-test")
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/changes/cli-test-bp-1,test-no-bp", mc.Req.URL.Path)
 }
