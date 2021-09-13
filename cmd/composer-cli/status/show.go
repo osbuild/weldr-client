@@ -27,14 +27,11 @@ func init() {
 
 func show(cmd *cobra.Command, args []string) error {
 	status, resp, err := root.Client.ServerStatus()
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Show Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "Show Error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	fmt.Println("API server status:")
