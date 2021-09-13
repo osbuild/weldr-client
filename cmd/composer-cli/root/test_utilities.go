@@ -87,6 +87,11 @@ func (c *OutputCapture) Rewind() error {
 // is executed and subcommands dispatched in the same way they are during normal
 // operation.
 func ExecuteTest(args ...string) (*cobra.Command, *OutputCapture, error) {
+	// Reset the root flags
+	JSONOutput = false
+	testMode = 0
+	httpTimeout = 240
+
 	rootCmd.SetArgs(args)
 
 	output, err := NewOutputCapture()
