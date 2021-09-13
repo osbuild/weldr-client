@@ -29,14 +29,11 @@ func init() {
 
 func list(cmd *cobra.Command, args []string) error {
 	modules, resp, err := root.Client.ListModules(distro)
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "List Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "List Error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	for i := range modules {
