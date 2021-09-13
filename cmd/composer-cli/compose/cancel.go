@@ -5,9 +5,6 @@
 package compose
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
@@ -29,17 +26,11 @@ func init() {
 
 func cancelComposes(cmd *cobra.Command, args []string) error {
 	_, errors, err := root.Client.CancelCompose(args[0])
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Cancel Error: %s", err)
 	}
 	if len(errors) > 0 {
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
-		}
-		return root.ExecutionError(cmd, "")
+		return root.ExecutionErrors(cmd, errors)
 	}
 
 	return nil

@@ -6,7 +6,6 @@ package compose
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -27,19 +26,13 @@ func init() {
 	composeCmd.AddCommand(infoCmd)
 }
 
-func info(cmd *cobra.Command, args []string) (rcErr error) {
+func info(cmd *cobra.Command, args []string) error {
 	info, resp, err := root.Client.ComposeInfo(args[0])
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Info Error: %s", err)
 	}
 	if resp != nil {
-		for _, e := range resp.Errors {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
-		}
-		return root.ExecutionError(cmd, "")
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	var imageSize string
@@ -69,5 +62,5 @@ func info(cmd *cobra.Command, args []string) (rcErr error) {
 		fmt.Printf("    %s\n", d)
 	}
 
-	return rcErr
+	return nil
 }
