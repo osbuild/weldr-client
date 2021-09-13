@@ -28,14 +28,11 @@ func init() {
 
 func list(cmd *cobra.Command, args []string) error {
 	distros, resp, err := root.Client.ListDistros()
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Types Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "Types Error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	for _, name := range distros {
