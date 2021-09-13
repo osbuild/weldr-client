@@ -6,7 +6,6 @@ package compose
 
 import (
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -31,17 +30,11 @@ func init() {
 
 func status(cmd *cobra.Command, args []string) (rcErr error) {
 	composes, errors, err := root.Client.ListComposes()
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "List Error: %s", err)
 	}
 	if len(errors) > 0 {
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
-		}
-		rcErr = root.ExecutionError(cmd, "")
+		rcErr = root.ExecutionErrors(cmd, errors)
 	}
 
 	composes = weldr.SortComposeStatusV0(composes)

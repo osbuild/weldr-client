@@ -32,7 +32,7 @@ func getImage(cmd *cobra.Command, args []string) (rcErr error) {
 		return root.ExecutionError(cmd, "Image error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "Image error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	fmt.Println(fn)

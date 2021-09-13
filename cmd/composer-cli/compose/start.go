@@ -7,7 +7,6 @@ package compose
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -50,11 +49,8 @@ func start(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return root.ExecutionError(cmd, "Push TOML Error: %s", err)
 	}
-	if root.JSONOutput {
-		return nil
-	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, strings.Join(resp.AllErrors(), "\n"))
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	fmt.Printf("Compose %s added to the queue\n", uuid)

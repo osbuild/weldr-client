@@ -31,14 +31,11 @@ func init() {
 
 func types(cmd *cobra.Command, args []string) error {
 	types, resp, err := root.Client.GetComposeTypes(distro)
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Types Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "Types Error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	sort.Strings(types)

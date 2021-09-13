@@ -26,13 +26,13 @@ func init() {
 	composeCmd.AddCommand(resultsCmd)
 }
 
-func getResults(cmd *cobra.Command, args []string) (rcErr error) {
+func getResults(cmd *cobra.Command, args []string) error {
 	fn, resp, err := root.Client.ComposeResults(args[0])
 	if err != nil {
 		return root.ExecutionError(cmd, "Resultserror: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "Results error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	fmt.Println(fn)

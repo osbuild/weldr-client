@@ -27,7 +27,7 @@ func init() {
 	composeCmd.AddCommand(logCmd)
 }
 
-func getLog(cmd *cobra.Command, args []string) (rcErr error) {
+func getLog(cmd *cobra.Command, args []string) error {
 	logSize := 1024
 	if len(args) > 1 {
 		s, err := strconv.Atoi(args[1])
@@ -37,14 +37,11 @@ func getLog(cmd *cobra.Command, args []string) (rcErr error) {
 		logSize = s
 	}
 	log, resp, err := root.Client.ComposeLog(args[0], logSize)
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Log error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "Log error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	fmt.Println(log)
