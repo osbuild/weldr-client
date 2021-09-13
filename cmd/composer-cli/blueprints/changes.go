@@ -6,7 +6,6 @@ package blueprints
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -33,14 +32,8 @@ func changes(cmd *cobra.Command, args []string) (rcErr error) {
 	if err != nil {
 		return root.ExecutionError(cmd, "Changes Error: %s", err)
 	}
-	if root.JSONOutput {
-		return nil
-	}
 	if len(resp) > 0 {
-		for _, r := range resp {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", r)
-		}
-		rcErr = root.ExecutionError(cmd, "")
+		rcErr = root.ExecutionErrors(cmd, resp)
 	}
 	for _, bp := range blueprints {
 		fmt.Println(bp.Name)

@@ -43,14 +43,8 @@ func workspace(cmd *cobra.Command, args []string) (rcErr error) {
 			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
-		if root.JSONOutput {
-			continue
-		}
 		if resp != nil && !resp.Status {
-			for _, e := range resp.AllErrors() {
-				fmt.Fprintf(os.Stderr, "ERROR: %s\n", e)
-			}
-			rcErr = root.ExecutionError(cmd, "")
+			rcErr = root.ExecutionErrors(cmd, resp.Errors)
 		}
 	}
 

@@ -67,14 +67,8 @@ func freeze(cmd *cobra.Command, args []string) (rcErr error) {
 	if err != nil {
 		return root.ExecutionError(cmd, "Save Error: %s", err)
 	}
-	if root.JSONOutput {
-		return nil
-	}
 	if len(errors) > 0 {
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
-		}
-		rcErr = root.ExecutionError(cmd, "")
+		rcErr = root.ExecutionErrors(cmd, errors)
 	}
 
 	for _, bp := range bps {
@@ -113,9 +107,12 @@ func freeze(cmd *cobra.Command, args []string) (rcErr error) {
 func freezeShow(cmd *cobra.Command, args []string) error {
 	names := root.GetCommaArgs(args)
 	if root.JSONOutput {
-		_, _, err := root.Client.GetFrozenBlueprintsJSON(names)
+		_, errors, err := root.Client.GetFrozenBlueprintsJSON(names)
 		if err != nil {
 			return root.ExecutionError(cmd, "Save Error: %s", err)
+		}
+		if errors != nil {
+			return root.ExecutionErrors(cmd, errors)
 		}
 		return nil
 	}
@@ -137,14 +134,8 @@ func freezeSave(cmd *cobra.Command, args []string) (rcErr error) {
 	if err != nil {
 		return root.ExecutionError(cmd, "Save Error: %s", err)
 	}
-	if root.JSONOutput {
-		return nil
-	}
 	if len(errors) > 0 {
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
-		}
-		rcErr = root.ExecutionError(cmd, "")
+		rcErr = root.ExecutionErrors(cmd, errors)
 	}
 
 	for _, bp := range bps {

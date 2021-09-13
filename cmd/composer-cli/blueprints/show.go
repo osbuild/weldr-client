@@ -6,7 +6,6 @@ package blueprints
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -31,9 +30,12 @@ func show(cmd *cobra.Command, args []string) (rcErr error) {
 	names := root.GetCommaArgs(args)
 
 	if root.JSONOutput {
-		_, _, err := root.Client.GetBlueprintsJSON(names)
+		_, errors, err := root.Client.GetBlueprintsJSON(names)
 		if err != nil {
 			return root.ExecutionError(cmd, "Show Error: %s", err)
+		}
+		if errors != nil {
+			return root.ExecutionErrors(cmd, errors)
 		}
 		return nil
 	}
@@ -43,8 +45,7 @@ func show(cmd *cobra.Command, args []string) (rcErr error) {
 		return root.ExecutionError(cmd, "Show Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		fmt.Fprintf(os.Stderr, "ERROR: Show: %s\n", resp.String())
-		rcErr = root.ExecutionError(cmd, "")
+		rcErr = root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	for _, bp := range blueprints {
