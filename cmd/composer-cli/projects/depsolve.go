@@ -52,14 +52,8 @@ func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
 	if err != nil {
 		return root.ExecutionError(cmd, "Depsolve Error: %s", err)
 	}
-	if root.JSONOutput {
-		return nil
-	}
 	if len(errors) > 0 {
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e.String())
-		}
-		rcErr = root.ExecutionError(cmd, "")
+		rcErr = root.ExecutionErrors(cmd, errors)
 	}
 
 	// Encode it using json
