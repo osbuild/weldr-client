@@ -5,9 +5,7 @@
 package sources
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 
 	"github.com/spf13/cobra"
 
@@ -37,7 +35,7 @@ func init() {
 	sourcesCmd.AddCommand(changeCmd)
 }
 
-func add(cmd *cobra.Command, args []string) (rcErr error) {
+func add(cmd *cobra.Command, args []string) error {
 	data, err := ioutil.ReadFile(args[0])
 	if err != nil {
 		return root.ExecutionError(cmd, "Missing source file: %s\n", args[0])
@@ -46,15 +44,9 @@ func add(cmd *cobra.Command, args []string) (rcErr error) {
 	if err != nil {
 		return root.ExecutionError(cmd, "Add source TOML: %s\n", err)
 	}
-	if root.JSONOutput {
-		return nil
-	}
 	if resp != nil && !resp.Status {
-		for _, e := range resp.AllErrors() {
-			fmt.Fprintf(os.Stderr, "ERROR: %s\n", e)
-		}
-		rcErr = root.ExecutionError(cmd, "")
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
-	return rcErr
+	return nil
 }

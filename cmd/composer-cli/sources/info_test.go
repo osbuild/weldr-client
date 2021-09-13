@@ -6,6 +6,7 @@ package sources
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -46,7 +47,8 @@ func TestCmdSourcesInfo(t *testing.T) {
 
 	cmd, out, err := root.ExecuteTest("sources", "info", "fedora,unknown")
 	defer out.Close()
-	require.Nil(t, err)
+	require.NotNil(t, err)
+	assert.Equal(t, err, fmt.Errorf(""))
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)

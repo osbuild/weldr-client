@@ -7,7 +7,6 @@ package sources
 import (
 	"bytes"
 	"fmt"
-	"os"
 
 	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
@@ -30,31 +29,27 @@ func init() {
 	sourcesCmd.AddCommand(infoCmd)
 }
 
-func info(cmd *cobra.Command, args []string) (rcErr error) {
+func info(cmd *cobra.Command, args []string) error {
 	names := root.GetCommaArgs(args)
 
-	sources, resp, err := root.Client.GetSourcesJSON(names)
+	sources, errors, err := root.Client.GetSourcesJSON(names)
 	if err != nil {
 		return root.ExecutionError(cmd, "Info Error: %s", err)
-	}
-
-	if root.JSONOutput {
-		return nil
 	}
 
 	for _, s := range sources {
 		buf := new(bytes.Buffer)
 		if err = toml.NewEncoder(buf).Encode(s); err != nil {
-			resp = append(resp, weldr.APIErrorMsg{ID: "TOMLError", Msg: err.Error()})
+			errors = append(errors, weldr.APIErrorMsg{ID: "TOMLError", Msg: err.Error()})
 		} else {
 			fmt.Println(buf.String())
 		}
 	}
 
 	// Print any errors to stderr
-	for _, e := range resp {
-		fmt.Fprintln(os.Stderr, e.String())
+	if len(errors) > 0 {
+		return root.ExecutionErrors(cmd, errors)
 	}
 
-	return rcErr
+	return nil
 }
