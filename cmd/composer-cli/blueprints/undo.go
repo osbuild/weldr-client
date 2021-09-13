@@ -29,11 +29,8 @@ func undo(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return root.ExecutionError(cmd, "Undo Error: %s", err)
 	}
-	if root.JSONOutput {
-		return nil
-	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "Undo Error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	return nil

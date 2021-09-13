@@ -28,14 +28,11 @@ func init() {
 
 func list(cmd *cobra.Command, args []string) error {
 	blueprints, resp, err := root.Client.ListBlueprints()
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "List Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, "List Error: %s", resp.String())
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	sort.Strings(blueprints)
