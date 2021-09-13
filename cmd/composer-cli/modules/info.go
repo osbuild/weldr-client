@@ -6,7 +6,6 @@ package modules
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -32,14 +31,11 @@ func info(cmd *cobra.Command, args []string) error {
 	names := root.GetCommaArgs(args)
 
 	modules, resp, err := root.Client.ModulesInfo(names, distro)
-	if root.JSONOutput {
-		return nil
-	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Info Error: %s", err)
 	}
 	if resp != nil && !resp.Status {
-		return root.ExecutionError(cmd, strings.Join(resp.AllErrors(), "\n"))
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
 	for _, p := range modules {
