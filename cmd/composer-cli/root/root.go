@@ -68,6 +68,9 @@ var (
 
 	// Client is the weldr.Client used to communicate with the server
 	Client weldr.Client
+
+	// Original Stdout
+	oldStdout *os.File
 )
 
 func init() {
@@ -104,6 +107,10 @@ func initConfig() {
 	Client = weldr.InitClientUnixSocket(ctx, apiVersion, socketPath)
 
 	if JSONOutput {
+		// Disable Stdout output so that only json is output
+		oldStdout = os.Stdout
+		os.Stdout = nil
+
 		Client.SetRawCallback(func(method string, path string, status int, data []byte) {
 			// Convert the data to a generic data structure, then pretty-print it
 			var r struct {
@@ -119,10 +126,11 @@ func initConfig() {
 			if err == nil {
 				s, err := json.MarshalIndent(r, "", "    ")
 				if err == nil {
-					fmt.Println(string(s))
+					fmt.Fprintln(oldStdout, string(s))
 				}
 			}
 		})
+
 	}
 }
 
@@ -149,9 +157,12 @@ func ExecutionError(cmd *cobra.Command, format string, a ...interface{}) error {
 }
 
 // ExecutionErrors prints a list of errors to stderr, then calls ExecutionError
-func ExecutionErrors(cmd *cobra.Command, errors []string) error {
-	for _, s := range errors {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", s)
+func ExecutionErrors(cmd *cobra.Command, errors []weldr.APIErrorMsg) error {
+	// When JSON output is enabled the errors are in the JSON so skip printing them
+	if !JSONOutput {
+		for _, s := range errors {
+			fmt.Fprintf(os.Stderr, "ERROR: %s\n", s)
+		}
 	}
 	return ExecutionError(cmd, "")
 }
