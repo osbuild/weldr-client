@@ -28,6 +28,7 @@ func TestCmdBlueprintsUndo(t *testing.T) {
 	})
 
 	cmd, out, err := root.ExecuteTest("blueprints", "undo", "cli-test-bp-1", "f1da83187730c5e65d5931e2811481c5fe3407e5")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.Nil(t, err)
 	require.NotNil(t, out.Stdout)
@@ -44,6 +45,37 @@ func TestCmdBlueprintsUndo(t *testing.T) {
 	assert.Equal(t, "/api/v1/blueprints/undo/cli-test-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5", mc.Req.URL.Path)
 }
 
+func TestCmdBlueprintsUndoJSON(t *testing.T) {
+	// Test the "blueprints undo" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{"status": true}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	cmd, out, err := root.ExecuteTest("--json", "blueprints", "undo", "cli-test-bp-1", "f1da83187730c5e65d5931e2811481c5fe3407e5")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, undoCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"status\": true")
+	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/undo/cli-test-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5\"")
+	assert.Contains(t, string(stdout), "\"method\": \"POST")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mc.Req.Method)
+	assert.Equal(t, "/api/v1/blueprints/undo/cli-test-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5", mc.Req.URL.Path)
+}
+
 func TestCmdBlueprintsUndoUnknownBlueprint(t *testing.T) {
 	// Test the "blueprints undo" command with an unknown blueprint
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
@@ -52,7 +84,7 @@ func TestCmdBlueprintsUndoUnknownBlueprint(t *testing.T) {
     "errors": [
         {
             "id": "UnknownCommit",
-            "msg": "Unknown commit"
+            "msg": "Unknown blueprint"
         }
     ]
 }`
@@ -64,6 +96,7 @@ func TestCmdBlueprintsUndoUnknownBlueprint(t *testing.T) {
 	})
 
 	cmd, out, err := root.ExecuteTest("blueprints", "undo", "foo-bp-1", "f1da83187730c5e65d5931e2811481c5fe3407e5")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.NotNil(t, err)
 	require.NotNil(t, out.Stdout)
@@ -75,20 +108,20 @@ func TestCmdBlueprintsUndoUnknownBlueprint(t *testing.T) {
 	assert.Equal(t, []byte(""), stdout)
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
-	assert.Contains(t, string(stderr), "Unknown commit")
+	assert.Contains(t, string(stderr), "Unknown blueprint")
 	assert.Equal(t, "POST", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/undo/foo-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5", mc.Req.URL.Path)
 }
 
-func TestCmdBlueprintsDeleteUnknownCommit(t *testing.T) {
-	// Test the "blueprints undo" command with an unknown commit
+func TestCmdBlueprintsUndoUnknownBlueprintJSON(t *testing.T) {
+	// Test the "blueprints undo" command with an unknown blueprint
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		json := `{
     "status": false,
     "errors": [
         {
             "id": "UnknownCommit",
-            "msg": "Unknown commit"
+            "msg": "Unknown blueprint"
         }
     ]
 }`
@@ -99,7 +132,8 @@ func TestCmdBlueprintsDeleteUnknownCommit(t *testing.T) {
 		}, nil
 	})
 
-	cmd, out, err := root.ExecuteTest("blueprints", "undo", "cli-test-bp-1", "9d0909f5382b77e7c3cad8db2bf230b7946e5e26")
+	cmd, out, err := root.ExecuteTest("--json", "blueprints", "undo", "foo-bp-1", "f1da83187730c5e65d5931e2811481c5fe3407e5")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.NotNil(t, err)
 	require.NotNil(t, out.Stdout)
@@ -108,10 +142,16 @@ func TestCmdBlueprintsDeleteUnknownCommit(t *testing.T) {
 	assert.Equal(t, cmd, undoCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
-	assert.Equal(t, []byte(""), stdout)
+	assert.Contains(t, string(stdout), "\"status\": false")
+	assert.Contains(t, string(stdout), "\"id\": \"UnknownCommit\"")
+	assert.Contains(t, string(stdout), "\"msg\": \"Unknown blueprint\"")
+	assert.Contains(t, string(stdout), "\"path\": \"/api/v1/blueprints/undo/foo-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5\"")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
-	assert.Contains(t, string(stderr), "Unknown commit")
+	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
-	assert.Equal(t, "/api/v1/blueprints/undo/cli-test-bp-1/9d0909f5382b77e7c3cad8db2bf230b7946e5e26", mc.Req.URL.Path)
+	assert.Equal(t, "/api/v1/blueprints/undo/foo-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5", mc.Req.URL.Path)
 }
+
+// NOTE: Unknown commit and unknown blueprint differ only in the message string
+//       No need to test unknown commit with the mock setup
