@@ -105,7 +105,11 @@ func initConfig() {
 	}
 
 	Client = weldr.InitClientUnixSocket(ctx, apiVersion, socketPath)
+	setupJSONOutput()
+}
 
+// setupJSONOutput configures the callback function and disables Stdout
+func setupJSONOutput() {
 	if JSONOutput {
 		// Disable Stdout output so that only json is output
 		oldStdout = os.Stdout
@@ -130,7 +134,12 @@ func initConfig() {
 				}
 			}
 		})
-
+	} else {
+		if oldStdout != nil {
+			os.Stdout = oldStdout
+			oldStdout = nil
+		}
+		Client.SetRawCallback(func(string, string, int, []byte) {})
 	}
 }
 

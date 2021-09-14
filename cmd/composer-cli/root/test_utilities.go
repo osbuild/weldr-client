@@ -17,6 +17,12 @@ import (
 	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
+// CobraInitialized make sure that cobra.OnInitialize is only called once
+var cobraInitialized bool
+
+// mockClient is used to setup the http client for testing
+var mockClient weldr.MockClient
+
 // OutputCapture holds the details used for capturing output during testing
 type OutputCapture struct {
 	Stdout      *os.File
@@ -57,10 +63,10 @@ func NewOutputCapture() (*OutputCapture, error) {
 // Close removes the temporary files and restores the original stdout/stderr
 func (c *OutputCapture) Close() {
 	c.Stdout.Close()
-	os.Remove(os.Stdout.Name())
+	os.Remove(c.Stdout.Name())
 	os.Stdout = c.originalOut
 	c.Stderr.Close()
-	os.Remove(os.Stderr.Name())
+	os.Remove(c.Stderr.Name())
 	os.Stderr = c.originalErr
 }
 
@@ -99,6 +105,13 @@ func ExecuteTest(args ...string) (*cobra.Command, *OutputCapture, error) {
 		return nil, nil, err
 	}
 	ranCmd, err := rootCmd.ExecuteC()
+
+	// If JSON output was enabled restore the captured Stdout
+	if JSONOutput {
+		os.Stdout = oldStdout
+		oldStdout = nil
+		JSONOutput = false
+	}
 	if rewErr := output.Rewind(); rewErr != nil {
 		output.Close()
 		return nil, nil, rewErr
@@ -110,13 +123,19 @@ func ExecuteTest(args ...string) (*cobra.Command, *OutputCapture, error) {
 // SetupCmdTest initializes the weldr client with a Mock Client used to capture test details
 // Pass in a function to be run when the client queries the server. See weldr.
 func SetupCmdTest(f func(request *http.Request) (*http.Response, error)) *weldr.MockClient {
-	mc := weldr.MockClient{
+	mockClient = weldr.MockClient{
 		DoFunc: f,
 	}
-	cobra.OnInitialize(func() {
-		Client = weldr.NewClient(context.Background(), &mc, 1, "")
-	})
-	return &mc
+
+	// Only call this once! It appends to the list of functions in cobra.initializers
+	if !cobraInitialized {
+		cobra.OnInitialize(func() {
+			Client = weldr.NewClient(context.Background(), &mockClient, 1, "")
+			setupJSONOutput()
+		})
+		cobraInitialized = true
+	}
+	return &mockClient
 }
 
 // MakeTarBytes makes a simple tar file with a filename and some data in it
@@ -140,4 +159,22 @@ func MakeTarBytes(filename, data string) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// LogToFile appends a line of text to a file
+// used for debugging problems during development
+func LogToFile(filename, message string) error {
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	if _, err := f.Write([]byte(message + "\n")); err != nil {
+		f.Close() // ignore error; Write error takes precedence
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
