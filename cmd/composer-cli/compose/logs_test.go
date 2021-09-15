@@ -69,3 +69,74 @@ And should do the job.`
 	_, err = os.Stat("b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7-logs.tar")
 	assert.Nil(t, err)
 }
+
+func TestCmdComposeLogsUnknown(t *testing.T) {
+	// Test the "compose logs" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+"status":false,
+"errors":[{"id":"UnknownUUID","msg":"4b668b1a-e6b8-4dce-8828-4a8e3bef2345 is not a valid build uuid"}]
+}`
+
+		return &http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get log from an unknown compose
+	cmd, out, err := root.ExecuteTest("compose", "logs", "4b668b1a-e6b8-4dce-8828-4a8e3bef2345")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	assert.Equal(t, root.ExecutionError(cmd, ""), err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, logsCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stdout)
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stderr), "ERROR: UnknownUUID: 4b668b1a-e6b8-4dce-8828-4a8e3bef2345 is not a valid build uuid")
+	assert.Equal(t, "GET", mc.Req.Method)
+}
+
+func TestCmdComposeLogsUnknownJSON(t *testing.T) {
+	// Test the "compose logs" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+"status":false,
+"errors":[{"id":"UnknownUUID","msg":"4b668b1a-e6b8-4dce-8828-4a8e3bef2345 is not a valid build uuid"}]
+}`
+
+		return &http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get log from an unknown compose
+	cmd, out, err := root.ExecuteTest("--json", "compose", "logs", "4b668b1a-e6b8-4dce-8828-4a8e3bef2345")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	assert.Equal(t, root.ExecutionError(cmd, ""), err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, logsCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"status\": false")
+	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
+	assert.Contains(t, string(stdout), "\"msg\": \"4b668b1a-e6b8-4dce-8828-4a8e3bef2345 is not a valid build uuid\"")
+	assert.Contains(t, string(stdout), "\"status\": 400")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+}

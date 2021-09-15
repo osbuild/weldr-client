@@ -51,6 +51,7 @@ And should do the job.`
 
 	// Get the logs
 	cmd, out, err := root.ExecuteTest("compose", "metadata", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.Nil(t, err)
 	require.NotNil(t, out.Stdout)
@@ -68,4 +69,75 @@ And should do the job.`
 
 	_, err = os.Stat("b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7-metadata.tar")
 	assert.Nil(t, err)
+}
+
+func TestCmdComposeMetadataUnknown(t *testing.T) {
+	// Test the "compose metadata" command with unknown uuid
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+"status":false,
+"errors":[{"id":"UnknownUUID","msg":"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 is not a valid build uuid"}]
+}`
+
+		return &http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get metadata from an unknown compose
+	cmd, out, err := root.ExecuteTest("compose", "metadata", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	assert.Equal(t, root.ExecutionError(cmd, ""), err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, metadataCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stdout)
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stderr), "UnknownUUID: b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 is not a valid build uuid")
+	assert.Equal(t, "GET", mc.Req.Method)
+}
+
+func TestCmdComposeMetadataUnknownJSON(t *testing.T) {
+	// Test the "compose metadata" command with unknown uuid
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+"status":false,
+"errors":[{"id":"UnknownUUID","msg":"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 is not a valid build uuid"}]
+}`
+
+		return &http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get metadata from an unknown compose
+	cmd, out, err := root.ExecuteTest("--json", "compose", "metadata", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	assert.Equal(t, root.ExecutionError(cmd, ""), err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, metadataCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"status\": false")
+	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
+	assert.Contains(t, string(stdout), "\"msg\": \"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 is not a valid build uuid\"")
+	assert.Contains(t, string(stdout), "\"status\": 400")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
 }

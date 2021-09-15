@@ -66,3 +66,117 @@ func TestCmdComposeImage(t *testing.T) {
 	_, err = os.Stat("b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.qcow2")
 	assert.Nil(t, err)
 }
+
+func TestCmdComposeUnknownImage(t *testing.T) {
+	// Test the "compose image" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+        "errors": [
+            {
+                "id": "UnknownUUID",
+                "msg": "c3660d9b-8d8b-4077-8b9a-72e4f5861f4 is not a valid build uuid"
+            }
+        ],
+        "status": false
+}`
+
+		resp := http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}
+		return &resp, nil
+	})
+
+	// Change to a temporary directory for the file to be saved in
+	dir, err := ioutil.TempDir("", "test-image-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	prevDir, _ := os.Getwd()
+	err = os.Chdir(dir)
+	require.Nil(t, err)
+	//nolint:errcheck
+	defer os.Chdir(prevDir)
+
+	// Get the logs
+	cmd, out, err := root.ExecuteTest("compose", "image", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	assert.Equal(t, root.ExecutionError(cmd, ""), err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, imageCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stdout)
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stderr), "UnknownUUID: c3660d9b-8d8b-4077-8b9a-72e4f5861f4 is not a valid build uuid")
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/compose/image/b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7", mc.Req.URL.Path)
+
+	_, err = os.Stat("b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.qcow2")
+	assert.NotNil(t, err)
+}
+
+func TestCmdComposeUnknownImageJSON(t *testing.T) {
+	// Test the "compose image" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+        "errors": [
+            {
+                "id": "UnknownUUID",
+                "msg": "c3660d9b-8d8b-4077-8b9a-72e4f5861f4 is not a valid build uuid"
+            }
+        ],
+        "status": false
+}`
+
+		resp := http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}
+		return &resp, nil
+	})
+
+	// Change to a temporary directory for the file to be saved in
+	dir, err := ioutil.TempDir("", "test-image-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	prevDir, _ := os.Getwd()
+	err = os.Chdir(dir)
+	require.Nil(t, err)
+	//nolint:errcheck
+	defer os.Chdir(prevDir)
+
+	// Get the logs
+	cmd, out, err := root.ExecuteTest("--json", "compose", "image", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	assert.Equal(t, root.ExecutionError(cmd, ""), err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, imageCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
+	assert.Contains(t, string(stdout), "\"msg\": \"c3660d9b-8d8b-4077-8b9a-72e4f5861f4 is not a valid build uuid\"")
+	assert.Contains(t, string(stdout), "\"status\": false")
+	assert.Contains(t, string(stdout), "\"path\": \"/api/v1/compose/image/b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7\"")
+	assert.Contains(t, string(stdout), "\"status\": 400")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/compose/image/b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7", mc.Req.URL.Path)
+
+	_, err = os.Stat("b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.qcow2")
+	assert.NotNil(t, err)
+}
