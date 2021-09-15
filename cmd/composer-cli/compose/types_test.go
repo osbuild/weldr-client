@@ -56,6 +56,7 @@ func TestCmdComposeTypes(t *testing.T) {
 
 	// Get the compose types
 	cmd, out, err := root.ExecuteTest("compose", "types")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.Nil(t, err)
 	require.NotNil(t, out.Stdout)
@@ -66,6 +67,64 @@ func TestCmdComposeTypes(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "openstack")
 	assert.Contains(t, string(stdout), "qcow2")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+}
+
+func TestCmdComposeTypesJSON(t *testing.T) {
+	// Test the "compose types" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+    "types": [
+        {
+            "name": "ami",
+            "enabled": true
+        },
+        {
+            "name": "fedora-iot-commit",
+            "enabled": true
+        },
+        {
+            "name": "openstack",
+            "enabled": true
+        },
+        {
+            "name": "qcow2",
+            "enabled": true
+        },
+        {
+            "name": "vhd",
+            "enabled": true
+        },
+        {
+            "name": "vmdk",
+            "enabled": true
+        }
+    ]
+}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get the compose types
+	cmd, out, err := root.ExecuteTest("--json", "compose", "types")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, typesCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"name\": \"openstack\"")
+	assert.Contains(t, string(stdout), "\"name\": \"qcow2\"")
+	assert.Contains(t, string(stdout), "\"path\": \"/compose/types\"")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
@@ -96,6 +155,7 @@ func TestCmdComposeTypesDistro(t *testing.T) {
 
 	// Get the compose types
 	cmd, out, err := root.ExecuteTest("compose", "types", "--distro=test-distro")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.Nil(t, err)
 	require.NotNil(t, out.Stdout)
@@ -106,6 +166,48 @@ func TestCmdComposeTypesDistro(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "tar")
 	assert.Contains(t, string(stdout), "qcow2")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+}
+
+func TestCmdComposeTypesDistroJSON(t *testing.T) {
+	// Test the "compose types" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+    "types": [
+        {
+            "name": "tar",
+            "enabled": true
+        },
+        {
+            "name": "qcow2",
+            "enabled": true
+        }
+    ]
+}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get the compose types
+	cmd, out, err := root.ExecuteTest("--json", "compose", "types", "--distro=test-distro")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, typesCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"name\": \"tar\"")
+	assert.Contains(t, string(stdout), "\"name\": \"qcow2\"")
+	assert.Contains(t, string(stdout), "\"path\": \"/compose/types?distro=test-distro\"")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
@@ -134,6 +236,7 @@ func TestCmdComposeTypesBadDistro(t *testing.T) {
 
 	// Get the compose types
 	cmd, out, err := root.ExecuteTest("compose", "types", "--distro=homer")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.NotNil(t, err)
 	require.NotNil(t, out.Stdout)
@@ -146,5 +249,44 @@ func TestCmdComposeTypesBadDistro(t *testing.T) {
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "DistroError: Invalid distro: homer")
+	assert.Equal(t, "GET", mc.Req.Method)
+}
+
+func TestCmdComposeTypesBadDistroJSON(t *testing.T) {
+	// Test the "compose types --distro=unknown" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+        "errors": [
+            {
+                "id": "DistroError",
+                "msg": "Invalid distro: homer"
+            }
+        ],
+        "status": false
+}`
+
+		return &http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get the compose types
+	cmd, out, err := root.ExecuteTest("--json", "compose", "types", "--distro=homer")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, typesCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"id\": \"DistroError\"")
+	assert.Contains(t, string(stdout), "\"msg\": \"Invalid distro: homer\"")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 }
