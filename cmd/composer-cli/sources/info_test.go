@@ -46,6 +46,7 @@ func TestCmdSourcesInfo(t *testing.T) {
 	})
 
 	cmd, out, err := root.ExecuteTest("sources", "info", "fedora,unknown")
+	require.NotNil(t, out)
 	defer out.Close()
 	require.NotNil(t, err)
 	assert.Equal(t, err, fmt.Errorf(""))
@@ -60,6 +61,56 @@ func TestCmdSourcesInfo(t *testing.T) {
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownSource: unknown is not a valid source")
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/projects/source/info/fedora,unknown", mc.Req.URL.Path)
+}
+
+func TestCmdSourcesInfoJSON(t *testing.T) {
+	// Test the "sources info" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+    "errors": [
+        {
+            "id": "UnknownSource",
+            "msg": "unknown is not a valid source"
+        }
+    ],
+    "sources": {
+        "fedora": {
+            "check_gpg": true,
+            "check_ssl": true,
+            "id": "fedora",
+            "name": "fedora",
+            "system": true,
+            "type": "yum-metalink",
+            "url": "https://mirrors.fedoraproject.org/metalink?repo=fedora-33\u0026arch=x86_64"
+        }
+    }
+}`
+		return &http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	cmd, out, err := root.ExecuteTest("--json", "sources", "info", "fedora,unknown")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.NotNil(t, err)
+	assert.Equal(t, err, fmt.Errorf(""))
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, infoCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "\"id\": \"fedora\"")
+	assert.Contains(t, string(stdout), "\"type\": \"yum-metalink\"")
+	assert.Contains(t, string(stdout), "\"id\": \"UnknownSource\"")
+	assert.Contains(t, string(stdout), "\"msg\": \"unknown is not a valid source\"")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/projects/source/info/fedora,unknown", mc.Req.URL.Path)
 }
