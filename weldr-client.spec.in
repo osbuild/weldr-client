@@ -51,6 +51,8 @@ Command line utility to control osbuild-composer
 %endif
 
 %build
+export LDFLAGS="-X %{goipath}/cmd/composer-cli/root.Version=%{version} "
+
 %if 0%{?rhel}
 GO_BUILD_PATH=$PWD/_build
 install -m 0755 -vd $(dirname $GO_BUILD_PATH/src/%{goipath})
@@ -60,32 +62,32 @@ install -m 0755 -vd _bin
 export PATH=$PWD/_bin${PATH:+:$PATH}
 export GOPATH=$GO_BUILD_PATH:%{gopath}
 export GOFLAGS=-mod=vendor
+%gobuild -o composer-cli %{goipath}/cmd/composer-cli
 %else
 export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
+make GOBUILDFLAGS="%{gobuildflags}" build
 %endif
 
-export LDFLAGS="-X %{goipath}/cmd/composer-cli/root.Version=%{version} "
-make GOBUILDFLAGS="%{gobuildflags}" build
 
 ## TODO
 ##make man
 
 %if %{with tests} || 0%{?rhel}
+export BUILDTAGS="integration"
+
 # Build test binaries with `go test -c`, so that they can take advantage of
-# golang's testing package. The golang rpm macros don't support building them
+# golang's testing package. The RHEL golang rpm macros don't support building them
 # directly. Thus, do it manually, taking care to also include a build id.
 #
 # On Fedora, also turn off go modules and set the path to the one into which
 # the golang-* packages install source code.
-%if 0%{?fedora}
-export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
-export GO111MODULE=off
-%endif
-
-export LDFLAGS="-X %{goipath}/cmd/composer-cli/root.Version=%{version} "
-export BUILDTAGS="integration"
+%if 0%{?rhel}
+export LDFLAGS="${LDFLAGS:-} -B 0x$(od -N 20 -An -tx1 -w100 /dev/urandom | tr -d ' ')"
+go test -c -tags=integration -ldflags="${LDFLAGS}" -o composer-cli-tests %{goipath}/weldr
+%else
 make GOBUILDFLAGS="%{gobuildflags}" integration
+%endif
 %endif
 
 %install
@@ -101,8 +103,10 @@ export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
 %endif
 
+# Run the unit tests
 export LDFLAGS="-X %{goipath}/cmd/composer-cli/root.Version=%{version} "
-make GOBUILDFLAGS="%{gotestflags}" test
+make test
+
 
 %files
 %license LICENSE
