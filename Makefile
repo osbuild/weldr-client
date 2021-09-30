@@ -116,9 +116,12 @@ scratch-rpm: $(RPM_SPECFILE) archive
 		--without signed \
 		$(RPM_SPECFILE)
 
+build-in-podman: archive
+	podman build -t weldr-client:$(VERSION) -f Containerfile.test .
+
 update-mods:
 	go get -u ./...
 	go mod vendor
 	$(MAKE) test
 
-.PHONY: build check test integration install srpm rpm weldr-client.spec update-mods
+.PHONY: build check test integration install srpm rpm weldr-client.spec update-mods build-in-podman
