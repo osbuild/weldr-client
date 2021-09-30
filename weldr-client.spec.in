@@ -3,7 +3,7 @@
 # Pass --without signed to skip gpg signed tar.gz (DO NOT DO THAT IN PRODUCTION)
 %bcond_without signed
 
-%global goipath         github.com/osbuild/weldr-client
+%global goipath         github.com/osbuild/weldr-client/v2
 
 Name:      weldr-client
 Version:   %%VERSION%%
@@ -65,7 +65,7 @@ export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
 %endif
 
-export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
+export LDFLAGS="-X %{goipath}/cmd/composer-cli/root.Version=%{version} "
 make GOBUILDFLAGS="%{gobuildflags}" build
 
 ## TODO
@@ -83,7 +83,7 @@ export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
 %endif
 
-export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
+export LDFLAGS="-X %{goipath}/cmd/composer-cli/root.Version=%{version} "
 export BUILDTAGS="integration"
 make GOBUILDFLAGS="%{gobuildflags}" integration
 %endif
@@ -101,7 +101,7 @@ export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
 %endif
 
-export LDFLAGS="-X github.com/osbuild/weldr-client/cmd/composer-cli/root.Version=%{version} "
+export LDFLAGS="-X %{goipath}/cmd/composer-cli/root.Version=%{version} "
 make GOBUILDFLAGS="%{gotestflags}" test
 
 %files
