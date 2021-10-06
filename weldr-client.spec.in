@@ -83,8 +83,8 @@ export BUILDTAGS="integration"
 # On Fedora, also turn off go modules and set the path to the one into which
 # the golang-* packages install source code.
 %if 0%{?rhel}
-export LDFLAGS="${LDFLAGS:-} -B 0x$(od -N 20 -An -tx1 -w100 /dev/urandom | tr -d ' ')"
-go test -c -tags=integration -ldflags="${LDFLAGS}" -o composer-cli-tests %{goipath}/weldr
+export LDFLAGS="${LDFLAGS:-} -linkmode=external -compressdwarf=false -B 0x$(od -N 20 -An -tx1 -w100 /dev/urandom | tr -d ' ')"
+go test -c -tags=integration -buildmode pie -compiler gc -ldflags="${LDFLAGS}" -o composer-cli-tests %{goipath}/weldr
 %else
 make GOBUILDFLAGS="%{gobuildflags}" integration
 %endif
