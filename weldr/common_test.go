@@ -15,6 +15,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestCheckSocket(t *testing.T) {
+
+	// Test with missing file
+	ok, err := CheckSocket("/run/missing/file.socket")
+	assert.False(t, ok)
+	assert.NotNil(t, err)
+	assert.Contains(t, fmt.Sprintf("%s", err), "Check to make sure that")
+
+	// Test with existing file
+	f, err := ioutil.TempFile("", "test-CheckSocket-*")
+	require.Nil(t, err)
+	_, err = f.Write([]byte("This is just a test file\n"))
+	require.Nil(t, err)
+	f.Close()
+
+	ok, err = CheckSocket(f.Name())
+	assert.True(t, ok)
+	assert.Nil(t, err)
+
+	// NOTE: Cannot test permissons. root has access, and user cannot change them
+	// to something it isn't allowed to access.
+}
+
 func TestRequestMethods(t *testing.T) {
 	// Test the GET, POST, DELETE methods
 	mc := MockClient{

@@ -15,14 +15,43 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/user"
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 )
 
 // HTTPClient make it easier to swap out the client socket for testing
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
+}
+
+// CheckSocket makes sure the socket exists and the user has permission to use it
+// It returns a helpful error message based on what it finds
+func CheckSocket(socketPath string) (bool, error) {
+	if info, err := os.Stat(socketPath); err == nil {
+		var group string
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			if GroupInfo, err := user.LookupGroupId(fmt.Sprintf("%d", stat.Gid)); err == nil {
+				group = GroupInfo.Name
+			}
+		}
+		// Check R_OK and W_OK access to the file
+		if syscall.Access(socketPath, 0x06) != nil {
+			if len(group) == 0 {
+				return false, fmt.Errorf("you do not have permission to access %s", socketPath)
+			}
+			return false, fmt.Errorf("you do not have permission to access %s.  Check to make sure that you are a member of the %s group", socketPath, group)
+
+		}
+	} else if os.IsNotExist(err) {
+		return false, fmt.Errorf("%s does not exist.\n  Check to make sure that osbuild-composer.socket is enabled and started. eg.\n  systemctl enable osbuild-composer.socket && systemctl start osbuild-composer.socket", socketPath)
+	} else {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // NewClient initializes the values of the weldr API client configuration

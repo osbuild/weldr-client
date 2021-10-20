@@ -145,6 +145,10 @@ func setupJSONOutput() {
 
 // Execute runs the commands on the commandline
 func Execute() error {
+	if ok, err := weldr.CheckSocket(socketPath); !ok {
+		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+		return err
+	}
 	return rootCmd.Execute()
 }
 

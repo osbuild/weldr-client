@@ -153,7 +153,7 @@ func executeTests(m *testing.M) int {
 			panic(err)
 		}
 		if resp != nil {
-			panic(errors.New("StartComposeTest failed"))
+			panic(fmt.Errorf("StartComposeTest 1 failed: %#v", resp))
 		}
 	}
 
@@ -164,7 +164,7 @@ func executeTests(m *testing.M) int {
 			panic(err)
 		}
 		if resp != nil {
-			panic(errors.New("StartComposeTest failed"))
+			panic(fmt.Errorf("StartComposeTest 2 failed: %#v", resp))
 		}
 	}
 
