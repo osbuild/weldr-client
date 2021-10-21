@@ -1067,3 +1067,27 @@ func TestAppendQuery(t *testing.T) {
 	assert.Equal(t, "/route/to/moes?bus=1", AppendQuery("/route/to/moes", "bus=1"))
 	assert.Equal(t, "/route/to/moes?bus=0&taxi=1", AppendQuery("/route/to/moes?bus=0", "taxi=1"))
 }
+
+func TestCheckSocket(t *testing.T) {
+	// Test with missing file
+	err := checkSocketError("/run/missing/file.socket", nil)
+	assert.NotNil(t, err)
+	assert.Contains(t, fmt.Sprintf("%s", err), "Check to make sure that")
+
+	// Test with existing file
+	f, err := ioutil.TempFile("", "test-CheckSocket-*")
+	require.Nil(t, err)
+	_, err = f.Write([]byte("This is just a test file\n"))
+	require.Nil(t, err)
+	f.Close()
+
+	err = checkSocketError(f.Name(), nil)
+	assert.Nil(t, err)
+
+	err = checkSocketError(f.Name(), fmt.Errorf("test error"))
+	assert.NotNil(t, err)
+	assert.Equal(t, fmt.Sprintf("%s", err), "test error")
+
+	// NOTE: Cannot test permissons. root has access, and user cannot change them
+	// to something it isn't allowed to access.
+}
