@@ -15,9 +15,11 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/user"
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 )
 
 // HTTPClient make it easier to swap out the client socket for testing
@@ -99,7 +101,7 @@ func (c Client) RawURL(route string) string {
 func (c Client) Request(method, route, body string, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, c.APIURL(route), bytes.NewReader([]byte(body)))
 	if err != nil {
-		return nil, err
+		return nil, checkSocketError(c.socketPath, err)
 	}
 
 	for h, v := range headers {
@@ -108,7 +110,7 @@ func (c Client) Request(method, route, body string, headers map[string]string) (
 
 	resp, err := c.socket.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, checkSocketError(c.socketPath, err)
 	}
 
 	return resp, nil
@@ -126,7 +128,7 @@ func (c Client) Request(method, route, body string, headers map[string]string) (
 func (c Client) RequestRawURL(method, route, body string, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, c.RawURL(route), bytes.NewReader([]byte(body)))
 	if err != nil {
-		return nil, err
+		return nil, checkSocketError(c.socketPath, err)
 	}
 
 	for h, v := range headers {
@@ -135,7 +137,7 @@ func (c Client) RequestRawURL(method, route, body string, headers map[string]str
 
 	resp, err := c.socket.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, checkSocketError(c.socketPath, err)
 	}
 
 	return resp, nil
@@ -452,4 +454,30 @@ func AppendQuery(url, query string) string {
 	}
 
 	return url + "?" + query
+}
+
+func checkSocketError(socketPath string, reqError error) error {
+	if info, err := os.Stat(socketPath); err == nil {
+		var group string
+		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
+			if GroupInfo, err := user.LookupGroupId(fmt.Sprintf("%d", stat.Gid)); err == nil {
+				group = GroupInfo.Name
+			}
+		}
+		// Check R_OK and W_OK access to the file
+		if syscall.Access(socketPath, 0x06) != nil {
+			if len(group) == 0 {
+				return fmt.Errorf("you do not have permission to access %s", socketPath)
+			}
+			return fmt.Errorf("you do not have permission to access %s.  Check to make sure that you are a member of the %s group", socketPath, group)
+
+		}
+	} else if os.IsNotExist(err) {
+		return fmt.Errorf("%s does not exist.\n  Check to make sure that osbuild-composer.socket is enabled and started. eg.\n  systemctl enable osbuild-composer.socket && systemctl start osbuild-composer.socket", socketPath)
+	} else {
+		return err
+	}
+
+	// Doesn't look like a problem with the socket, return the request's error
+	return reqError
 }
