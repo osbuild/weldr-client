@@ -19,8 +19,7 @@ upload images, and manage source repositories.
 Start out by listing the available blueprints using `composer-cli blueprints
 list`, pick one and save it to the local directory by running `composer-cli
 blueprints save http-server`. If there are no blueprints available you can copy
-one of the examples from
-[here](https://github.com/osbuild/weldr-client/examples/).
+one of the examples from [here][examples].
 
 Edit the file (it will be saved with a .toml extension) and change the
 description, add a package to it. Send it back to the server by
@@ -196,9 +195,7 @@ Blueprints are simple text files in [TOML](https://github.com/toml-lang/toml) fo
 which packages, and what versions, to install into the image. They can also define a limited set
 of customizations to make to the final image.
 
-Example blueprints can be found in
-[here](https://github.com/osbuild/weldr-client/examples/), with a simple one
-looking like this:
+Example blueprints can be found in [here][examples], with a simple one looking like this:
 
     name = "base"
     description = "A base system with bash"
@@ -467,3 +464,5 @@ on a source can be retrieved with `composer-cli sources info SOURCE-NAME`. Delet
 The configured sources are used for all blueprint depsolve operations, and for composing images.
 When adding additional sources you must make sure that the packages in the source do not
 conflict with any other package sources, otherwise depsolving will fail.
+
+[examples]: https://github.com/osbuild/weldr-client/tree/main/examples
