@@ -10,11 +10,20 @@ import (
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
 )
 
+const longDocs = `
+Delete the blueprint from the server
+
+This deletes the blueprint, it can no longer be listed or used to start a
+compose.  The contents are still there, and can be restored using the undo
+command. You can list the changes of a deleted blueprint with the changes
+command if you know its name.
+`
+
 var (
 	deleteCmd = &cobra.Command{
 		Use:   "delete BLUEPRINT",
 		Short: "Delete the blueprint from the server",
-		Long:  "Delete the blueprint from the server",
+		Long:  longDocs,
 		RunE:  delete,
 		Args:  cobra.ExactArgs(1),
 	}
