@@ -21,6 +21,6 @@ func TestServerStatus(t *testing.T) {
 	assert.Equal(t, "1", status.API)
 	assert.Equal(t, true, status.DBSupported)
 	assert.Equal(t, "osbuild-composer", status.Backend)
-	assert.Equal(t, "devel", status.Build)
+	assert.NotEqual(t, "", status.Build)
 	assert.Equal(t, []string(nil), status.Messages)
 }
