@@ -4,7 +4,7 @@ name: Trigger GitLab CI
 
 on:
   workflow_run:
-    workflows: ["Checks"]
+    workflows: ["Linting and Unit Tests"]
     types: [completed]
 
 jobs:
