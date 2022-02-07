@@ -29,48 +29,27 @@ func checkUIDGidFloat(t *testing.T, filename string) {
 }
 
 func TestCmdBlueprintsSave(t *testing.T) {
-	// Test the "blueprints save " command
+	// Test the "blueprints save " command (TOML request)
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		json := `{
-    "blueprints": [
-        {
-			"customizations": {
-				"user": [
-					{
-						"gid": 1001,
-						"groups": [
-							"wheel"
-						],
-						"name": "user",
-						"uid": 1001
-					}
-				]
-			},
-            "description": "simple blueprint",
-            "groups": [],
-            "modules": [],
-            "name": "simple",
-            "packages": [
-                {
-                    "name": "bash",
-                    "version": "*"
-                }
-            ],
-            "version": "0.1.0"
-        }
-    ],
-    "changes": [
-        {
-            "changed": false,
-            "name": "simple"
-        }
-    ],
-    "errors": []
-}`
+		toml := `description = "simple blueprint"
+groups = []
+modules = []
+name = "simple"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+
+[[customizations.user]]
+gid = 1001
+groups = ["wheel"]
+name = "user"
+uid = 1001
+`
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
 
@@ -100,6 +79,7 @@ func TestCmdBlueprintsSave(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/info/simple", mc.Req.URL.Path)
+	assert.Equal(t, "format=toml", mc.Req.URL.RawQuery)
 
 	_, err = os.Stat("simple.toml")
 	assert.Nil(t, err)
@@ -125,7 +105,8 @@ func TestCmdBlueprintsSaveUnknown(t *testing.T) {
 }`
 
 		return &http.Response{
-			StatusCode: 200,
+			Request:    request,
+			StatusCode: 400,
 			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
@@ -157,6 +138,7 @@ func TestCmdBlueprintsSaveUnknown(t *testing.T) {
 	assert.Contains(t, string(stderr), "UnknownBlueprint: test-no-bp")
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/info/test-no-bp", mc.Req.URL.Path)
+	assert.Equal(t, "format=toml", mc.Req.URL.RawQuery)
 
 	_, err = os.Stat("test-no-bp.toml")
 	assert.NotNil(t, err)
@@ -165,7 +147,30 @@ func TestCmdBlueprintsSaveUnknown(t *testing.T) {
 func TestCmdBlueprintsSaveJSON(t *testing.T) {
 	// Test the "blueprints save " command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		json := `{
+		query := request.URL.Query()
+		v := query.Get("format")
+		var data string
+		if v == "toml" {
+			data = `errors = []
+description = "simple blueprint"
+groups = []
+modules = []
+name = "simple"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+
+
+[customizations]
+[[customizations.user]]
+gid = 1001
+groups = ["wheel"]
+name = "user"
+uid = 1001
+`
+		} else {
+			data = `{
     "blueprints": [
         {
 			"customizations": {
@@ -201,10 +206,10 @@ func TestCmdBlueprintsSaveJSON(t *testing.T) {
     ],
     "errors": []
 }`
-
+		}
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(data))),
 		}, nil
 	})
 
