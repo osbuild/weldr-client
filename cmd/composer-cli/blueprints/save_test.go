@@ -17,12 +17,35 @@ import (
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
 )
 
+// Check the saved toml file to make sure the uid and gid are not floats
+// This function takes the simple approach and looks for strings.
+func checkUIDGidFloat(t *testing.T, filename string) {
+	data, err := ioutil.ReadFile(filename)
+	require.Nil(t, err)
+	assert.NotContains(t, string(data), "gid = 1001.0")
+	assert.NotContains(t, string(data), "uid = 1001.0")
+	assert.Contains(t, string(data), "gid = 1001")
+	assert.Contains(t, string(data), "uid = 1001")
+}
+
 func TestCmdBlueprintsSave(t *testing.T) {
 	// Test the "blueprints save " command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		json := `{
     "blueprints": [
         {
+			"customizations": {
+				"user": [
+					{
+						"gid": 1001,
+						"groups": [
+							"wheel"
+						],
+						"name": "user",
+						"uid": 1001
+					}
+				]
+			},
             "description": "simple blueprint",
             "groups": [],
             "modules": [],
@@ -80,6 +103,9 @@ func TestCmdBlueprintsSave(t *testing.T) {
 
 	_, err = os.Stat("simple.toml")
 	assert.Nil(t, err)
+
+	// Make sure it does not contain float values for uid/gid
+	checkUIDGidFloat(t, "simple.toml")
 }
 
 func TestCmdBlueprintsSaveUnknown(t *testing.T) {
@@ -142,6 +168,18 @@ func TestCmdBlueprintsSaveJSON(t *testing.T) {
 		json := `{
     "blueprints": [
         {
+			"customizations": {
+				"user": [
+					{
+						"gid": 1001,
+						"groups": [
+							"wheel"
+						],
+						"name": "user",
+						"uid": 1001
+					}
+				]
+			},
             "description": "simple blueprint",
             "groups": [],
             "modules": [],
@@ -200,6 +238,9 @@ func TestCmdBlueprintsSaveJSON(t *testing.T) {
 
 	_, err = os.Stat("simple.toml")
 	assert.Nil(t, err)
+
+	// Make sure it does not contain float values for uid/gid
+	checkUIDGidFloat(t, "simple.toml")
 }
 
 func TestCmdBlueprintsSaveUnknownJSON(t *testing.T) {
