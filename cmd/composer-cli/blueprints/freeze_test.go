@@ -159,42 +159,25 @@ func TestCmdBlueprintsFreezeJSON(t *testing.T) {
 func TestCmdBlueprintsFreezeSave(t *testing.T) {
 	// Test the "blueprints freeze save" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		json := `{
-    "blueprints": [
-        {
-			"blueprint": {
-				"customizations": {
-					"user": [
-						{
-							"gid": 1001,
-							"groups": [
-								"wheel"
-							],
-							"name": "user",
-							"uid": 1001
-						}
-					]
-				},
-				"description": "Install tmux",
-				"distro": "",
-				"groups": [],
-				"modules": [],
-				"name": "cli-test-bp-1",
-				"packages": [
-					{
-						"name": "tmux",
-						"version": "3.1c-2.fc34.x86_64"
-					}
-				],
-				"version": "0.0.3"
-			}
-	   }],
-    "errors": []
-}`
+		toml := `description = "Install tmux"
+groups = []
+modules = []
+name = "cli-test-bp-1"
+version = "0.0.3"
+[[packages]]
+name = "tmux"
+version = "3.1c-2.fc34.x86_64"
+
+[[customizations.user]]
+gid = 1001
+groups = ["wheel"]
+name = "user"
+uid = 1001
+`
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
 
@@ -224,6 +207,7 @@ func TestCmdBlueprintsFreezeSave(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/freeze/cli-test-bp-1", mc.Req.URL.Path)
+	assert.Equal(t, "format=toml", mc.Req.URL.RawQuery)
 
 	_, err = os.Stat("cli-test-bp-1.frozen.toml")
 	assert.Nil(t, err)
@@ -235,7 +219,27 @@ func TestCmdBlueprintsFreezeSave(t *testing.T) {
 func TestCmdBlueprintsFreezeSaveJSON(t *testing.T) {
 	// Test the "blueprints freeze save" command
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
-		json := `{
+		query := request.URL.Query()
+		v := query.Get("format")
+		var data string
+		if v == "toml" {
+			data = `description = "Install tmux"
+groups = []
+modules = []
+name = "cli-test-bp-1"
+version = "0.0.3"
+[[packages]]
+name = "tmux"
+version = "3.1c-2.fc34.x86_64"
+
+[[customizations.user]]
+gid = 1001
+groups = ["wheel"]
+name = "user"
+uid = 1001
+`
+		} else {
+			data = `{
     "blueprints": [
         {
 			"blueprint": {
@@ -267,10 +271,10 @@ func TestCmdBlueprintsFreezeSaveJSON(t *testing.T) {
 	   }],
     "errors": []
 }`
-
+		}
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(data))),
 		}, nil
 	})
 
@@ -296,11 +300,13 @@ func TestCmdBlueprintsFreezeSaveJSON(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "\"version\": \"3.1c-2.fc34.x86_64\"")
+	assert.NotContains(t, string(stdout), "1001.0")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/freeze/cli-test-bp-1", mc.Req.URL.Path)
+	assert.Equal(t, "format=toml", mc.Req.URL.RawQuery)
 
 	_, err = os.Stat("cli-test-bp-1.frozen.toml")
 	assert.Nil(t, err)
