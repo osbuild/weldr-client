@@ -62,12 +62,11 @@ install -m 0755 -vd _bin
 export PATH=$PWD/_bin${PATH:+:$PATH}
 export GOPATH=$GO_BUILD_PATH:%{gopath}
 export GOFLAGS=-mod=vendor
-%gobuild -o composer-cli %{goipath}/cmd/composer-cli
 %else
 export GOPATH="%{gobuilddir}:${GOPATH:+${GOPATH}:}%{?gopath}"
 export GO111MODULE=off
-make GOBUILDFLAGS="%{gobuildflags}" build
 %endif
+%gobuild -o composer-cli %{goipath}/cmd/composer-cli
 
 
 ## TODO
@@ -80,14 +79,10 @@ export BUILDTAGS="integration"
 # golang's testing package. The RHEL golang rpm macros don't support building them
 # directly. Thus, do it manually, taking care to also include a build id.
 #
-# On Fedora, also turn off go modules and set the path to the one into which
+# On Fedora go modules have already been turned off, and the path set to the one into which
 # the golang-* packages install source code.
-%if 0%{?rhel}
 export LDFLAGS="${LDFLAGS:-} -linkmode=external -compressdwarf=false -B 0x$(od -N 20 -An -tx1 -w100 /dev/urandom | tr -d ' ')"
 go test -c -tags=integration -buildmode pie -compiler gc -ldflags="${LDFLAGS}" -o composer-cli-tests %{goipath}/weldr
-%else
-make GOBUILDFLAGS="%{gobuildflags}" integration
-%endif
 %endif
 
 %install
