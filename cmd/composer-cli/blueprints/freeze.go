@@ -130,15 +130,35 @@ func freezeShow(cmd *cobra.Command, args []string) error {
 
 func freezeSave(cmd *cobra.Command, args []string) (rcErr error) {
 	names := root.GetCommaArgs(args)
-	bps, errors, err := root.Client.GetFrozenBlueprintsJSON(names)
+	if root.JSONOutput {
+		// Use this for display purposes only
+		_, errors, err := root.Client.GetFrozenBlueprintsJSON(names)
+		if err != nil {
+			return root.ExecutionError(cmd, "Save Error: %s", err)
+		}
+		if errors != nil {
+			return root.ExecutionErrors(cmd, errors)
+		}
+	}
+
+	bps, resp, err := root.Client.GetFrozenBlueprintsTOML(names)
 	if err != nil {
 		return root.ExecutionError(cmd, "Save Error: %s", err)
 	}
-	if len(errors) > 0 {
-		rcErr = root.ExecutionErrors(cmd, errors)
+	if resp != nil && !resp.Status {
+		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
-	for _, bp := range bps {
+	for _, data := range bps {
+		// Convert the toml blueprint to a struct so we can get the name
+		var bp interface{}
+		err := toml.Unmarshal([]byte(data), &bp)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "ERROR: Unmarshal of blueprint failed: %s\n", err)
+			rcErr = root.ExecutionError(cmd, "")
+			continue
+		}
+
 		name, ok := bp.(map[string]interface{})["name"].(string)
 		if !ok {
 			fmt.Fprintf(os.Stderr, "ERROR: no 'name' in blueprint\n")
@@ -162,11 +182,12 @@ func freezeSave(cmd *cobra.Command, args []string) (rcErr error) {
 			continue
 		}
 		defer f.Close()
-		err = toml.NewEncoder(f).Encode(bp)
+		_, err = f.WriteString(data)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: encoding TOML file: %s\n", err)
+			fmt.Fprintf(os.Stderr, "ERROR: writing TOML file: %s\n", err)
 			rcErr = root.ExecutionError(cmd, "")
 		}
+		f.Close()
 	}
 
 	// If there were any errors, even if other blueprints succeeded, it returns an error
