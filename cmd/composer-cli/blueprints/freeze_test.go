@@ -23,6 +23,18 @@ func TestCmdBlueprintsFreeze(t *testing.T) {
         "blueprints": [
 		    {
                 "blueprint": {
+					"customizations": {
+						"user": [
+							{
+								"gid": 1001,
+								"groups": [
+									"wheel"
+								],
+								"name": "user",
+								"uid": 1001
+							}
+						]
+					},
                     "description": "Install tmux",
                     "distro": "",
                     "groups": [],
@@ -66,6 +78,7 @@ func TestCmdBlueprintsFreeze(t *testing.T) {
 	assert.NotContains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "blueprint: cli-test-bp-1 v0.0.3")
 	assert.Contains(t, string(stdout), "tmux-3.1c-2.fc34.x86_64")
+	assert.NotContains(t, string(stdout), "1001.0")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownBlueprint: test-no-bp: blueprint not found")
@@ -79,6 +92,18 @@ func TestCmdBlueprintsFreezeJSON(t *testing.T) {
         "blueprints": [
 		    {
                 "blueprint": {
+					"customizations": {
+						"user": [
+							{
+								"gid": 1001,
+								"groups": [
+									"wheel"
+								],
+								"name": "user",
+								"uid": 1001
+							}
+						]
+					},
                     "description": "Install tmux",
                     "distro": "",
                     "groups": [],
@@ -123,6 +148,7 @@ func TestCmdBlueprintsFreezeJSON(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"version\": \"3.1c-2.fc34.x86_64\"")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownBlueprint\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"test-no-bp: blueprint not found\"")
+	assert.NotContains(t, string(stdout), "1001.0")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
@@ -137,6 +163,18 @@ func TestCmdBlueprintsFreezeSave(t *testing.T) {
     "blueprints": [
         {
 			"blueprint": {
+				"customizations": {
+					"user": [
+						{
+							"gid": 1001,
+							"groups": [
+								"wheel"
+							],
+							"name": "user",
+							"uid": 1001
+						}
+					]
+				},
 				"description": "Install tmux",
 				"distro": "",
 				"groups": [],
@@ -189,6 +227,9 @@ func TestCmdBlueprintsFreezeSave(t *testing.T) {
 
 	_, err = os.Stat("cli-test-bp-1.frozen.toml")
 	assert.Nil(t, err)
+
+	// Make sure it does not contain float values for uid/gid
+	checkUIDGidFloat(t, "cli-test-bp-1.frozen.toml")
 }
 
 func TestCmdBlueprintsFreezeSaveJSON(t *testing.T) {
@@ -198,6 +239,18 @@ func TestCmdBlueprintsFreezeSaveJSON(t *testing.T) {
     "blueprints": [
         {
 			"blueprint": {
+				"customizations": {
+					"user": [
+						{
+							"gid": 1001,
+							"groups": [
+								"wheel"
+							],
+							"name": "user",
+							"uid": 1001
+						}
+					]
+				},
 				"description": "Install tmux",
 				"distro": "",
 				"groups": [],
@@ -251,6 +304,9 @@ func TestCmdBlueprintsFreezeSaveJSON(t *testing.T) {
 
 	_, err = os.Stat("cli-test-bp-1.frozen.toml")
 	assert.Nil(t, err)
+
+	// Make sure it does not contain float values for uid/gid
+	checkUIDGidFloat(t, "cli-test-bp-1.frozen.toml")
 }
 
 func TestCmdBlueprintsFreezeShow(t *testing.T) {
@@ -265,7 +321,13 @@ distro = ""
 [[packages]]
 name = "tmux"
 version = "3.1c-2.fc34.x86_64"
-}`
+
+[[customizations.user]]
+gid = 1001
+groups = ["wheel"]
+name = "user"
+uid = 1001
+`
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
@@ -286,6 +348,7 @@ version = "3.1c-2.fc34.x86_64"
 	assert.Contains(t, string(stdout), "name = \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "[[packages]]")
 	assert.Contains(t, string(stdout), "version = \"3.1c-2.fc34.x86_64\"")
+	assert.NotContains(t, string(stdout), "1001.0")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
@@ -300,6 +363,18 @@ func TestCmdBlueprintsFreezeShowJSON(t *testing.T) {
         "blueprints": [
 		    {
                 "blueprint": {
+					"customizations": {
+						"user": [
+							{
+								"gid": 1001,
+								"groups": [
+									"wheel"
+								],
+								"name": "user",
+								"uid": 1001
+							}
+						]
+					},
                     "description": "Install tmux",
                     "distro": "",
                     "groups": [],
@@ -338,6 +413,7 @@ func TestCmdBlueprintsFreezeShowJSON(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "\"version\": \"3.1c-2.fc34.x86_64\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/freeze/cli-test-bp-1\"")
+	assert.NotContains(t, string(stdout), "1001.0")
 	stderr, err := ioutil.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
