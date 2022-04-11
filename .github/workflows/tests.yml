@@ -11,30 +11,43 @@ on:
 
 jobs:
   lint:
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - 16
+          - 17
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: '1.15'
+          go-version: 1.${{matrix.go}}.x
       - name: Install golint
         run: GO111MODULE=off go get golang.org/x/lint/golint
       - name: Install golangci-lint
         run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.38.0
-      - name: Run lint checks on the source
+      - name: Run lint checks on the source with go 1.${{matrix.go}}.x
         run: make check
 
   unit-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        go:
+          - 16
+          - 17
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-go@v3
         with:
-          go-version: '1.15'
-      - name: Run unit tests
+          go-version: 1.${{matrix.go}}.x
+      - name: Run unit tests on go 1.${{matrix.go}}.x
         run: make test
 
-      - name: Send coverage to codecov.io
+      - name: Send coverage to codecov.io for go v1.17.x
+        if: matrix.go == 17
         run: bash <(curl -s https://codecov.io/bash)
 
   build-test:
