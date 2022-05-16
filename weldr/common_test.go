@@ -863,7 +863,42 @@ func TestGetFilePath(t *testing.T) {
 	os.Remove(filename)
 }
 
-func TestGetFileBadPath(t *testing.T) {
+func TestGetFilePathFilename(t *testing.T) {
+	// Test retrieving a file using a different filename
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+
+			resp := http.Response{
+				StatusCode: 200,
+				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Header:     http.Header{},
+			}
+			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
+			resp.Header.Set("Content-Type", "text/plain")
+
+			return &resp, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, 1, "")
+
+	filename, r, err := tc.GetFilePath("/file/a-very-short-file", "/tmp/a-new-file.txt")
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Equal(t, "/tmp/a-new-file.txt", filename)
+	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
+	_, err = os.Stat(filename)
+	require.Nil(t, err)
+	data, _ := ioutil.ReadFile(filename)
+	assert.Equal(t, []byte("A Very Short File."), data)
+
+	// Test that downloading again returns an error
+	_, _, err = tc.GetFilePath("/file/a-very-short-file", "/tmp/a-new-file.txt")
+	require.NotNil(t, err)
+	assert.Contains(t, fmt.Sprintf("%s", err), "exists, skipping download")
+	os.Remove(filename)
+}
+
+func TestGetFileMissingDir(t *testing.T) {
 	// Test retrieving a file but to a non-existant path
 	mc := MockClient{
 		DoFunc: func(*http.Request) (*http.Response, error) {
@@ -881,11 +916,11 @@ func TestGetFileBadPath(t *testing.T) {
 	}
 	tc := NewClient(context.Background(), &mc, 1, "")
 
-	filename, r, err := tc.GetFilePath("/file/a-very-short-file", "/tmp/no-path-here")
+	filename, r, err := tc.GetFilePath("/file/a-very-short-file", "/tmp/no-path-here/")
 	require.NotNil(t, err)
 	require.Nil(t, r)
-	assert.Contains(t, fmt.Sprintf("%s", err), "no such file or directory")
-	assert.Equal(t, "/tmp/no-path-here/a-very-short-file.txt", filename)
+	assert.Contains(t, fmt.Sprintf("%s", err), "does not exist")
+	assert.Equal(t, "", filename)
 	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
 	_, err = os.Stat(filename)
 	require.NotNil(t, err)
