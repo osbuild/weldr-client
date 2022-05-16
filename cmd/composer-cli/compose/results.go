@@ -20,16 +20,18 @@ var (
 		RunE:  getResults,
 		Args:  cobra.ExactArgs(1),
 	}
+	savePath string
 )
 
 func init() {
+	resultsCmd.Flags().StringVarP(&savePath, "filename", "", "", "Optional path and filename to save tar into")
 	composeCmd.AddCommand(resultsCmd)
 }
 
 func getResults(cmd *cobra.Command, args []string) error {
-	fn, resp, err := root.Client.ComposeResults(args[0])
+	fn, resp, err := root.Client.ComposeResultsPath(args[0], savePath)
 	if err != nil {
-		return root.ExecutionError(cmd, "Resultserror: %s", err)
+		return root.ExecutionError(cmd, "Results error: %s", err)
 	}
 	if resp != nil && !resp.Status {
 		return root.ExecutionErrors(cmd, resp.Errors)
