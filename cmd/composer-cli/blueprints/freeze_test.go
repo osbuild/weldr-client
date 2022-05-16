@@ -64,6 +64,12 @@ func TestCmdBlueprintsFreeze(t *testing.T) {
 		}, nil
 	})
 
+	// Make sure savePath is cleared
+	savePath = ""
+
+	// Make sure savePath is cleared
+	savePath = ""
+
 	cmd, out, err := root.ExecuteTest("blueprints", "freeze", "cli-test-bp-1,test-no-bp")
 	require.NotNil(t, out)
 	defer out.Close()
@@ -133,6 +139,12 @@ func TestCmdBlueprintsFreezeJSON(t *testing.T) {
 		}, nil
 	})
 
+	// Make sure savePath is cleared
+	savePath = ""
+
+	// Make sure savePath is cleared
+	savePath = ""
+
 	cmd, out, err := root.ExecuteTest("--json", "blueprints", "freeze", "cli-test-bp-1,test-no-bp")
 	require.NotNil(t, out)
 	defer out.Close()
@@ -191,6 +203,9 @@ uid = 1001
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
+	// Make sure savePath is cleared
+	savePath = ""
+
 	cmd, out, err := root.ExecuteTest("blueprints", "freeze", "save", "cli-test-bp-1")
 	require.NotNil(t, out)
 	defer out.Close()
@@ -214,6 +229,69 @@ uid = 1001
 
 	// Make sure it does not contain float values for uid/gid
 	checkUIDGidFloat(t, "cli-test-bp-1.frozen.toml")
+}
+
+func TestCmdBlueprintsFreezeSaveFilename(t *testing.T) {
+	// Test the "blueprints freeze save --filename /path/to/file.toml" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		toml := `description = "Install tmux"
+groups = []
+modules = []
+name = "cli-test-bp-1"
+version = "0.0.3"
+[[packages]]
+name = "tmux"
+version = "3.1c-2.fc34.x86_64"
+
+[[customizations.user]]
+gid = 1001
+groups = ["wheel"]
+name = "user"
+uid = 1001
+`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
+		}, nil
+	})
+
+	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	prevDir, _ := os.Getwd()
+	err = os.Chdir(dir)
+	require.Nil(t, err)
+	//nolint:errcheck
+	defer os.Chdir(prevDir)
+
+	// Make sure savePath is cleared
+	savePath = ""
+
+	cmd, out, err := root.ExecuteTest("blueprints", "freeze", "save", "--filename", dir+"/frozen-bp.toml", "cli-test-bp-1")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, freezeSaveCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stdout)
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/blueprints/freeze/cli-test-bp-1", mc.Req.URL.Path)
+	assert.Equal(t, "format=toml", mc.Req.URL.RawQuery)
+
+	_, err = os.Stat(dir + "/frozen-bp.toml")
+	assert.Nil(t, err)
+
+	// Make sure it does not contain float values for uid/gid
+	checkUIDGidFloat(t, dir+"/frozen-bp.toml")
 }
 
 func TestCmdBlueprintsFreezeSaveJSON(t *testing.T) {
@@ -288,6 +366,9 @@ uid = 1001
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
+	// Make sure savePath is cleared
+	savePath = ""
+
 	cmd, out, err := root.ExecuteTest("--json", "blueprints", "freeze", "save", "cli-test-bp-1")
 	require.NotNil(t, out)
 	defer out.Close()
@@ -340,6 +421,9 @@ uid = 1001
 			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
+
+	// Make sure savePath is cleared
+	savePath = ""
 
 	cmd, out, err := root.ExecuteTest("blueprints", "freeze", "show", "cli-test-bp-1")
 	defer out.Close()
@@ -405,6 +489,9 @@ func TestCmdBlueprintsFreezeShowJSON(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
+
+	// Make sure savePath is cleared
+	savePath = ""
 
 	cmd, out, err := root.ExecuteTest("--json", "blueprints", "freeze", "show", "cli-test-bp-1")
 	require.NotNil(t, out)
