@@ -63,6 +63,9 @@ uid = 1001
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
+	// Make sure savePath is cleared
+	savePath = ""
+
 	cmd, out, err := root.ExecuteTest("blueprints", "save", "simple")
 	require.NotNil(t, out)
 	defer out.Close()
@@ -86,6 +89,69 @@ uid = 1001
 
 	// Make sure it does not contain float values for uid/gid
 	checkUIDGidFloat(t, "simple.toml")
+}
+
+func TestCmdBlueprintsSaveFilename(t *testing.T) {
+	// Test the "blueprints save --filename /path/to/file.toml" command (TOML request)
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		toml := `description = "simple blueprint"
+groups = []
+modules = []
+name = "simple"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+
+[[customizations.user]]
+gid = 1001
+groups = ["wheel"]
+name = "user"
+uid = 1001
+`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
+		}, nil
+	})
+
+	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	prevDir, _ := os.Getwd()
+	err = os.Chdir(dir)
+	require.Nil(t, err)
+	//nolint:errcheck
+	defer os.Chdir(prevDir)
+
+	// Make sure savePath is cleared
+	savePath = ""
+
+	cmd, out, err := root.ExecuteTest("blueprints", "save", "--filename", dir+"different.toml", "simple")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, saveCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stdout)
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/blueprints/info/simple", mc.Req.URL.Path)
+	assert.Equal(t, "format=toml", mc.Req.URL.RawQuery)
+
+	_, err = os.Stat(dir + "different.toml")
+	assert.Nil(t, err)
+
+	// Make sure it does not contain float values for uid/gid
+	checkUIDGidFloat(t, dir+"different.toml")
 }
 
 func TestCmdBlueprintsSaveUnknown(t *testing.T) {
@@ -120,6 +186,9 @@ func TestCmdBlueprintsSaveUnknown(t *testing.T) {
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
+
+	// Make sure savePath is cleared
+	savePath = ""
 
 	cmd, out, err := root.ExecuteTest("blueprints", "save", "test-no-bp")
 	require.NotNil(t, out)
@@ -223,6 +292,9 @@ uid = 1001
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
+	// Make sure savePath is cleared
+	savePath = ""
+
 	cmd, out, err := root.ExecuteTest("--json", "blueprints", "save", "simple")
 	require.NotNil(t, out)
 	defer out.Close()
@@ -279,6 +351,9 @@ func TestCmdBlueprintsSaveUnknownJSON(t *testing.T) {
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
+
+	// Make sure savePath is cleared
+	savePath = ""
 
 	cmd, out, err := root.ExecuteTest("--json", "blueprints", "save", "test-no-bp")
 	require.NotNil(t, out)

@@ -5,7 +5,9 @@
 package blueprints
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,9 +26,11 @@ var (
 		RunE:  saveToml,
 		Args:  cobra.MinimumNArgs(1),
 	}
+	savePath string
 )
 
 func init() {
+	saveCmd.Flags().StringVarP(&savePath, "filename", "", "", "Optional path and filename to save blueprint into")
 	blueprintsCmd.AddCommand(saveCmd)
 }
 
@@ -78,9 +82,41 @@ func saveToml(cmd *cobra.Command, args []string) (rcErr error) {
 			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
+
+		if len(savePath) > 0 {
+			// Is the path a directory that exists, or a file to save to?
+
+			// If it is an existing directory? Save under that.
+			var fi fs.FileInfo
+			fi, err = os.Stat(savePath)
+			if err == nil {
+				if fi.IsDir() {
+					filename = filepath.Join(savePath, filename)
+				} else {
+					filename = savePath
+				}
+			} else {
+				if errors.Is(err, fs.ErrNotExist) {
+					// Does it look like a directory? A directory needs to exist.
+					if savePath[len(savePath)-1] == '/' {
+						fmt.Fprintf(os.Stderr, "ERROR: %s does not exist\n", savePath)
+						rcErr = root.ExecutionError(cmd, "")
+						continue
+					}
+					// Assume it is a file
+					filename = savePath
+				} else {
+					// Some other error
+					fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+					rcErr = root.ExecutionError(cmd, "")
+					continue
+				}
+			}
+		}
+
 		f, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: opening file %s: %s\n", "file.toml", err)
+			fmt.Fprintf(os.Stderr, "ERROR: opening file %s: %s\n", filename, err)
 			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
