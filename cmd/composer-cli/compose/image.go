@@ -23,11 +23,12 @@ var (
 )
 
 func init() {
+	imageCmd.Flags().StringVarP(&savePath, "filename", "", "", "Optional path and filename to save image into")
 	composeCmd.AddCommand(imageCmd)
 }
 
 func getImage(cmd *cobra.Command, args []string) (rcErr error) {
-	fn, resp, err := root.Client.ComposeImage(args[0])
+	fn, resp, err := root.Client.ComposeImagePath(args[0], savePath)
 	if err != nil {
 		return root.ExecutionError(cmd, "Image error: %s", err)
 	}
