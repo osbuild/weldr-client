@@ -340,12 +340,18 @@ func (c Client) ComposeLogs(id string) (fileName string, apiResponse *APIRespons
 	return c.GetFilePath(route, "")
 }
 
-// ComposeMetadata returns the tar file of compose's metadata
-// It returns a temporary filename, the name of the file from the server, and the type.
-// The caller must clean up the temporary file when finished
+// ComposeMetadata saves the compose's metadata to a file in the current directory
+// It returns the filename, the server response, and the error.
 func (c Client) ComposeMetadata(id string) (fileName string, apiResponse *APIResponse, err error) {
 	route := fmt.Sprintf("/compose/metadata/%s", id)
 	return c.GetFilePath(route, "")
+}
+
+// ComposeMetadataPath saves the compose's metadata a directory or file in path
+// It returns the filename, the server response, and the error.
+func (c Client) ComposeMetadataPath(id, path string) (fileName string, apiResponse *APIResponse, err error) {
+	route := fmt.Sprintf("/compose/metadata/%s", id)
+	return c.GetFilePath(route, path)
 }
 
 // ComposeResults saves the compose's results to a file in the current directory

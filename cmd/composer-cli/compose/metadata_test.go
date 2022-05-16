@@ -49,6 +49,9 @@ And should do the job.`
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
 
+	// Make sure savePath is cleared
+	savePath = ""
+
 	// Get the logs
 	cmd, out, err := root.ExecuteTest("compose", "metadata", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
 	require.NotNil(t, out)
@@ -71,6 +74,63 @@ And should do the job.`
 	assert.Nil(t, err)
 }
 
+func TestCmdComposeMetadataFilename(t *testing.T) {
+	// Test the "compose metadata --filename /path/to/file.tar" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		log := `This is a poor approximation of a logfile.
+But it has multiple lines.
+And should do the job.`
+
+		tar, err := root.MakeTarBytes("b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.json", log)
+		require.Nil(t, err)
+
+		resp := http.Response{
+			StatusCode: 200,
+			Body:       ioutil.NopCloser(bytes.NewReader(tar)),
+			Header:     http.Header{},
+		}
+		resp.Header.Set("Content-Disposition", "attachment; filename=b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7-metadata.tar")
+		resp.Header.Set("Content-Type", "application/x-tar")
+
+		return &resp, nil
+	})
+
+	// Change to a temporary directory for the file to be saved in
+	dir, err := ioutil.TempDir("", "test-metadata-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+
+	prevDir, _ := os.Getwd()
+	err = os.Chdir(dir)
+	require.Nil(t, err)
+	//nolint:errcheck
+	defer os.Chdir(prevDir)
+
+	// Make sure savePath is cleared
+	savePath = ""
+
+	// Get the logs
+	cmd, out, err := root.ExecuteTest("compose", "metadata", "--filename", dir+"/test-compose-metadata.tar", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, metadataCmd)
+	stdout, err := ioutil.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "test-compose-metadata.tar")
+	stderr, err := ioutil.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/compose/metadata/b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7", mc.Req.URL.Path)
+
+	_, err = os.Stat(dir + "/test-compose-metadata.tar")
+	assert.Nil(t, err)
+}
+
 func TestCmdComposeMetadataUnknown(t *testing.T) {
 	// Test the "compose metadata" command with unknown uuid
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
@@ -85,6 +145,9 @@ func TestCmdComposeMetadataUnknown(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
+
+	// Make sure savePath is cleared
+	savePath = ""
 
 	// Get metadata from an unknown compose
 	cmd, out, err := root.ExecuteTest("compose", "metadata", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
@@ -119,6 +182,9 @@ func TestCmdComposeMetadataUnknownJSON(t *testing.T) {
 			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
+
+	// Make sure savePath is cleared
+	savePath = ""
 
 	// Get metadata from an unknown compose
 	cmd, out, err := root.ExecuteTest("--json", "compose", "metadata", "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")

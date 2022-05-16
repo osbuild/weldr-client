@@ -23,11 +23,12 @@ var (
 )
 
 func init() {
+	metadataCmd.Flags().StringVarP(&savePath, "filename", "", "", "Optional path and filename to save tar into")
 	composeCmd.AddCommand(metadataCmd)
 }
 
 func getMetadata(cmd *cobra.Command, args []string) error {
-	fn, resp, err := root.Client.ComposeMetadata(args[0])
+	fn, resp, err := root.Client.ComposeMetadataPath(args[0], savePath)
 	if err != nil {
 		return root.ExecutionError(cmd, "Metadata error: %s", err)
 	}
