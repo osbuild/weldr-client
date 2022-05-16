@@ -23,11 +23,12 @@ var (
 )
 
 func init() {
+	logsCmd.Flags().StringVarP(&savePath, "filename", "", "", "Optional path and filename to save tar into")
 	composeCmd.AddCommand(logsCmd)
 }
 
 func getLogs(cmd *cobra.Command, args []string) error {
-	fn, resp, err := root.Client.ComposeLogs(args[0])
+	fn, resp, err := root.Client.ComposeLogsPath(args[0], savePath)
 	if err != nil {
 		return root.ExecutionError(cmd, "Logs error: %s", err)
 	}
