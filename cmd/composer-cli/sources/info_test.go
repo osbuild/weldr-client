@@ -104,6 +104,7 @@ func TestCmdSourcesInfoJSON(t *testing.T) {
 	assert.Equal(t, cmd, infoCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"fedora\"")
 	assert.Contains(t, string(stdout), "\"type\": \"yum-metalink\"")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownSource\"")

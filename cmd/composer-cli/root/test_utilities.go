@@ -8,6 +8,8 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -108,6 +110,12 @@ func ExecuteTest(args ...string) (*cobra.Command, *OutputCapture, error) {
 
 	// If JSON output was enabled restore the captured Stdout
 	if JSONOutput {
+		// Print the responses
+		s, jerr := json.MarshalIndent(jsonResponses, "", "    ")
+		if jerr == nil {
+			fmt.Fprintln(oldStdout, string(s))
+		}
+
 		os.Stdout = oldStdout
 		oldStdout = nil
 		JSONOutput = false
@@ -177,4 +185,11 @@ func LogToFile(filename, message string) error {
 	}
 
 	return nil
+}
+
+// IsJSONList returns true if the data unmarshals to a json list
+func IsJSONList(data []byte) bool {
+	var r []interface{}
+	err := json.Unmarshal(data, &r)
+	return err == nil
 }

@@ -128,6 +128,7 @@ func TestCmdComposeLogUnknownJSON(t *testing.T) {
 	assert.Equal(t, cmd, logCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": false")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"4b668b1a-e6b8-4dce-8828-4a8e3bef2345 is not a valid build uuid\"")

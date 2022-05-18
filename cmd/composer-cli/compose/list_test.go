@@ -268,6 +268,7 @@ func TestCmdComposeListJSON(t *testing.T) {
 	assert.Equal(t, cmd, listCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7\"")
 	assert.Contains(t, string(stdout), "\"id\": \"6d185e04-b56e-4705-97b6-21d6c6c85f06\"")
 	assert.Contains(t, string(stdout), "\"id\": \"cefd01c3-629f-493e-af72-3f12981bb77b\"")

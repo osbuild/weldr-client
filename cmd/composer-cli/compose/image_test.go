@@ -227,6 +227,7 @@ func TestCmdComposeUnknownImageJSON(t *testing.T) {
 	assert.Equal(t, cmd, imageCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"c3660d9b-8d8b-4077-8b9a-72e4f5861f4 is not a valid build uuid\"")
 	assert.Contains(t, string(stdout), "\"status\": false")
