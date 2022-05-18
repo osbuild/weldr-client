@@ -198,6 +198,7 @@ func TestCmdComposeMetadataUnknownJSON(t *testing.T) {
 	assert.Equal(t, cmd, metadataCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": false")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 is not a valid build uuid\"")

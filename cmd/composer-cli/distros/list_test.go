@@ -69,6 +69,7 @@ func TestCmdDistrosListJSON(t *testing.T) {
 	assert.Equal(t, cmd, listCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "\"centos-8\"")
 	assert.Contains(t, string(stdout), "\"fedora-33\"")
