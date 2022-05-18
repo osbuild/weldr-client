@@ -26,6 +26,14 @@ import (
 	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
+// jsonResponse contains the responses from the API server
+type jsonResponse struct {
+	Method string                 `json:"method"`
+	Path   string                 `json:"path"`
+	Status int                    `json:"status"`
+	Body   map[string]interface{} `json:"body"`
+}
+
 var (
 	rootCmd = &cobra.Command{
 		Use:   path.Base(os.Args[0]),
@@ -71,6 +79,9 @@ var (
 
 	// Original Stdout
 	oldStdout *os.File
+
+	// jsonResponses holds the responses from the API server
+	jsonResponses []jsonResponse
 )
 
 func init() {
@@ -117,21 +128,13 @@ func setupJSONOutput() {
 
 		Client.SetRawCallback(func(method string, path string, status int, data []byte) {
 			// Convert the data to a generic data structure, then pretty-print it
-			var r struct {
-				Method string                 `json:"method"`
-				Path   string                 `json:"path"`
-				Status int                    `json:"status"`
-				Body   map[string]interface{} `json:"body"`
-			}
+			var r jsonResponse
 			r.Method = method
 			r.Path = path
 			r.Status = status
 			err := json.Unmarshal(data, &r.Body)
 			if err == nil {
-				s, err := json.MarshalIndent(r, "", "    ")
-				if err == nil {
-					fmt.Fprintln(oldStdout, string(s))
-				}
+				jsonResponses = append(jsonResponses, r)
 			}
 		})
 	} else {
@@ -145,7 +148,14 @@ func setupJSONOutput() {
 
 // Execute runs the commands on the commandline
 func Execute() error {
-	return rootCmd.Execute()
+	err := rootCmd.Execute()
+	if JSONOutput {
+		s, jerr := json.MarshalIndent(jsonResponses, "", "    ")
+		if jerr == nil {
+			fmt.Fprintln(oldStdout, string(s))
+		}
+	}
+	return err
 }
 
 // AddRootCommand adds a cobra command to the list of root commands

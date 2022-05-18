@@ -161,7 +161,7 @@ them.
 For example, the JSON response from a `composer-cli blueprints list` looks like
 this:
 
-    {
+    [{
         "method": "GET",
         "path": "/blueprints/list?limit=0",
         "status": 200,
@@ -171,7 +171,7 @@ this:
             "offset": 0,
             "total": 3
         }
-    }
+    },
     {
         "method": "GET",
         "path": "/blueprints/list?limit=23",
@@ -186,7 +186,10 @@ this:
             "offset": 0,
             "total": 3
         }
-    }
+    }]
+
+NOTE: This output format changed in weldr-client v35.6, it used to be a stream of objectes and is
+now a proper JSON list of objects, making it easier to parse.
 
 
 # Blueprint Format
