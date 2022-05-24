@@ -335,8 +335,7 @@ func (c Client) ComposeLog(id string, size int) (string, *APIResponse, error) {
 // ComposeLogs saves the compose's logs to a file in the current directory
 // It returns the filename, the server response, and the error.
 func (c Client) ComposeLogs(id string) (fileName string, apiResponse *APIResponse, err error) {
-	route := fmt.Sprintf("/compose/logs/%s", id)
-	return c.GetFilePath(route, "")
+	return c.ComposeLogsPath(id, "")
 }
 
 // ComposeLogsPath saves the compose's logs to a file in the current directory
@@ -349,8 +348,7 @@ func (c Client) ComposeLogsPath(id, path string) (fileName string, apiResponse *
 // ComposeMetadata saves the compose's metadata to a file in the current directory
 // It returns the filename, the server response, and the error.
 func (c Client) ComposeMetadata(id string) (fileName string, apiResponse *APIResponse, err error) {
-	route := fmt.Sprintf("/compose/metadata/%s", id)
-	return c.GetFilePath(route, "")
+	return c.ComposeMetadataPath(id, "")
 }
 
 // ComposeMetadataPath saves the compose's metadata a directory or file in path
@@ -363,8 +361,7 @@ func (c Client) ComposeMetadataPath(id, path string) (fileName string, apiRespon
 // ComposeResults saves the compose's results to a file in the current directory
 // It returns the filename, the server response, and the error.
 func (c Client) ComposeResults(id string) (fileName string, apiResponse *APIResponse, err error) {
-	route := fmt.Sprintf("/compose/results/%s", id)
-	return c.GetFilePath(route, "")
+	return c.ComposeResultsPath(id, "")
 }
 
 // ComposeResultsPath saves the compose's results to a directory or file in path
@@ -377,8 +374,7 @@ func (c Client) ComposeResultsPath(id, path string) (fileName string, apiRespons
 // ComposeImage saves the compose's image to a file in the current directory
 // It returns the filename, the server response, and the error.
 func (c Client) ComposeImage(id string) (fileName string, apiResponse *APIResponse, err error) {
-	route := fmt.Sprintf("/compose/image/%s", id)
-	return c.GetFilePath(route, "")
+	return c.ComposeImagePath(id, "")
 }
 
 // ComposeImagePath saves the compose's image to a directory or file in path
