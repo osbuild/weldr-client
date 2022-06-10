@@ -6,7 +6,9 @@ package compose
 
 import (
 	"fmt"
+	"os"
 	"sort"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
@@ -53,13 +55,17 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 	}
 	sort.Strings(filter)
 
+	w := tabwriter.NewWriter(os.Stdout, 5, 0, 3, ' ', 0)
+	fmt.Fprintln(w, "ID\tStatus\tBlueprint\tVersion\tType")
 	for i := range composes {
 		if len(filter) > 0 && !weldr.IsStringInSlice(filter, composes[i].Status) {
 			continue
 		}
-		fmt.Printf("%s %s %s %s %s\n", composes[i].ID, composes[i].Status,
+
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", composes[i].ID, composes[i].Status,
 			composes[i].Blueprint, composes[i].Version, composes[i].Type)
 	}
 
+	w.Flush()
 	return rcErr
 }
