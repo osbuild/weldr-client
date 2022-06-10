@@ -110,11 +110,11 @@ func TestCmdComposeStatus(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Check for expected output, but not exact match due to local time being used.
-	for _, s := range []string{"6d185e04-b56e-4705-97b6-21d6c6c85f06 RUNNING",
-		"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 WAITING",
-		"848b6d9f-9bc3-41e1-ae33-5907ad61af76 FINISHED",
-		"cefd01c3-629f-493e-af72-3f12981bb77b FINISHED",
-		"d5903571-55e2-4a18-8643-2d90611fcb11 FAILED"} {
+	for _, s := range []string{"6d185e04-b56e-4705-97b6-21d6c6c85f06   RUNNING",
+		"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7   WAITING",
+		"848b6d9f-9bc3-41e1-ae33-5907ad61af76   FINISHED",
+		"cefd01c3-629f-493e-af72-3f12981bb77b   FINISHED",
+		"d5903571-55e2-4a18-8643-2d90611fcb11   FAILED"} {
 
 		assert.Contains(t, string(stdout), s)
 	}
