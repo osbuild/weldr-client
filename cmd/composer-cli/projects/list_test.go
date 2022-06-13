@@ -173,6 +173,7 @@ func TestCmdProjectsListJSON(t *testing.T) {
 	assert.Equal(t, cmd, listCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"0ad\"")
 	assert.Contains(t, string(stdout), "\"homepage\": \"http://play0ad.com\"")
 	assert.Contains(t, string(stdout), "\"version\": \"0.0.24b\"")

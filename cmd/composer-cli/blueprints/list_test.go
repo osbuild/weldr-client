@@ -85,6 +85,7 @@ func TestCmdBlueprintsListJSON(t *testing.T) {
 	assert.Equal(t, cmd, listCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"blueprints\": [\n")
 	assert.Contains(t, string(stdout), "\"http-server-prod\",")
 	assert.Contains(t, string(stdout), "\"total\": 2")

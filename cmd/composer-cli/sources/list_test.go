@@ -67,6 +67,7 @@ func TestCmdSourcesListJSON(t *testing.T) {
 	assert.Equal(t, cmd, listCmd)
 	stdout, err := ioutil.ReadAll(out.Stdout)
 	assert.Nil(t, err)
+	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"sources\"")
 	assert.Contains(t, string(stdout), "\"fedora\"")
 	assert.Contains(t, string(stdout), "\"updates\"")
