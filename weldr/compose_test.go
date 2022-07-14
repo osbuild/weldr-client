@@ -97,14 +97,12 @@ func TestStartOSTreeComposeUrl(t *testing.T) {
 	assert.Greater(t, len(id), 0)
 }
 
-func TestStartOSTreeComposeUrlError(t *testing.T) {
-	// Sending both the parent url and the parent id should return an error
+func TestStartOSTreeUrlParentError(t *testing.T) {
+	// Sending both the parent url and the parent id is now allowed
 	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
-	require.NotNil(t, r)
-	assert.False(t, r.Status)
-	assert.Equal(t, APIErrorMsg{"OSTreeOptionsError", "Supply at most one of Parent and URL"}, r.Errors[0])
-	assert.Equal(t, len(id), 0)
+	require.Nil(t, r)
+	assert.Greater(t, len(id), 0)
 }
 
 func TestStartOSTreeComposeUpload(t *testing.T) {
@@ -196,7 +194,7 @@ func TestCancelFinishedCompose(t *testing.T) {
 	require.NotNil(t, status)
 	assert.False(t, status.Status)
 	require.GreaterOrEqual(t, len(r), 1)
-	assert.Equal(t, APIErrorMsg{"InternalServerError", "Internal server error: job does not exist"}, r[0])
+	assert.Equal(t, APIErrorMsg{"BuildInWrongState", fmt.Sprintf("Build %s is not in WAITING or RUNNING.", id)}, r[0])
 }
 
 func TestCancelComposeUnknown(t *testing.T) {
