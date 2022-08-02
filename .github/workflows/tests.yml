@@ -17,6 +17,7 @@ jobs:
         go:
           - 16
           - 17
+          - 18
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -37,6 +38,7 @@ jobs:
         go:
           - 16
           - 17
+          - 18
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -48,8 +50,8 @@ jobs:
       - name: Run unit tests on go 1.${{matrix.go}}.x
         run: make test
 
-      - name: Send coverage to codecov.io for go v1.17.x
-        if: matrix.go == 17
+      - name: Send coverage to codecov.io for go v1.18.x
+        if: matrix.go == 18
         run: bash <(curl -s https://codecov.io/bash)
 
   build-test:
