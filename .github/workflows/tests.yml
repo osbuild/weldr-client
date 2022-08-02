@@ -26,7 +26,7 @@ jobs:
       - name: Install golint
         run: GO111MODULE=off go get golang.org/x/lint/golint
       - name: Install golangci-lint
-        run: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.47.3
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.47.3
       - name: Run lint checks on the source with go 1.${{matrix.go}}.x
         run: make check
 
