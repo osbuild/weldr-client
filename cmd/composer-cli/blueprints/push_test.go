@@ -6,7 +6,7 @@ package blueprints
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -23,12 +23,12 @@ func TestCmdBlueprintsPush(t *testing.T) {
 		json := `{"status": true}`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpBp, err := ioutil.TempFile("", "test-bp-*.toml")
+	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpBp.Name())
 
@@ -48,10 +48,10 @@ version = "*"`))
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, pushCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -64,12 +64,12 @@ func TestCmdBlueprintsPushJSON(t *testing.T) {
 		json := `{"status": true}`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpBp, err := ioutil.TempFile("", "test-bp-*.toml")
+	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpBp.Name())
 
@@ -89,13 +89,13 @@ version = "*"`))
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, pushCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": true")
 	assert.Contains(t, string(stdout), "\"method\": \"POST\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/new\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -118,12 +118,12 @@ func TestCmdBlueprintsPushError(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpBp, err := ioutil.TempFile("", "test-bp-*.toml")
+	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpBp.Name())
 
@@ -143,10 +143,10 @@ version = "*"`))
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, pushCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "BlueprintsError")
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -169,12 +169,12 @@ func TestCmdBlueprintsPushErrorJSON(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpBp, err := ioutil.TempFile("", "test-bp-*.toml")
+	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpBp.Name())
 
@@ -194,13 +194,13 @@ version = "*"`))
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, pushCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"BlueprintsError\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"400 Bad Request:")
 	assert.Contains(t, string(stdout), "\"status\": 400")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)

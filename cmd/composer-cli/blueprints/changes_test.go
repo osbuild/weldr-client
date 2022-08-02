@@ -7,7 +7,7 @@ package blueprints
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"testing"
@@ -43,7 +43,7 @@ func TestCmdBlueprintsChanges(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonResponse))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(jsonResponse))),
 		}, nil
 	})
 
@@ -55,12 +55,12 @@ func TestCmdBlueprintsChanges(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "cli-test-bp-1")
 	assert.Contains(t, string(stdout), "reverted to commit f48b415828fa7179acd17b1f1b69e11c2c3fcd17")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -93,7 +93,7 @@ func TestCmdBlueprintsChangesJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonResponse))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(jsonResponse))),
 		}, nil
 	})
 
@@ -105,13 +105,13 @@ func TestCmdBlueprintsChangesJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "\"message\": \"cli-test-bp-1.toml reverted to commit f48b415828fa7179acd17b1f1b69e11c2c3fcd17\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/changes/cli-test-bp-1?limit=0\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -143,7 +143,7 @@ func TestCmdBlueprintsChangesUnknown(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonResponse))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(jsonResponse))),
 		}, nil
 	})
 
@@ -155,12 +155,12 @@ func TestCmdBlueprintsChangesUnknown(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "cli-test-bp-1")
 	assert.Contains(t, string(stdout), "reverted to commit f48b415828fa7179acd17b1f1b69e11c2c3fcd17")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "ERROR: UnknownBlueprint: no-bp-test")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -192,7 +192,7 @@ func TestCmdBlueprintsChangesJSONUnknown(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonResponse))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(jsonResponse))),
 		}, nil
 	})
 
@@ -205,7 +205,7 @@ func TestCmdBlueprintsChangesJSONUnknown(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
@@ -213,7 +213,7 @@ func TestCmdBlueprintsChangesJSONUnknown(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/changes/cli-test-bp-1,test-no-bp?limit=0\"")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownBlueprint\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"no-bp-test\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)

@@ -6,7 +6,7 @@ package blueprints
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -23,7 +23,7 @@ func TestCmdBlueprintsUndo(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -35,10 +35,10 @@ func TestCmdBlueprintsUndo(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, undoCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -52,7 +52,7 @@ func TestCmdBlueprintsUndoJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -64,13 +64,13 @@ func TestCmdBlueprintsUndoJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, undoCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": true")
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/undo/cli-test-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5\"")
 	assert.Contains(t, string(stdout), "\"method\": \"POST")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -92,7 +92,7 @@ func TestCmdBlueprintsUndoUnknownBlueprint(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -104,10 +104,10 @@ func TestCmdBlueprintsUndoUnknownBlueprint(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, undoCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "Unknown blueprint")
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -129,7 +129,7 @@ func TestCmdBlueprintsUndoUnknownBlueprintJSON(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -141,14 +141,14 @@ func TestCmdBlueprintsUndoUnknownBlueprintJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, undoCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": false")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownCommit\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"Unknown blueprint\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/api/v1/blueprints/undo/foo-bp-1/f1da83187730c5e65d5931e2811481c5fe3407e5\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)

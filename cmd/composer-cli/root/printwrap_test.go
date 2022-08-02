@@ -5,7 +5,7 @@
 package root
 
 import (
-	"io/ioutil"
+	"io"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -32,10 +32,10 @@ func TestPrintWrapSingle(t *testing.T) {
 	defer out.Close()
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, string(stdout), "Single line test\n")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 }
@@ -46,10 +46,10 @@ func TestPrintWrapMultiple(t *testing.T) {
 	defer out.Close()
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, string(stdout), "Multi-line test,\n    with an indent\n    on the second\n    line printed\n")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 }
@@ -60,10 +60,10 @@ func TestPrintWrapWithLF(t *testing.T) {
 	defer out.Close()
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, string(stdout), "Multi-line test,\n    with an indent\n    on the second\n    line printed\n")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 }

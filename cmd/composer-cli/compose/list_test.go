@@ -6,7 +6,7 @@ package compose
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -82,7 +82,7 @@ func TestCmdComposeList(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -95,13 +95,13 @@ func TestCmdComposeList(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
 	assert.Contains(t, string(stdout), "6d185e04-b56e-4705-97b6-21d6c6c85f06")
 	assert.Contains(t, string(stdout), "cefd01c3-629f-493e-af72-3f12981bb77b")
 	assert.Contains(t, string(stdout), "d5903571-55e2-4a18-8643-2d90611fcb11")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -115,13 +115,13 @@ func TestCmdComposeList(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err = ioutil.ReadAll(out.Stdout)
+	stdout, err = io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
 	assert.Contains(t, string(stdout), "6d185e04-b56e-4705-97b6-21d6c6c85f06")
 	assert.NotContains(t, string(stdout), "cefd01c3-629f-493e-af72-3f12981bb77b")
 	assert.NotContains(t, string(stdout), "d5903571-55e2-4a18-8643-2d90611fcb11")
-	stderr, err = ioutil.ReadAll(out.Stderr)
+	stderr, err = io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -135,13 +135,13 @@ func TestCmdComposeList(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err = ioutil.ReadAll(out.Stdout)
+	stdout, err = io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
 	assert.NotContains(t, string(stdout), "6d185e04-b56e-4705-97b6-21d6c6c85f06")
 	assert.Contains(t, string(stdout), "cefd01c3-629f-493e-af72-3f12981bb77b")
 	assert.NotContains(t, string(stdout), "d5903571-55e2-4a18-8643-2d90611fcb11")
-	stderr, err = ioutil.ReadAll(out.Stderr)
+	stderr, err = io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -155,13 +155,13 @@ func TestCmdComposeList(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err = ioutil.ReadAll(out.Stdout)
+	stdout, err = io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
 	assert.NotContains(t, string(stdout), "6d185e04-b56e-4705-97b6-21d6c6c85f06")
 	assert.NotContains(t, string(stdout), "cefd01c3-629f-493e-af72-3f12981bb77b")
 	assert.Contains(t, string(stdout), "d5903571-55e2-4a18-8643-2d90611fcb11")
-	stderr, err = ioutil.ReadAll(out.Stderr)
+	stderr, err = io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -175,13 +175,13 @@ func TestCmdComposeList(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err = ioutil.ReadAll(out.Stdout)
+	stdout, err = io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7")
 	assert.NotContains(t, string(stdout), "6d185e04-b56e-4705-97b6-21d6c6c85f06")
 	assert.Contains(t, string(stdout), "cefd01c3-629f-493e-af72-3f12981bb77b")
 	assert.Contains(t, string(stdout), "d5903571-55e2-4a18-8643-2d90611fcb11")
-	stderr, err = ioutil.ReadAll(out.Stderr)
+	stderr, err = io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -253,7 +253,7 @@ func TestCmdComposeListJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -266,14 +266,14 @@ func TestCmdComposeListJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7\"")
 	assert.Contains(t, string(stdout), "\"id\": \"6d185e04-b56e-4705-97b6-21d6c6c85f06\"")
 	assert.Contains(t, string(stdout), "\"id\": \"cefd01c3-629f-493e-af72-3f12981bb77b\"")
 	assert.Contains(t, string(stdout), "\"id\": \"d5903571-55e2-4a18-8643-2d90611fcb11\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)

@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
@@ -45,7 +45,7 @@ func TestRequestGetBody(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("get body test"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("get body test"))),
 			}, nil
 		},
 	}
@@ -55,7 +55,7 @@ func TestRequestGetBody(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.Equal(t, 200, r.StatusCode)
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	r.Body.Close()
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("get body test"), body)
@@ -79,7 +79,7 @@ func TestRequestPostBody(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.Equal(t, 200, r.StatusCode)
-	body, err := ioutil.ReadAll(mc.Req.Body)
+	body, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("post body test"), body)
@@ -119,7 +119,7 @@ func TestRequestMethods400(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("error response json"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("error response json"))),
 			}, nil
 		},
 	}
@@ -132,7 +132,7 @@ func TestRequestMethods400(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, r)
 		assert.Equal(t, 400, r.StatusCode)
-		body, err := ioutil.ReadAll(r.Body)
+		body, err := io.ReadAll(r.Body)
 		r.Body.Close()
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("error response json"), body)
@@ -163,7 +163,7 @@ func TestRequestHeaders(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, r)
 		assert.Equal(t, 200, r.StatusCode)
-		body, err := ioutil.ReadAll(mc.Req.Body)
+		body, err := io.ReadAll(mc.Req.Body)
 		mc.Req.Body.Close()
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("post header test"), body)
@@ -180,7 +180,7 @@ func TestGetRawBodyMethods(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -193,7 +193,7 @@ func TestGetRawBodyMethods(t *testing.T) {
 		require.Nil(t, err)
 		require.Nil(t, r)
 		require.NotNil(t, body)
-		bodyData, err := ioutil.ReadAll(body)
+		bodyData, err := io.ReadAll(body)
 		body.Close()
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("raw body data"), bodyData)
@@ -210,7 +210,7 @@ func TestGetRawBodyMethods404(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 404,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -239,7 +239,7 @@ func TestGetRawBodyMethods400(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -266,7 +266,7 @@ func TestGetRaw(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -293,7 +293,7 @@ func TestGetRaw404(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 404,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -322,7 +322,7 @@ func TestGetRaw400(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -355,7 +355,7 @@ func TestGetJSONAll(t *testing.T) {
 
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -377,7 +377,7 @@ func TestGetJSONAllMissingTotal(t *testing.T) {
 		DoFunc: func(request *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -395,7 +395,7 @@ func TestGetJSONAllBadJSON(t *testing.T) {
 		DoFunc: func(request *http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("not really json"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("not really json"))),
 			}, nil
 		},
 	}
@@ -414,7 +414,7 @@ func TestGetJSONAllBadType(t *testing.T) {
 			json := `{"testdata": "just testing", "total": "100", "offset": 0, "limit": 20}`
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -438,7 +438,7 @@ func TestGetJSONAllFnTotal(t *testing.T) {
 
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(jsonResponse))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(jsonResponse))),
 			}, nil
 		},
 	}
@@ -475,7 +475,7 @@ func TestPostRaw(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -487,7 +487,7 @@ func TestPostRaw(t *testing.T) {
 	require.NotNil(t, body)
 	assert.Equal(t, []byte("raw body data"), body)
 	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Equal(t, []byte("post body test"), sentBody)
@@ -500,7 +500,7 @@ func TestPostRawHeaders(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -518,7 +518,7 @@ func TestPostRawHeaders(t *testing.T) {
 		require.NotNil(t, body)
 		assert.Equal(t, []byte("raw body data"), body)
 		assert.Equal(t, "POST", mc.Req.Method)
-		sentBody, err := ioutil.ReadAll(mc.Req.Body)
+		sentBody, err := io.ReadAll(mc.Req.Body)
 		mc.Req.Body.Close()
 		require.Nil(t, err)
 		assert.Equal(t, []byte("post header test"), sentBody)
@@ -537,7 +537,7 @@ func TestPostRaw400(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -562,7 +562,7 @@ func TestPostRaw404(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 404,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -585,7 +585,7 @@ func TestPostTOML(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -597,7 +597,7 @@ func TestPostTOML(t *testing.T) {
 	require.NotNil(t, body)
 	assert.Equal(t, []byte("raw body data"), body)
 	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Equal(t, []byte("post header test"), sentBody)
@@ -611,7 +611,7 @@ func TestPostJSON(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -623,7 +623,7 @@ func TestPostJSON(t *testing.T) {
 	require.NotNil(t, body)
 	assert.Equal(t, []byte("raw body data"), body)
 	assert.Equal(t, "POST", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Equal(t, []byte("post header test"), sentBody)
@@ -637,7 +637,7 @@ func TestDeleteRaw(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -660,7 +660,7 @@ func TestDeleteRaw400(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -685,7 +685,7 @@ func TestDeleteRaw404(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 404,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -708,7 +708,7 @@ func TestRawCallbackBody(t *testing.T) {
 		DoFunc: func(*http.Request) (*http.Response, error) {
 			return &http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("raw body data"))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("raw body data"))),
 			}, nil
 		},
 	}
@@ -743,7 +743,7 @@ func TestRawCallbackResponse(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -779,7 +779,7 @@ func TestGetFile(t *testing.T) {
 
 			resp := http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
 				Header:     http.Header{},
 			}
 			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
@@ -799,7 +799,7 @@ func TestGetFile(t *testing.T) {
 	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
 	_, err = os.Stat(tf)
 	require.Nil(t, err)
-	data, _ := ioutil.ReadFile(tf)
+	data, _ := os.ReadFile(tf)
 	assert.Equal(t, []byte("A Very Short File."), data)
 	os.Remove(tf)
 }
@@ -811,7 +811,7 @@ func TestGetFileError400(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -835,7 +835,7 @@ func TestGetFilePath(t *testing.T) {
 
 			resp := http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
 				Header:     http.Header{},
 			}
 			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
@@ -853,7 +853,7 @@ func TestGetFilePath(t *testing.T) {
 	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
 	_, err = os.Stat(filename)
 	require.Nil(t, err)
-	data, _ := ioutil.ReadFile(filename)
+	data, _ := os.ReadFile(filename)
 	assert.Equal(t, []byte("A Very Short File."), data)
 
 	// Test that downloading again returns an error
@@ -870,7 +870,7 @@ func TestGetFilePathFilename(t *testing.T) {
 
 			resp := http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
 				Header:     http.Header{},
 			}
 			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
@@ -888,7 +888,7 @@ func TestGetFilePathFilename(t *testing.T) {
 	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
 	_, err = os.Stat(filename)
 	require.Nil(t, err)
-	data, _ := ioutil.ReadFile(filename)
+	data, _ := os.ReadFile(filename)
 	assert.Equal(t, []byte("A Very Short File."), data)
 
 	// Test that downloading again returns an error
@@ -905,7 +905,7 @@ func TestGetFileMissingDir(t *testing.T) {
 
 			resp := http.Response{
 				StatusCode: 200,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Body:       io.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
 				Header:     http.Header{},
 			}
 			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
@@ -934,7 +934,7 @@ func TestGetFilePathError400(t *testing.T) {
 			return &http.Response{
 				Request:    req,
 				StatusCode: 400,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 			}, nil
 		},
 	}
@@ -1076,11 +1076,11 @@ func TestGetContentFilenameError(t *testing.T) {
 }
 
 func TestMoveFile(t *testing.T) {
-	dir, err := ioutil.TempDir("", "test-move-file-*")
+	dir, err := os.MkdirTemp("", "test-move-file-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
-	f, err := ioutil.TempFile("", "test-move-file-*")
+	f, err := os.CreateTemp("", "test-move-file-*")
 	require.Nil(t, err)
 	_, err = f.Write([]byte("This is just a test file\n"))
 	require.Nil(t, err)
@@ -1110,7 +1110,7 @@ func TestCheckSocket(t *testing.T) {
 	assert.Contains(t, fmt.Sprintf("%s", err), "Check to make sure that")
 
 	// Test with existing file
-	f, err := ioutil.TempFile("", "test-CheckSocket-*")
+	f, err := os.CreateTemp("", "test-CheckSocket-*")
 	require.Nil(t, err)
 	_, err = f.Write([]byte("This is just a test file\n"))
 	require.Nil(t, err)

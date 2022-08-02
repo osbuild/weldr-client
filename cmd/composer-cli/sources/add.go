@@ -5,7 +5,7 @@
 package sources
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/spf13/cobra"
 
@@ -36,7 +36,7 @@ func init() {
 }
 
 func add(cmd *cobra.Command, args []string) error {
-	data, err := ioutil.ReadFile(args[0])
+	data, err := os.ReadFile(args[0])
 	if err != nil {
 		return root.ExecutionError(cmd, "Missing source file: %s\n", args[0])
 	}

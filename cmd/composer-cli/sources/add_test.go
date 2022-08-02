@@ -6,7 +6,7 @@ package sources
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -23,12 +23,12 @@ func TestCmdSourcesAdd(t *testing.T) {
 		json := `{"status": true}`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -49,15 +49,15 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, addCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	assert.Equal(t, "/api/v1/projects/source/new", mc.Req.URL.Path)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), "check_ssl = true")
@@ -71,12 +71,12 @@ func TestCmdSourcesAddJSON(t *testing.T) {
 		json := `{"status": true}`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -97,18 +97,18 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, addCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": true")
 	assert.Contains(t, string(stdout), "\"path\": \"/projects/source/new\"")
 	assert.Contains(t, string(stdout), "\"method\": \"POST\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	assert.Equal(t, "/api/v1/projects/source/new", mc.Req.URL.Path)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), "check_ssl = true")
@@ -132,12 +132,12 @@ func TestCmdNewSourceAddError(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -159,10 +159,10 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, addCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "ProjectsError")
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -185,12 +185,12 @@ func TestCmdNewSourceAddErrorJSON(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -212,13 +212,13 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, addCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": false")
 	assert.Contains(t, string(stdout), "\"id\": \"ProjectsError\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"Problem parsing POST body")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -231,12 +231,12 @@ func TestCmdSourcesChange(t *testing.T) {
 		json := `{"status": true}`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -257,10 +257,10 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changeCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -273,12 +273,12 @@ func TestCmdSourcesChangeJSON(t *testing.T) {
 		json := `{"status": true}`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -299,13 +299,13 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changeCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": true")
 	assert.Contains(t, string(stdout), "\"path\": \"/projects/source/new\"")
 	assert.Contains(t, string(stdout), "\"method\": \"POST\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -328,12 +328,12 @@ func TestCmdNewSourceChangeError(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -355,10 +355,10 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changeCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "ProjectsError")
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -381,12 +381,12 @@ func TestCmdNewSourceChangeErrorJSON(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
 	// Need a temporary test file
-	tmpSrc, err := ioutil.TempFile("", "test-src-*.toml")
+	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpSrc.Name())
 
@@ -408,13 +408,13 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, changeCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": false")
 	assert.Contains(t, string(stdout), "\"id\": \"ProjectsError\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"Problem parsing POST body")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)

@@ -6,7 +6,7 @@ package compose
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -50,7 +50,7 @@ func TestCmdComposeTypes(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -63,11 +63,11 @@ func TestCmdComposeTypes(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, typesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "openstack")
 	assert.Contains(t, string(stdout), "qcow2")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -107,7 +107,7 @@ func TestCmdComposeTypesJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -120,13 +120,13 @@ func TestCmdComposeTypesJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, typesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"openstack\"")
 	assert.Contains(t, string(stdout), "\"name\": \"qcow2\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/types\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -150,7 +150,7 @@ func TestCmdComposeTypesDistro(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -163,11 +163,11 @@ func TestCmdComposeTypesDistro(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, typesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "tar")
 	assert.Contains(t, string(stdout), "qcow2")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -191,7 +191,7 @@ func TestCmdComposeTypesDistroJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -204,13 +204,13 @@ func TestCmdComposeTypesDistroJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, typesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"tar\"")
 	assert.Contains(t, string(stdout), "\"name\": \"qcow2\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/types?distro=test-distro\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -232,7 +232,7 @@ func TestCmdComposeTypesBadDistro(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -245,10 +245,10 @@ func TestCmdComposeTypesBadDistro(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, typesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "DistroError: Invalid distro: homer")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -270,7 +270,7 @@ func TestCmdComposeTypesBadDistroJSON(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -283,12 +283,12 @@ func TestCmdComposeTypesBadDistroJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, typesCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"DistroError\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"Invalid distro: homer\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)

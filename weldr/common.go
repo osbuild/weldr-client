@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -170,7 +169,7 @@ func (c Client) GetRaw(method, path string) ([]byte, *APIResponse, error) {
 	}
 	defer body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(body)
+	bodyBytes, err := io.ReadAll(body)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -244,7 +243,7 @@ func (c Client) GetFile(path string) (fileName, cDisposition, cType string, apiR
 	}
 
 	// Write the body to a temporary file (caller is responsible for cleanup)
-	tmpFile, err := ioutil.TempFile("", "composer-cli-file-*")
+	tmpFile, err := os.CreateTemp("", "composer-cli-file-*")
 	if err != nil {
 		return
 	}
@@ -354,7 +353,7 @@ func (c Client) PostRaw(path, body string, headers map[string]string) ([]byte, *
 	}
 	defer resp.Body.Close()
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -392,7 +391,7 @@ func (c Client) DeleteRaw(path string) ([]byte, *APIResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, err
 	}

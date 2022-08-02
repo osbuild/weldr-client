@@ -6,7 +6,7 @@ package projects
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"testing"
@@ -76,7 +76,7 @@ func TestCmdProjectsList(t *testing.T) {
 		}
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -88,12 +88,12 @@ func TestCmdProjectsList(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "Name: 0ad\n")
 	assert.Contains(t, string(stdout), "Homepage: http://play0ad.com\n")
 	assert.Contains(t, string(stdout), "             open-source, cross-platform real-time")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -159,7 +159,7 @@ func TestCmdProjectsListJSON(t *testing.T) {
 		}
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -171,14 +171,14 @@ func TestCmdProjectsListJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"0ad\"")
 	assert.Contains(t, string(stdout), "\"homepage\": \"http://play0ad.com\"")
 	assert.Contains(t, string(stdout), "\"version\": \"0.0.24b\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/projects/list?limit=0\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -244,7 +244,7 @@ func TestCmdProjectsListDistro(t *testing.T) {
 		}
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -256,12 +256,12 @@ func TestCmdProjectsListDistro(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "Name: 0ad\n")
 	assert.Contains(t, string(stdout), "Homepage: http://play0ad.com\n")
 	assert.Contains(t, string(stdout), "             open-source, cross-platform real-time")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -284,7 +284,7 @@ func TestCmdProjectsListBadDistro(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -297,10 +297,10 @@ func TestCmdProjectsListBadDistro(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, listCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "DistroError: Invalid distro: homer")
 	assert.Equal(t, "GET", mc.Req.Method)
