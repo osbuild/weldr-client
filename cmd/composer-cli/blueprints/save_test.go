@@ -6,7 +6,7 @@ package blueprints
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -20,7 +20,7 @@ import (
 // Check the saved toml file to make sure the uid and gid are not floats
 // This function takes the simple approach and looks for strings.
 func checkUIDGidFloat(t *testing.T, filename string) {
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	require.Nil(t, err)
 	assert.NotContains(t, string(data), "gid = 1001.0")
 	assert.NotContains(t, string(data), "uid = 1001.0")
@@ -49,11 +49,11 @@ uid = 1001
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -74,10 +74,10 @@ uid = 1001
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, saveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -112,11 +112,11 @@ uid = 1001
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -137,10 +137,10 @@ uid = 1001
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, saveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -173,11 +173,11 @@ func TestCmdBlueprintsSaveUnknown(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -199,10 +199,10 @@ func TestCmdBlueprintsSaveUnknown(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, saveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownBlueprint: test-no-bp")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -278,11 +278,11 @@ uid = 1001
 		}
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(data))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(data))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -303,12 +303,12 @@ uid = 1001
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, saveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"simple\"")
 	assert.Contains(t, string(stdout), "\"changed\": false")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -339,11 +339,11 @@ func TestCmdBlueprintsSaveUnknownJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -365,13 +365,13 @@ func TestCmdBlueprintsSaveUnknownJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, saveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownBlueprint\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"test-no-bp: \"")
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/info/test-no-bp\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)

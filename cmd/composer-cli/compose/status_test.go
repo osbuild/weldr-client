@@ -6,7 +6,7 @@ package compose
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -93,7 +93,7 @@ func TestCmdComposeStatus(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -106,7 +106,7 @@ func TestCmdComposeStatus(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, statusCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 
 	// Check for expected output, but not exact match due to local time being used.
@@ -118,7 +118,7 @@ func TestCmdComposeStatus(t *testing.T) {
 
 		assert.Contains(t, string(stdout), s)
 	}
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -201,7 +201,7 @@ func TestCmdComposeStatusJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -214,7 +214,7 @@ func TestCmdComposeStatusJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, statusCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"6d185e04-b56e-4705-97b6-21d6c6c85f06\"")
@@ -224,7 +224,7 @@ func TestCmdComposeStatusJSON(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/queue\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/finished\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/failed\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)

@@ -6,7 +6,7 @@ package blueprints
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -60,7 +60,7 @@ func TestCmdBlueprintsFreeze(t *testing.T) {
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -79,13 +79,13 @@ func TestCmdBlueprintsFreeze(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, freezeCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "blueprint: cli-test-bp-1 v0.0.3")
 	assert.Contains(t, string(stdout), "tmux-3.1c-2.fc34.x86_64")
 	assert.NotContains(t, string(stdout), "1001.0")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownBlueprint: test-no-bp: blueprint not found")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -135,7 +135,7 @@ func TestCmdBlueprintsFreezeJSON(t *testing.T) {
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -154,7 +154,7 @@ func TestCmdBlueprintsFreezeJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, freezeCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
@@ -162,7 +162,7 @@ func TestCmdBlueprintsFreezeJSON(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownBlueprint\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"test-no-bp: blueprint not found\"")
 	assert.NotContains(t, string(stdout), "1001.0")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -190,11 +190,11 @@ uid = 1001
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -215,10 +215,10 @@ uid = 1001
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, freezeSaveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -253,11 +253,11 @@ uid = 1001
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -278,10 +278,10 @@ uid = 1001
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, freezeSaveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -353,11 +353,11 @@ uid = 1001
 		}
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(data))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(data))),
 		}, nil
 	})
 
-	dir, err := ioutil.TempDir("", "test-bp-save-*")
+	dir, err := os.MkdirTemp("", "test-bp-save-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -378,13 +378,13 @@ uid = 1001
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, freezeSaveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "\"version\": \"3.1c-2.fc34.x86_64\"")
 	assert.NotContains(t, string(stdout), "1001.0")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -420,7 +420,7 @@ uid = 1001
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(toml))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(toml))),
 		}, nil
 	})
 
@@ -434,14 +434,14 @@ uid = 1001
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, freezeShowCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "name = \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "[[packages]]")
 	assert.Contains(t, string(stdout), "version = \"3.1c-2.fc34.x86_64\"")
 	assert.NotContains(t, string(stdout), "1001.0")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -488,7 +488,7 @@ func TestCmdBlueprintsFreezeShowJSON(t *testing.T) {
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -503,14 +503,14 @@ func TestCmdBlueprintsFreezeShowJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, freezeShowCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "\"version\": \"3.1c-2.fc34.x86_64\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/freeze/cli-test-bp-1\"")
 	assert.NotContains(t, string(stdout), "1001.0")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)

@@ -7,7 +7,7 @@ package sources
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -41,7 +41,7 @@ func TestCmdSourcesInfo(t *testing.T) {
 }`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -54,11 +54,11 @@ func TestCmdSourcesInfo(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, infoCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "id = \"fedora\"")
 	assert.Contains(t, string(stdout), "type = \"yum-metalink\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownSource: unknown is not a valid source")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -89,7 +89,7 @@ func TestCmdSourcesInfoJSON(t *testing.T) {
 }`
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -102,14 +102,14 @@ func TestCmdSourcesInfoJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, infoCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"fedora\"")
 	assert.Contains(t, string(stdout), "\"type\": \"yum-metalink\"")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownSource\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"unknown is not a valid source\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)

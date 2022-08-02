@@ -7,7 +7,7 @@ package compose
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -25,7 +25,7 @@ func TestCmdComposeImage(t *testing.T) {
 
 		resp := http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(data))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(data))),
 			Header:     http.Header{},
 		}
 		resp.Header.Set("Content-Disposition", "attachment; filename=b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.qcow2")
@@ -36,7 +36,7 @@ func TestCmdComposeImage(t *testing.T) {
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := ioutil.TempDir("", "test-image-*")
+	dir, err := os.MkdirTemp("", "test-image-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -57,10 +57,10 @@ func TestCmdComposeImage(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, imageCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.qcow2")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -77,7 +77,7 @@ func TestCmdComposeImageFilename(t *testing.T) {
 
 		resp := http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(data))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(data))),
 			Header:     http.Header{},
 		}
 		resp.Header.Set("Content-Disposition", "attachment; filename=b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.qcow2")
@@ -88,7 +88,7 @@ func TestCmdComposeImageFilename(t *testing.T) {
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := ioutil.TempDir("", "test-image-*")
+	dir, err := os.MkdirTemp("", "test-image-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -109,10 +109,10 @@ func TestCmdComposeImageFilename(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, imageCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "test-compose-image.qcow2")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -138,13 +138,13 @@ func TestCmdComposeUnknownImage(t *testing.T) {
 		resp := http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}
 		return &resp, nil
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := ioutil.TempDir("", "test-image-*")
+	dir, err := os.MkdirTemp("", "test-image-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -167,10 +167,10 @@ func TestCmdComposeUnknownImage(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, imageCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownUUID: c3660d9b-8d8b-4077-8b9a-72e4f5861f4 is not a valid build uuid")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -196,13 +196,13 @@ func TestCmdComposeUnknownImageJSON(t *testing.T) {
 		resp := http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}
 		return &resp, nil
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := ioutil.TempDir("", "test-image-*")
+	dir, err := os.MkdirTemp("", "test-image-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -225,7 +225,7 @@ func TestCmdComposeUnknownImageJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, imageCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
@@ -233,7 +233,7 @@ func TestCmdComposeUnknownImageJSON(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"status\": false")
 	assert.Contains(t, string(stdout), "\"path\": \"/api/v1/compose/image/b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7\"")
 	assert.Contains(t, string(stdout), "\"status\": 400")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)

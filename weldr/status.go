@@ -6,7 +6,7 @@ package weldr
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 )
 
 // ServerStatus returns the status of the API server
@@ -24,7 +24,7 @@ func (c Client) ServerStatus() (StatusV0, *APIResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return StatusV0{}, nil, err
 	}

@@ -6,7 +6,7 @@ package compose
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"testing"
@@ -29,7 +29,7 @@ And should do the job.`
 
 		resp := http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader(tar)),
+			Body:       io.NopCloser(bytes.NewReader(tar)),
 			Header:     http.Header{},
 		}
 		resp.Header.Set("Content-Disposition", "attachment; filename=b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.tar")
@@ -39,7 +39,7 @@ And should do the job.`
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := ioutil.TempDir("", "test-results-*")
+	dir, err := os.MkdirTemp("", "test-results-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -60,10 +60,10 @@ And should do the job.`
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, resultsCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.tar")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -85,7 +85,7 @@ And should do the job.`
 
 		resp := http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader(tar)),
+			Body:       io.NopCloser(bytes.NewReader(tar)),
 			Header:     http.Header{},
 		}
 		resp.Header.Set("Content-Disposition", "attachment; filename=b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.tar")
@@ -95,7 +95,7 @@ And should do the job.`
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := ioutil.TempDir("", "test-results-*")
+	dir, err := os.MkdirTemp("", "test-results-*")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 
@@ -116,10 +116,10 @@ And should do the job.`
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, resultsCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "test-compose-results.tar")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -140,7 +140,7 @@ func TestCmdComposeResultsUnknown(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -157,10 +157,10 @@ func TestCmdComposeResultsUnknown(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, resultsCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownUUID: b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 is not a valid build uuid")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -177,7 +177,7 @@ func TestCmdComposeResultsUnknownJSON(t *testing.T) {
 		return &http.Response{
 			Request:    request,
 			StatusCode: 400,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -194,14 +194,14 @@ func TestCmdComposeResultsUnknownJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, resultsCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": false")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7 is not a valid build uuid\"")
 	assert.Contains(t, string(stdout), "\"status\": 400")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
