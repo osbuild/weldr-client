@@ -8,7 +8,6 @@ package weldr
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"testing"
 	"time"
@@ -64,7 +63,7 @@ func TestStartComposeSize(t *testing.T) {
 
 func TestStartComposeUpload(t *testing.T) {
 	// Need a temporary test file
-	tmpProfile, err := ioutil.TempFile("", "test-profile-p*.toml")
+	tmpProfile, err := os.CreateTemp("", "test-profile-p*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpProfile.Name())
 
@@ -107,7 +106,7 @@ func TestStartOSTreeUrlParentError(t *testing.T) {
 
 func TestStartOSTreeComposeUpload(t *testing.T) {
 	// Need a temporary test file
-	tmpProfile, err := ioutil.TempFile("", "test-profile-p*.toml")
+	tmpProfile, err := os.CreateTemp("", "test-profile-p*.toml")
 	require.Nil(t, err)
 	defer os.Remove(tmpProfile.Name())
 

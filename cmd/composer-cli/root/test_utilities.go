@@ -10,7 +10,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -39,11 +38,11 @@ type OutputCapture struct {
 // restore os.Stdout and os.Stderr
 func NewOutputCapture() (*OutputCapture, error) {
 
-	stdout, err := ioutil.TempFile("", "stdout-capture-")
+	stdout, err := os.CreateTemp("", "stdout-capture-")
 	if err != nil {
 		return nil, err
 	}
-	stderr, err := ioutil.TempFile("", "stderr-capture-")
+	stderr, err := os.CreateTemp("", "stderr-capture-")
 	if err != nil {
 		stdout.Close()
 		os.Remove(stdout.Name())

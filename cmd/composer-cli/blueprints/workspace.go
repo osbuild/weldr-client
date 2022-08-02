@@ -6,7 +6,6 @@ package blueprints
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -31,7 +30,7 @@ func init() {
 func workspace(cmd *cobra.Command, args []string) (rcErr error) {
 	files := root.GetCommaArgs(args)
 	for _, filename := range files {
-		data, err := ioutil.ReadFile(filename)
+		data, err := os.ReadFile(filename)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: Missing blueprint file: %s\n", filename)
 			rcErr = root.ExecutionError(cmd, "")

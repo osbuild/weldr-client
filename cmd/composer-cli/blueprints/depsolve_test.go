@@ -6,7 +6,7 @@ package blueprints
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -64,7 +64,7 @@ func TestCmdBlueprintsDepsolve(t *testing.T) {
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -77,12 +77,12 @@ func TestCmdBlueprintsDepsolve(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, depsolveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "cli-test-bp-1")
 	assert.Contains(t, string(stdout), "acl-2.2.53-9.fc33.x86_64")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "UnknownBlueprint: test-no-bp: blueprint not found")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -137,7 +137,7 @@ func TestCmdBlueprintsDepsolveJSON(t *testing.T) {
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -150,7 +150,7 @@ func TestCmdBlueprintsDepsolveJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, depsolveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
@@ -158,7 +158,7 @@ func TestCmdBlueprintsDepsolveJSON(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/depsolve/cli-test-bp-1,test-no-bp\"")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownBlueprint\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"test-no-bp: blueprint not found\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -195,7 +195,7 @@ func TestCmdBlueprintsBadDepsolve(t *testing.T) {
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -208,11 +208,11 @@ func TestCmdBlueprintsBadDepsolve(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, depsolveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.NotContains(t, string(stdout), "{")
 	assert.Contains(t, string(stdout), "blueprint: cli-test-bp-1 v0.0.1")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "BlueprintsError: cli-test-bp-1: DNF error occured:")
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -249,7 +249,7 @@ func TestCmdBlueprintsBadDepsolveJSON(t *testing.T) {
 	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -261,14 +261,14 @@ func TestCmdBlueprintsBadDepsolveJSON(t *testing.T) {
 	require.NotNil(t, out.Stderr)
 	require.NotNil(t, cmd)
 	assert.Equal(t, cmd, depsolveCmd)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"name\": \"cli-test-bp-1\"")
 	assert.Contains(t, string(stdout), "\"id\": \"BlueprintsError\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"cli-test-bp-1: DNF error occured:")
 	assert.Contains(t, string(stdout), "\"path\": \"/blueprints/depsolve/cli-test-bp-1\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)

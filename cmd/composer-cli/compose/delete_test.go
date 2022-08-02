@@ -6,7 +6,7 @@ package compose
 
 import (
 	"bytes"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 
@@ -31,7 +31,7 @@ func TestCmdComposeDelete(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -44,14 +44,14 @@ func TestCmdComposeDelete(t *testing.T) {
 	assert.Equal(t, cmd, deleteCmd)
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "DELETE", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Equal(t, []byte(""), sentBody)
@@ -73,7 +73,7 @@ func TestCmdComposeDeleteJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -86,17 +86,17 @@ func TestCmdComposeDeleteJSON(t *testing.T) {
 	assert.Equal(t, cmd, deleteCmd)
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": true")
 	assert.Contains(t, string(stdout), "\"uuid\": \"ac188b76-138a-452c-82fb-5cc651986991\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/delete/ac188b76-138a-452c-82fb-5cc651986991\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "DELETE", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Equal(t, []byte(""), sentBody)
@@ -123,7 +123,7 @@ func TestCmdComposeDeleteUnknown(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -136,14 +136,14 @@ func TestCmdComposeDeleteUnknown(t *testing.T) {
 	assert.Equal(t, cmd, deleteCmd)
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stdout)
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("ERROR: UnknownUUID: compose 4b668b1a-e6b8-4dce-8828-4a8e3bef2345 doesn't exist\n"), stderr)
 	assert.Equal(t, "DELETE", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Equal(t, []byte(""), sentBody)
@@ -170,7 +170,7 @@ func TestCmdComposeDeleteUnknownJSON(t *testing.T) {
 
 		return &http.Response{
 			StatusCode: 200,
-			Body:       ioutil.NopCloser(bytes.NewReader([]byte(json))),
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
 		}, nil
 	})
 
@@ -183,7 +183,7 @@ func TestCmdComposeDeleteUnknownJSON(t *testing.T) {
 	assert.Equal(t, cmd, deleteCmd)
 	require.NotNil(t, out.Stdout)
 	require.NotNil(t, out.Stderr)
-	stdout, err := ioutil.ReadAll(out.Stdout)
+	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
 	assert.Contains(t, string(stdout), "\"status\": true")
@@ -191,11 +191,11 @@ func TestCmdComposeDeleteUnknownJSON(t *testing.T) {
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/delete/ac188b76-138a-452c-82fb-5cc651986991,4b668b1a-e6b8-4dce-8828-4a8e3bef2345\"")
 	assert.Contains(t, string(stdout), "\"id\": \"UnknownUUID\"")
 	assert.Contains(t, string(stdout), "\"msg\": \"compose 4b668b1a-e6b8-4dce-8828-4a8e3bef2345 doesn't exist\"")
-	stderr, err := ioutil.ReadAll(out.Stderr)
+	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "DELETE", mc.Req.Method)
-	sentBody, err := ioutil.ReadAll(mc.Req.Body)
+	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
 	assert.Equal(t, []byte(""), sentBody)

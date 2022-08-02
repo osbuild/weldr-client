@@ -9,7 +9,6 @@ package weldr
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
@@ -51,7 +50,7 @@ func setUpTestState(socketPath string, unitTest bool) (*TestState, error) {
 
 // SetUpTemporaryRepository creates a temporary repository
 func SetUpTemporaryRepository() (string, error) {
-	dir, err := ioutil.TempDir("/tmp", "osbuild-composer-test-")
+	dir, err := os.MkdirTemp("/tmp", "osbuild-composer-test-")
 	if err != nil {
 		return "", err
 	}

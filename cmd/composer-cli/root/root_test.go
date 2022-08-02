@@ -6,7 +6,7 @@ package root
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"testing"
 
@@ -61,10 +61,10 @@ func TestOutputCapture(t *testing.T) {
 
 	err = oc.Rewind()
 	require.Nil(t, err)
-	stdout, err := ioutil.ReadAll(oc.Stdout)
+	stdout, err := io.ReadAll(oc.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "fooblitzky")
-	stderr, err := ioutil.ReadAll(oc.Stderr)
+	stderr, err := io.ReadAll(oc.Stderr)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stderr), "frobozz")
 }
