@@ -11,7 +11,7 @@ Release:   1%{?dist}
 # Upstream license specification: Apache-2.0
 License:   ASL 2.0
 Summary:   Command line utility to control osbuild-composer
-Url:       %{gourl}
+Url:       https://github.com/osbuild/weldr-client
 Source0:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz
 %if %{with signed}
 Source1:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz.asc
