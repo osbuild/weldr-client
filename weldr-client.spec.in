@@ -11,6 +11,8 @@ Release:   1%{?dist}
 # Upstream license specification: Apache-2.0
 License:   ASL 2.0
 Summary:   Command line utility to control osbuild-composer
+
+%gometa
 Url:       %{gourl}
 Source0:   https://github.com/osbuild/weldr-client/releases/download/v%{version}/%{name}-%{version}.tar.gz
 %if %{with signed}
@@ -20,8 +22,6 @@ Source2:   https://keys.openpgp.org/vks/v1/by-fingerprint/%%GPGKEY%%#/gpg-%%GPGK
 
 Obsoletes: composer-cli < 35.0
 Provides: composer-cli = %{version}-%{release}
-
-%gometa
 
 BuildRequires:  %{?go_compiler:compiler(go-compiler)}%{!?go_compiler:golang}
 %if 0%{?fedora}
