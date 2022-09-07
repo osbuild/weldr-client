@@ -135,7 +135,7 @@ func TestCmdComposeStartSize(t *testing.T) {
 	sentBody, err := io.ReadAll(mc.Req.Body)
 	mc.Req.Body.Close()
 	require.Nil(t, err)
-	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":998}`), sentBody)
+	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":1046478848}`), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
 	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
 }
