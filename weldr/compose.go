@@ -128,7 +128,7 @@ func (c Client) StartComposeTest(blueprint, composeType string, size uint, test 
 	settings.Name = blueprint
 	settings.Type = composeType
 	settings.Branch = "master"
-	settings.Size = size
+	settings.Size = size * 1024 * 1024
 	return c.startComposeTest(settings, test)
 }
 
@@ -157,7 +157,7 @@ func (c Client) StartComposeTestUpload(blueprint, composeType, imageName, profil
 	settings.Name = blueprint
 	settings.Type = composeType
 	settings.Branch = "master"
-	settings.Size = size
+	settings.Size = size * 1024 * 1024
 
 	// Read the profile toml file into settings.Upload
 	_, err := toml.DecodeFile(profileFile, &settings.Upload)
@@ -193,7 +193,7 @@ func (c Client) StartOSTreeComposeTest(blueprint, composeType, ref, parent, url 
 	settings.Name = blueprint
 	settings.Type = composeType
 	settings.Branch = "master"
-	settings.Size = size
+	settings.Size = size * 1024 * 1024
 	settings.OSTree.Ref = ref
 	settings.OSTree.Parent = parent
 	settings.OSTree.URL = url
@@ -230,7 +230,7 @@ func (c Client) StartOSTreeComposeTestUpload(blueprint, composeType, imageName, 
 	settings.Name = blueprint
 	settings.Type = composeType
 	settings.Branch = "master"
-	settings.Size = size
+	settings.Size = size * 1024 * 1024
 	settings.OSTree.Ref = ref
 	settings.OSTree.Parent = parent
 	settings.OSTree.URL = url
