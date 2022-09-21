@@ -2,6 +2,7 @@
 // Use of this source is goverend by the Apache License
 // that can be found in the LICENSE file.
 
+//go:build integration
 // +build integration
 
 package weldr
@@ -28,6 +29,26 @@ func TestListModulesDistro(t *testing.T) {
 	require.Nil(t, r)
 	require.NotNil(t, modules)
 	assert.GreaterOrEqual(t, len(modules), 2)
+	assert.Equal(t, "rpm", modules[0].Type)
+}
+
+func TestSearchModules(t *testing.T) {
+	modules, r, err := testState.client.SearchModules([]string{"tmux"}, "")
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, modules)
+	assert.GreaterOrEqual(t, len(modules), 1)
+	assert.Equal(t, "tmux", modules[0].Name)
+	assert.Equal(t, "rpm", modules[0].Type)
+}
+
+func TestSearchModulesDistro(t *testing.T) {
+	modules, r, err := testState.client.SearchModules([]string{"tmux"}, testState.distros[0])
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.NotNil(t, modules)
+	assert.GreaterOrEqual(t, len(modules), 1)
+	assert.Equal(t, "tmux", modules[0].Name)
 	assert.Equal(t, "rpm", modules[0].Type)
 }
 

@@ -32,6 +32,26 @@ func (c Client) ListModules(distro string) ([]ModuleV0, *APIResponse, error) {
 	return list.Modules, nil, nil
 }
 
+// SearchModules returns a list of all of the modules matching all of the globs
+// NOTE: These are just packages, the server does not support modules directly
+func (c Client) SearchModules(names []string, distro string) ([]ModuleV0, *APIResponse, error) {
+	route := fmt.Sprintf("/modules/list/%s", strings.Join(names, ","))
+	if len(distro) > 0 {
+		route = fmt.Sprintf("%s?distro=%s", route, distro)
+	}
+
+	body, resp, err := c.GetJSONAll(route)
+	if resp != nil || err != nil {
+		return nil, resp, err
+	}
+	var list ModulesListV0
+	err = json.Unmarshal(body, &list)
+	if err != nil {
+		return nil, nil, err
+	}
+	return list.Modules, nil, nil
+}
+
 // ModulesInfo returns a list of detailed info about the modules, including deps
 func (c Client) ModulesInfo(names []string, distro string) ([]ProjectV0, *APIResponse, error) {
 	route := fmt.Sprintf("/modules/info/%s", strings.Join(names, ","))
