@@ -21,8 +21,10 @@ var (
 		Use:   "status",
 		Short: "List the detailed status of all composes",
 		Long:  "List the detained status of all composes",
-		RunE:  status,
-		Args:  cobra.NoArgs,
+		Example: `  composer-cli compose status
+  composer-cli compose status --json`,
+		RunE: status,
+		Args: cobra.NoArgs,
 	}
 )
 

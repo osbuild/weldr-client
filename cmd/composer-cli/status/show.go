@@ -17,7 +17,9 @@ var (
 		Use:   "show",
 		Short: "Show API server status",
 		Long:  "Show API server status",
-		RunE:  show,
+		Example: `  composer-cli status show
+  composer-cli status show --json`,
+		RunE: show,
 	}
 )
 

@@ -20,6 +20,9 @@ var (
 		Short: "Start a compose using the selected blueprint and output type",
 		Long:  "Start a compose using the selected blueprint and output type. Optionally start an upload. --size is supported by osbuild-composer, and is in MiB",
 		RunE:  start,
+		Example: `  composer-cli compose start tmux-image qcow2
+  composer-cli compose start tmux-image qcow2 --size 4096
+  composer-cli compose start tmux-image ami ami-name aws-upload.toml`,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 2 || len(args) == 4 {
 				return nil

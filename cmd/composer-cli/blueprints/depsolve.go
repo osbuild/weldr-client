@@ -17,11 +17,12 @@ import (
 
 var (
 	depsolveCmd = &cobra.Command{
-		Use:   "depsolve BLUEPRINT,...",
-		Short: "Depsolve the blueprints and output the package lists",
-		Long:  "Depsolve the blueprints and output the package lists",
-		RunE:  depsolve,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "depsolve BLUEPRINT,...",
+		Short:   "Depsolve the blueprints and output the package lists",
+		Long:    "Depsolve the blueprints and output the package lists",
+		Example: "  composer-cli blueprints depsolve tmux-image",
+		RunE:    depsolve,
+		Args:    cobra.MinimumNArgs(1),
 	}
 )
 

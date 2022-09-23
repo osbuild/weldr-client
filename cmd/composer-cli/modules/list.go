@@ -18,8 +18,12 @@ var (
 		Use:   "list [GLOB] ...",
 		Short: "List all, or search for, available modules",
 		Long:  "List all available modules, or search using glob patterns",
-		Args:  cobra.ArbitraryArgs,
-		RunE:  list,
+		Example: `  composer-cli modules list
+  composer-cli modules list --json
+  composer-cli modules list golang-*
+  composer-cli modules list --distro fedora-38`,
+		Args: cobra.ArbitraryArgs,
+		RunE: list,
 	}
 	distro string
 )

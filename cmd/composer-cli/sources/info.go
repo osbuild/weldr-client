@@ -17,11 +17,12 @@ import (
 
 var (
 	infoCmd = &cobra.Command{
-		Use:   "info SOURCE,...",
-		Short: "Show details about the source",
-		Long:  "Show details about the sources in TOML format",
-		RunE:  info,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "info SOURCE,...",
+		Short:   "Show details about the source",
+		Long:    "Show details about the sources in TOML format",
+		Example: "  composer-cli sources info rpmfusion",
+		RunE:    info,
+		Args:    cobra.MinimumNArgs(1),
 	}
 )
 

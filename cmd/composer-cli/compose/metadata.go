@@ -17,8 +17,11 @@ var (
 		Use:   "metadata UUID",
 		Short: "Get a tar of the the metadata for the compose",
 		Long:  "Get a tar of the the metadata for the compose",
-		RunE:  getMetadata,
-		Args:  cobra.ExactArgs(1),
+		Example: `  composer-cli compose metadata 914bb03b-e4c8-4074-bc31-6869961ee2f3
+  composer-cli compose metadata 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/
+  composer-cli compose metadata 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/metadata.tar`,
+		RunE: getMetadata,
+		Args: cobra.ExactArgs(1),
 	}
 )
 

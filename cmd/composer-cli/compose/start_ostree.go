@@ -18,8 +18,18 @@ var (
 	startOSTreeCmd = &cobra.Command{
 		Use:   "start-ostree BLUEPRINT TYPE [IMAGE-NAME PROFILE.TOML]",
 		Short: "Start an ostree compose using the selected blueprint and output type",
-		Long:  "Start an ostree compose using the selected blueprint and output type. Optionally start an upload. --size is supported by osbuild-composer, and is in MiB",
-		RunE:  startOSTree,
+		Long: `Start an ostree compose using the selected blueprint and output type.
+Optionally start an upload.
+--size is supported by osbuild-composer, and is in MiB.
+
+The full details of the start-ostree command can be viewed here:
+https://www.osbuild.org/guides/user-guide/building-ostree-images.html
+`,
+		Example: `  composer-cli compose start-ostree tmux-image fedora-iot-container
+  composer-cli compose start-ostree tmux-image fedora-iot-container iot-name upload.toml
+  composer-cli compose start-ostree --ref "rhel/edge/example" tmux-image fedora-iot-container
+  composer-cli compose start-ostree --ref "rhel/edge/example" --url http://10.0.2.2:8080/repo/ empty fedora-iot-installer`,
+		RunE: startOSTree,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) == 2 || len(args) == 4 {
 				return nil

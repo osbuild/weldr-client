@@ -12,11 +12,12 @@ import (
 
 var (
 	deleteCmd = &cobra.Command{
-		Use:   "delete SOURCE",
-		Short: "Delete the project source",
-		Long:  "Delete the project source from the server",
-		RunE:  delete,
-		Args:  cobra.ExactArgs(1),
+		Use:     "delete SOURCE",
+		Short:   "Delete the project source",
+		Long:    "Delete the project source from the server",
+		Example: "  composer-cli sources delete rpmfusion",
+		RunE:    delete,
+		Args:    cobra.ExactArgs(1),
 	}
 )
 
