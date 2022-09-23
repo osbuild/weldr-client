@@ -17,7 +17,6 @@ var (
 	listCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List all of the blueprint names",
-		Long:  "List all of the blueprint names",
 		Example: `  composer-cli blueprints list
   composer-cli blueprints list --json`,
 		RunE: list,

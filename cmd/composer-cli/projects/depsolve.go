@@ -19,7 +19,6 @@ var (
 	depsolveCmd = &cobra.Command{
 		Use:   "depsolve PROJECT,...",
 		Short: "Show the dependencies of all of the listed projects",
-		Long:  "Show the dependencies of all of the listed projects",
 		Example: `  composer-cli projects depsolve tmux
   composer-cli projects depsolve tmux --json
   composer-cli projects depsolve tmux --distro fedora-38`,

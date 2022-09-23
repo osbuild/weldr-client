@@ -15,9 +15,12 @@ import (
 
 var (
 	pushCmd = &cobra.Command{
-		Use:     "push BLUEPRINT",
-		Short:   "Push the TOML blueprint file to the server",
-		Long:    "Push the TOML blueprint file to the server, overwriting the previous version",
+		Use:   "push BLUEPRINT",
+		Short: "Push the TOML blueprint file to the server",
+		Long: `Push the TOML blueprint file to the server, overwriting the previous version.
+  If the version string in the new blueprint matches the one on the server
+  the .z value is incremented. If it does not match it will be used as-is.
+`,
 		Example: "  composer-cli blueprints push tmux-image.toml",
 		RunE:    push,
 		Args:    cobra.MinimumNArgs(1),

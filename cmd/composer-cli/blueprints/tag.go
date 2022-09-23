@@ -14,7 +14,6 @@ var (
 	tagCmd = &cobra.Command{
 		Use:     "tag BLUEPRINT",
 		Short:   "Tag the most recent blueprint change as a release",
-		Long:    "Tag the most recent blueprint change as a release",
 		Example: "  composer-cli blueprints tag tmux-image",
 		RunE:    tag,
 		Args:    cobra.ExactArgs(1),

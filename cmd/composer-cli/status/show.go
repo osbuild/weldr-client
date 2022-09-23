@@ -16,7 +16,6 @@ var (
 	showCmd = &cobra.Command{
 		Use:   "show",
 		Short: "Show API server status",
-		Long:  "Show API server status",
 		Example: `  composer-cli status show
   composer-cli status show --json`,
 		RunE: show,

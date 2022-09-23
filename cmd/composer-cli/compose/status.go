@@ -20,7 +20,6 @@ var (
 	statusCmd = &cobra.Command{
 		Use:   "status",
 		Short: "List the detailed status of all composes",
-		Long:  "List the detained status of all composes",
 		Example: `  composer-cli compose status
   composer-cli compose status --json`,
 		RunE: status,

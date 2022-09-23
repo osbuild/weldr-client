@@ -16,8 +16,8 @@ var (
 		Short: "Manage sources",
 		Long: `Manage project sources on the server
 
-The full source reference can be found here:
-https://www.osbuild.org/guides/user-guide/managing-repositories.html
+  The full source reference can be found here:
+  https://www.osbuild.org/guides/user-guide/managing-repositories.html
 `,
 		Example: `  TOML source for 3rd party rpm repository without gpg checking
 

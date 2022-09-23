@@ -22,7 +22,7 @@ var (
 	saveCmd = &cobra.Command{
 		Use:   "save BLUEPRINT,...",
 		Short: "Save the blueprints to TOML files",
-		Long:  "Save the blueprints to TOML files named BLUEPRINT-NAME.toml",
+		Long:  "Save the blueprints to TOML files named BLUEPRINT-NAME.toml in the current directory.",
 		Example: `  composer-cli blueprints save tmux-image
   composer-cli blueprints save tmux-image --filename /var/tmp/new-tmux-image.toml`,
 		RunE: saveToml,

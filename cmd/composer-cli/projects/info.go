@@ -16,7 +16,6 @@ var (
 	infoCmd = &cobra.Command{
 		Use:   "info PROJECT,...",
 		Short: "Show detailed info about the listed projects",
-		Long:  "Show detailed info about the listed projects",
 		Example: `  composer-cli projects info tmux
   composer-cli projects info tmux --json
   composer-cli projects info tmux --distro fedora-38`,

@@ -14,7 +14,6 @@ var (
 	modulesCmd = &cobra.Command{
 		Use:   "modules ...",
 		Short: "Module related commands",
-		Long:  "Module related commands",
 	}
 )
 
