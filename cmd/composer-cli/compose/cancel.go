@@ -12,11 +12,12 @@ import (
 
 var (
 	cancelCmd = &cobra.Command{
-		Use:   "cancel UUID",
-		Short: "Cancel one compose",
-		Long:  "Cancel one compose",
-		RunE:  cancelComposes,
-		Args:  cobra.ExactArgs(1),
+		Use:     "cancel UUID",
+		Short:   "Cancel one compose",
+		Long:    "Cancel one compose",
+		Example: "  composer-cli compose cancel 914bb03b-e4c8-4074-bc31-6869961ee2f3",
+		RunE:    cancelComposes,
+		Args:    cobra.ExactArgs(1),
 	}
 )
 

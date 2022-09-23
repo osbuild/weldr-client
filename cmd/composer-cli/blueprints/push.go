@@ -15,11 +15,12 @@ import (
 
 var (
 	pushCmd = &cobra.Command{
-		Use:   "push BLUEPRINT",
-		Short: "Push the TOML blueprint file to the server",
-		Long:  "Push the TOML blueprint file to the server, overwriting the previous version",
-		RunE:  push,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "push BLUEPRINT",
+		Short:   "Push the TOML blueprint file to the server",
+		Long:    "Push the TOML blueprint file to the server, overwriting the previous version",
+		Example: "  composer-cli blueprints push tmux-image.toml",
+		RunE:    push,
+		Args:    cobra.MinimumNArgs(1),
 	}
 )
 

@@ -14,19 +14,21 @@ import (
 
 var (
 	addCmd = &cobra.Command{
-		Use:   "add SOURCE.toml",
-		Short: "Add a project source to the server",
-		Long:  "Add or change a project source repository",
-		RunE:  add,
-		Args:  cobra.ExactArgs(1),
+		Use:     "add SOURCE.toml",
+		Short:   "Add a project source to the server",
+		Long:    "Add or change a project source repository",
+		Example: "  composer-cli sources add rpmfusion.toml",
+		RunE:    add,
+		Args:    cobra.ExactArgs(1),
 	}
 
 	changeCmd = &cobra.Command{
-		Use:   "change SOURCE.toml",
-		Short: "Change a project source",
-		Long:  "Add or change a project source repository",
-		RunE:  add,
-		Args:  cobra.ExactArgs(1),
+		Use:     "change SOURCE.toml",
+		Short:   "Change a project source",
+		Long:    "Add or change a project source repository",
+		Example: "  composer-cli sources change rpmfusion.toml",
+		RunE:    add,
+		Args:    cobra.ExactArgs(1),
 	}
 )
 

@@ -18,8 +18,10 @@ var (
 		Use:   "log UUID [size]",
 		Short: "Get the log for a running compose",
 		Long:  "Get the log for a running compose, optional size in kB that defaults to 1k",
-		RunE:  getLog,
-		Args:  cobra.MinimumNArgs(1),
+		Example: `  composer-cli compose log 914bb03b-e4c8-4074-bc31-6869961ee2f3
+  composer-cli compose log 914bb03b-e4c8-4074-bc31-6869961ee2f3 2048`,
+		RunE: getLog,
+		Args: cobra.MinimumNArgs(1),
 	}
 )
 

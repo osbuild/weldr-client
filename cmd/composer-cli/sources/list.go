@@ -17,8 +17,10 @@ var (
 		Use:   "list",
 		Short: "List the available project sources",
 		Long:  "List the available project sources",
-		RunE:  list,
-		Args:  cobra.NoArgs,
+		Example: `  composer-cli sources list
+  composer-cli sources list --json`,
+		RunE: list,
+		Args: cobra.NoArgs,
 	}
 )
 

@@ -12,11 +12,12 @@ import (
 
 var (
 	deleteCmd = &cobra.Command{
-		Use:   "delete UUID ...",
-		Short: "Delete one or more composes",
-		Long:  "Delete one or more composes",
-		RunE:  deleteComposes,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "delete UUID ...",
+		Short:   "Delete one or more composes",
+		Long:    "Delete one or more composes",
+		Example: "  composer-cli compose delete 914bb03b-e4c8-4074-bc31-6869961ee2f3",
+		RunE:    deleteComposes,
+		Args:    cobra.MinimumNArgs(1),
 	}
 )
 

@@ -18,7 +18,9 @@ var (
 		Use:   "list",
 		Short: "List all of the blueprint names",
 		Long:  "List all of the blueprint names",
-		RunE:  list,
+		Example: `  composer-cli blueprints list
+  composer-cli blueprints list --json`,
+		RunE: list,
 	}
 )
 

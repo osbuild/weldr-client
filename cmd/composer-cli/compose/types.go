@@ -18,8 +18,11 @@ var (
 		Use:   "types",
 		Short: "List the available compose types",
 		Long:  "List the available compose types",
-		RunE:  types,
-		Args:  cobra.NoArgs,
+		Example: `  composer-cli compose types
+  composer-cli compose types --json
+  composer-cli compose types --distro fedora-36`,
+		RunE: types,
+		Args: cobra.NoArgs,
 	}
 	distro string
 )

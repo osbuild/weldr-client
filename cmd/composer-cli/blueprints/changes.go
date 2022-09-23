@@ -14,11 +14,12 @@ import (
 
 var (
 	changesCmd = &cobra.Command{
-		Use:   "changes BLUEPRINT,...",
-		Short: "Show the changes to the blueprints",
-		Long:  "Show the changes for each of the blueprints listed on the cmdline",
-		RunE:  changes,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "changes BLUEPRINT,...",
+		Short:   "Show the changes to the blueprints",
+		Long:    "Show the changes for each of the blueprints listed on the cmdline",
+		Example: "  composer-cli blueprints changes tmux-image",
+		RunE:    changes,
+		Args:    cobra.MinimumNArgs(1),
 	}
 )
 

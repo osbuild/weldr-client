@@ -21,11 +21,12 @@ command if you know its name.
 
 var (
 	deleteCmd = &cobra.Command{
-		Use:   "delete BLUEPRINT",
-		Short: "Delete the blueprint from the server",
-		Long:  longDocs,
-		RunE:  delete,
-		Args:  cobra.ExactArgs(1),
+		Use:     "delete BLUEPRINT",
+		Short:   "Delete the blueprint from the server",
+		Long:    longDocs,
+		Example: "  composer-cli blueprints delete tmux-image",
+		RunE:    delete,
+		Args:    cobra.ExactArgs(1),
 	}
 )
 

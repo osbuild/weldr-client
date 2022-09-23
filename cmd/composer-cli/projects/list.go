@@ -17,7 +17,10 @@ var (
 		Use:   "list",
 		Short: "List available projects",
 		Long:  "List available projects",
-		RunE:  list,
+		Example: `  composer-cli projects list
+  composer-cli projects list --json
+  composer-cli projects list --distro fedora-38`,
+		RunE: list,
 	}
 	distro string
 )

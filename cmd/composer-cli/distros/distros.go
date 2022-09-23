@@ -14,7 +14,12 @@ var (
 	distrosCmd = &cobra.Command{
 		Use:   "distros ...",
 		Short: "Manage distributions",
-		Long:  "Manage supported distributions on the server",
+		Long: `Manage supported distributions on the server
+
+Building images for other distributions is supported by using the 'distro' field
+in the blueprint TOML, and by passing --distro to commands like 'compose types'
+and 'projects list'.
+`,
 	}
 )
 

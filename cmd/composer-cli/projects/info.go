@@ -17,8 +17,11 @@ var (
 		Use:   "info PROJECT,...",
 		Short: "Show detailed info about the listed projects",
 		Long:  "Show detailed info about the listed projects",
-		RunE:  info,
-		Args:  cobra.MinimumNArgs(1),
+		Example: `  composer-cli projects info tmux
+  composer-cli projects info tmux --json
+  composer-cli projects info tmux --distro fedora-38`,
+		RunE: info,
+		Args: cobra.MinimumNArgs(1),
 	}
 )
 

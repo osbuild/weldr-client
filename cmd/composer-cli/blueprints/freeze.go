@@ -21,25 +21,30 @@ import (
 
 var (
 	freezeCmd = &cobra.Command{
-		Use:   "freeze BLUEPRINT,...",
-		Short: "Show the blueprints depsolved package and module versions",
-		Long:  "Show the blueprints depsolved package and module versions",
-		RunE:  freeze,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "freeze BLUEPRINT,...",
+		Short:   "Show the blueprints depsolved package and module versions",
+		Long:    "Show the blueprints depsolved package and module versions",
+		Example: "  composer-cli blueprints freeze tmux-image",
+		RunE:    freeze,
+		Args:    cobra.MinimumNArgs(1),
 	}
 	freezeShowCmd = &cobra.Command{
-		Use:   "show BLUEPRINT,...",
-		Short: "Show the complete frozen blueprints TOML format",
-		Long:  "Show the complete blueprints with their depsolved packages and modules in TOML format",
-		RunE:  freezeShow,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "show BLUEPRINT,...",
+		Short:   "Show the complete frozen blueprints TOML format",
+		Long:    "Show the complete blueprints with their depsolved packages and modules in TOML format",
+		Example: "  composer-cli blueprints show tmux-image",
+		RunE:    freezeShow,
+		Args:    cobra.MinimumNArgs(1),
 	}
 	freezeSaveCmd = &cobra.Command{
 		Use:   "save BLUEPRINT,...",
 		Short: "Save the frozen blueprints to a TOML file",
 		Long:  "Save the complete blueprints with their depsolved packages and modules in TOML formatted files named BLUEPRINT-NAME.frozen.toml",
-		RunE:  freezeSave,
-		Args:  cobra.MinimumNArgs(1),
+		Example: `  composer-cli blueprints freeze save tmux-image
+  composer-cli blueprints freeze save tmux-image --filename /var/tmp/
+  composer-cli blueprints freeze save tmux-image --filename /var/tmp/new-tmux-image.toml`,
+		RunE: freezeSave,
+		Args: cobra.MinimumNArgs(1),
 	}
 )
 

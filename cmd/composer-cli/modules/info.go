@@ -17,8 +17,12 @@ var (
 		Use:   "info MODULE,...",
 		Short: "Show detailed info about the listed modules",
 		Long:  "Show detailed info about the listed modules, including dependencies",
-		RunE:  info,
-		Args:  cobra.MinimumNArgs(1),
+		Example: `  composer-cli modules info tmux
+  composer-cli modules info tmux --json
+  composer-cli modules info vim-t*
+  composer-cli modules info tmux --distro fedora-38`,
+		RunE: info,
+		Args: cobra.MinimumNArgs(1),
 	}
 )
 

@@ -14,11 +14,12 @@ import (
 
 var (
 	listCmd = &cobra.Command{
-		Use:   "list",
-		Short: "List the available distributions",
-		Long:  "List the available distributions",
-		RunE:  list,
-		Args:  cobra.NoArgs,
+		Use:     "list",
+		Short:   "List the available distributions",
+		Long:    "List the available distributions",
+		Example: "  compose-cli distros list",
+		RunE:    list,
+		Args:    cobra.NoArgs,
 	}
 )
 

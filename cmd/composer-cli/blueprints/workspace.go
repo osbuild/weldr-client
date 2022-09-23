@@ -15,11 +15,12 @@ import (
 
 var (
 	workspaceCmd = &cobra.Command{
-		Use:   "workspace BLUEPRINT",
-		Short: "Push the TOML blueprint to the workspace",
-		Long:  "Push the TOML blueprint to the temporary workspace storage",
-		RunE:  workspace,
-		Args:  cobra.MinimumNArgs(1),
+		Use:     "workspace BLUEPRINT",
+		Short:   "Push the TOML blueprint to the workspace",
+		Long:    "Push the TOML blueprint to the temporary workspace storage",
+		Example: "  composer-cli blueprints workspace tmux-image",
+		RunE:    workspace,
+		Args:    cobra.MinimumNArgs(1),
 	}
 )
 

@@ -23,8 +23,10 @@ var (
 		Use:   "save BLUEPRINT,...",
 		Short: "Save the blueprints to TOML files",
 		Long:  "Save the blueprints to TOML files named BLUEPRINT-NAME.toml",
-		RunE:  saveToml,
-		Args:  cobra.MinimumNArgs(1),
+		Example: `  composer-cli blueprints save tmux-image
+  composer-cli blueprints save tmux-image --filename /var/tmp/new-tmux-image.toml`,
+		RunE: saveToml,
+		Args: cobra.MinimumNArgs(1),
 	}
 	savePath string
 )

@@ -18,9 +18,12 @@ import (
 
 var (
 	listCmd = &cobra.Command{
-		Use:       "list [waiting|running|finished|failed]",
-		Short:     "List basic information about composes",
-		Long:      "List basic information about composes",
+		Use:   "list [waiting|running|finished|failed]",
+		Short: "List basic information about composes",
+		Long:  "List basic information about composes",
+		Example: `  composer-cli compose list
+  composer-cli compose list --json
+  composer-cli compose list finished`,
 		RunE:      list,
 		ValidArgs: []string{"waiting", "running", "finished", "failed"},
 		Args:      cobra.OnlyValidArgs,
