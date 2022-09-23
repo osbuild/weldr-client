@@ -26,6 +26,13 @@ import (
 	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
+const helpTemplate = `{{.Short}}{{if .Long}}
+
+Description:
+  {{.Long}}{{end}}
+
+{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`
+
 // jsonResponse contains the responses from the API server
 type jsonResponse struct {
 	Method string                 `json:"method"`
@@ -160,6 +167,7 @@ func Execute() error {
 
 // AddRootCommand adds a cobra command to the list of root commands
 func AddRootCommand(cmd *cobra.Command) {
+	cmd.SetHelpTemplate(helpTemplate)
 	rootCmd.AddCommand(cmd)
 }
 
