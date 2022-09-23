@@ -14,7 +14,6 @@ var (
 	projectsCmd = &cobra.Command{
 		Use:   "projects ...",
 		Short: "Project related commands",
-		Long:  "Project related commands",
 	}
 )
 

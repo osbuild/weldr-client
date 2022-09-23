@@ -17,7 +17,6 @@ var (
 	typesCmd = &cobra.Command{
 		Use:   "types",
 		Short: "List the available compose types",
-		Long:  "List the available compose types",
 		Example: `  composer-cli compose types
   composer-cli compose types --json
   composer-cli compose types --distro fedora-36`,

@@ -16,7 +16,6 @@ var (
 	listCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List available projects",
-		Long:  "List available projects",
 		Example: `  composer-cli projects list
   composer-cli projects list --json
   composer-cli projects list --distro fedora-38`,

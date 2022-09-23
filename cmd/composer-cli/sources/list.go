@@ -16,7 +16,6 @@ var (
 	listCmd = &cobra.Command{
 		Use:   "list",
 		Short: "List the available project sources",
-		Long:  "List the available project sources",
 		Example: `  composer-cli sources list
   composer-cli sources list --json`,
 		RunE: list,

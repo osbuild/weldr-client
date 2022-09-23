@@ -23,7 +23,6 @@ var (
 	freezeCmd = &cobra.Command{
 		Use:     "freeze BLUEPRINT,...",
 		Short:   "Show the blueprints depsolved package and module versions",
-		Long:    "Show the blueprints depsolved package and module versions",
 		Example: "  composer-cli blueprints freeze tmux-image",
 		RunE:    freeze,
 		Args:    cobra.MinimumNArgs(1),

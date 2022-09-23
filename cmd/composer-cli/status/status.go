@@ -14,7 +14,6 @@ var (
 	statusCmd = &cobra.Command{
 		Use:   "status ...",
 		Short: "API server status",
-		Long:  "API server status",
 	}
 )
 

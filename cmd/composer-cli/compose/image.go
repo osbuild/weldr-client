@@ -16,7 +16,6 @@ var (
 	imageCmd = &cobra.Command{
 		Use:   "image UUID",
 		Short: "Get the compose image file",
-		Long:  "Get the compose image file",
 		Example: `  composer-cli compose image 914bb03b-e4c8-4074-bc31-6869961ee2f3
   composer-cli compose image 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/
   composer-cli compose image 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/tmux-image.qcow2`,

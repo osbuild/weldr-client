@@ -15,7 +15,7 @@ var (
 		Use:   "undo BLUEPRINT COMMIT",
 		Short: "Undo a blueprint change",
 		Long: `Undo a blueprint change and revert to COMMIT.
-Commits can be shown with 'composer-cli blueprints changes'`,
+  Commits can be shown with 'composer-cli blueprints changes'`,
 		Example: "  composer-cli blueprints undo tmux-image 4c2ee916e521fcd5342466e320dfe39eca1e3154",
 		RunE:    undo,
 		Args:    cobra.ExactArgs(2),

@@ -16,7 +16,6 @@ var (
 	resultsCmd = &cobra.Command{
 		Use:   "results UUID",
 		Short: "Get a tar of the the results for the compose",
-		Long:  "Get a tar of the the results for the compose",
 		Example: `  composer-cli compose results 914bb03b-e4c8-4074-bc31-6869961ee2f3
   composer-cli compose results 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/
   composer-cli compose results 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/results.tar`,

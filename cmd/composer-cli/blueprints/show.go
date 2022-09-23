@@ -16,7 +16,6 @@ var (
 	showCmd = &cobra.Command{
 		Use:     "show BLUEPRINT,...",
 		Short:   "Show the blueprints in TOML format",
-		Long:    "Show the blueprints listed on the cmdline",
 		Example: "  composer-cli blueprints show tmux-image",
 		RunE:    show,
 		Args:    cobra.MinimumNArgs(1),

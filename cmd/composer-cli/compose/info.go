@@ -16,7 +16,6 @@ var (
 	infoCmd = &cobra.Command{
 		Use:     "info UUID",
 		Short:   "Show detailed information on the compose",
-		Long:    "List basic information about composes",
 		Example: "  composer-cli compose info 914bb03b-e4c8-4074-bc31-6869961ee2f3",
 		RunE:    info,
 		Args:    cobra.ExactArgs(1),

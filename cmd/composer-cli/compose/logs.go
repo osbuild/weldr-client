@@ -16,7 +16,6 @@ var (
 	logsCmd = &cobra.Command{
 		Use:   "logs UUID",
 		Short: "Get a tar of the the logs for the compose",
-		Long:  "Get a tar of the the logs for the compose",
 		Example: `  composer-cli compose logs 914bb03b-e4c8-4074-bc31-6869961ee2f3
   composer-cli compose logs 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/
   composer-cli compose logs 914bb03b-e4c8-4074-bc31-6869961ee2f3 --filename /var/tmp/last-logs.tar`,
