@@ -31,7 +31,7 @@ __composer_compose_types() {
 }
 
 __composer_composes() {
-    __composer_socket_ok && composer-cli compose list $@ | while read id rest; do echo $id; done
+    __composer_socket_ok && composer-cli compose list $@ | grep -v ^ID | while read id rest; do echo $id; done
 }
 
 __composer_provider_list() {
