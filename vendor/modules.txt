@@ -1,4 +1,4 @@
-# github.com/BurntSushi/toml v1.2.0
+# github.com/BurntSushi/toml v1.2.1
 ## explicit
 github.com/BurntSushi/toml
 github.com/BurntSushi/toml/internal
