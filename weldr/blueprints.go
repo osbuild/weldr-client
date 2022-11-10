@@ -223,6 +223,9 @@ func (c Client) GetBlueprintChangeTOML(name, commit string) (string, *APIRespons
 		return "", resp, err
 	}
 	if resp != nil {
+		if resp.StatusCode() == 404 {
+			return "", resp, fmt.Errorf("/blueprints/change/ is not provided by this server version")
+		}
 		return "", resp, nil
 	}
 	return string(body), nil, nil
@@ -238,6 +241,9 @@ func (c Client) GetBlueprintChangeJSON(name, commit string) (interface{}, *APIRe
 		return nil, nil, err
 	}
 	if resp != nil {
+		if resp.StatusCode() == 404 {
+			return "", resp, fmt.Errorf("/blueprints/change/ is not provided by this server version")
+		}
 		return nil, resp, nil
 	}
 
