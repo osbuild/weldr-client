@@ -215,6 +215,40 @@ func (c Client) GetBlueprintsChanges(names []string) ([]BlueprintChanges, []APIE
 	return changes.Changes, nil, nil
 }
 
+// GetBlueprintChangeTOML returns a single blueprint commit as TOML
+func (c Client) GetBlueprintChangeTOML(name, commit string) (string, *APIResponse, error) {
+	route := fmt.Sprintf("/blueprints/change/%s/%s?format=toml", name, commit)
+	body, resp, err := c.GetRaw("GET", route)
+	if err != nil {
+		return "", resp, err
+	}
+	if resp != nil {
+		return "", resp, nil
+	}
+	return string(body), nil, nil
+}
+
+// GetBlueprintChangeJSON returns a single blueprint commit as JSON
+// It uses interface{} for the blueprints so that it is not tightly coupled to the server's blueprint
+// schema.
+func (c Client) GetBlueprintChangeJSON(name, commit string) (interface{}, *APIResponse, error) {
+	route := fmt.Sprintf("/blueprints/change/%s/%s", name, commit)
+	j, resp, err := c.GetRaw("GET", route)
+	if err != nil {
+		return nil, nil, err
+	}
+	if resp != nil {
+		return nil, resp, nil
+	}
+
+	var bp interface{}
+	err = json.Unmarshal(j, &bp)
+	if err != nil {
+		return nil, nil, fmt.Errorf("ERROR: %s", err.Error())
+	}
+	return bp, nil, nil
+}
+
 // DepsolveBlueprints returns the blueprints, their dependencies, and any errors
 // It uses interface{} for the response so that it is not tightly coupled to the server's response
 // schema.

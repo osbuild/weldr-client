@@ -2,6 +2,7 @@
 // Use of this source is goverend by the Apache License
 // that can be found in the LICENSE file.
 
+//go:build integration
 // +build integration
 
 package weldr
@@ -348,4 +349,22 @@ func TestDepsolveBlueprints(t *testing.T) {
 	assert.Contains(t, pkgs, "bash")
 	assert.Contains(t, pkgs, "filesystem")
 	assert.Equal(t, APIErrorMsg{"UnknownBlueprint", "unknown-cli-bp: blueprint not found"}, errors[0])
+}
+
+func TestGetBlueprintChangeTOML(t *testing.T) {
+	// Get the list of changes
+	changes, errors, err := testState.client.GetBlueprintsChanges([]string{"cli-test-bp-1"})
+	require.Nil(t, err)
+	require.Nil(t, errors)
+	require.NotNil(t, changes)
+	require.Equal(t, len(changes), 1)
+	assert.Equal(t, changes[0].Name, "cli-test-bp-1")
+	assert.GreaterOrEqual(t, len(changes[0].Changes), 2)
+
+	// Get the oldest commit
+	commit := changes[0].Changes[len(changes[0].Changes)-1].Commit
+	blueprint, r, err := testState.client.GetBlueprintChangeTOML("cli-test-bp-1", commit)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	assert.Contains(t, blueprint, "0.0.1")
 }
