@@ -18,20 +18,20 @@ func TestAPIErrorMsgString(t *testing.T) {
 }
 
 func TestAPIResponseNone(t *testing.T) {
-	resp := APIResponse{false, []APIErrorMsg{}}
+	resp := APIResponse{Status: false, Errors: []APIErrorMsg{}}
 	assert.Equal(t, "", resp.String())
 	assert.Equal(t, []string(nil), resp.AllErrors())
 }
 
 func TestAPIResponseOne(t *testing.T) {
-	resp := APIResponse{false, []APIErrorMsg{{"ERROR-ID", "Error message string"}}}
+	resp := APIResponse{Status: false, Errors: []APIErrorMsg{{"ERROR-ID", "Error message string"}}}
 	assert.Equal(t, "ERROR-ID: Error message string", resp.String())
 	assert.Equal(t, 1, len(resp.Errors))
 	assert.Equal(t, []string{"ERROR-ID: Error message string"}, resp.AllErrors())
 }
 
 func TestAPIResponseFew(t *testing.T) {
-	resp := APIResponse{false, []APIErrorMsg{
+	resp := APIResponse{Status: false, Errors: []APIErrorMsg{
 		{"ERROR-1", "Error message #1"},
 		{"ERROR-2", "Error message #2"},
 		{"ERROR-3", "Error message #3"},
@@ -50,7 +50,7 @@ func TestNewAPIResponseOne(t *testing.T) {
 	resp, err := NewAPIResponse([]byte(json))
 	require.Nil(t, err)
 	require.NotNil(t, resp)
-	assert.Equal(t, APIResponse{false, []APIErrorMsg{{"ERROR404", "Sent a 404"}}}, *resp)
+	assert.Equal(t, APIResponse{Status: false, Errors: []APIErrorMsg{{"ERROR404", "Sent a 404"}}}, *resp)
 }
 
 func TestNewAPIResponseFew(t *testing.T) {
@@ -63,7 +63,7 @@ func TestNewAPIResponseFew(t *testing.T) {
 	resp, err := NewAPIResponse([]byte(json))
 	require.Nil(t, err)
 	require.NotNil(t, resp)
-	assert.Equal(t, APIResponse{false, []APIErrorMsg{
+	assert.Equal(t, APIResponse{Status: false, Errors: []APIErrorMsg{
 		{"ERROR404", "Sent a 404"},
 		{"ERROR-2", "Error message #2"},
 		{"ERROR-3", "Error message #3"},
@@ -75,7 +75,7 @@ func TestNewAPIResponseNone(t *testing.T) {
 	resp, err := NewAPIResponse([]byte(json))
 	require.Nil(t, err)
 	require.NotNil(t, resp)
-	assert.Equal(t, APIResponse{false, []APIErrorMsg{}}, *resp)
+	assert.Equal(t, APIResponse{Status: false, Errors: []APIErrorMsg{}}, *resp)
 }
 
 func TestNewAPIResponseError(t *testing.T) {

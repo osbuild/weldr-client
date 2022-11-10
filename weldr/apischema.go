@@ -27,8 +27,9 @@ func (r APIErrorMsg) String() string {
 // If Status is true the Errors list will not be included or will be empty.
 // When Status is false it will include at least one APIErrorMsg with details about the error.
 type APIResponse struct {
-	Status bool          `json:"status"`
-	Errors []APIErrorMsg `json:"errors,omitempty"`
+	Status     bool          `json:"status"`
+	Errors     []APIErrorMsg `json:"errors,omitempty"`
+	statusCode int           // http status code
 }
 
 // String returns the description of the first error, if there is one
@@ -45,6 +46,11 @@ func (r *APIResponse) AllErrors() (all []string) {
 		all = append(all, r.Errors[i].String())
 	}
 	return all
+}
+
+// StatusCode returns the http status code
+func (r *APIResponse) StatusCode() int {
+	return r.statusCode
 }
 
 // NewAPIResponse converts the response body to a status response
@@ -70,7 +76,14 @@ func (c Client) apiError(resp *http.Response) (*APIResponse, error) {
 	}
 	// Pass the body to the callback function
 	c.rawFunc(resp.Request.Method, resp.Request.URL.RequestURI(), resp.StatusCode, body)
-	return NewAPIResponse(body)
+	r, err := NewAPIResponse(body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Include the http status code
+	r.statusCode = resp.StatusCode
+	return r, nil
 }
 
 // PackageNEVRA contains the details about a package
