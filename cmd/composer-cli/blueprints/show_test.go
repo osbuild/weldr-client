@@ -365,3 +365,42 @@ func TestCmdBlueprintShowCommitError2(t *testing.T) {
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/change/simple/fda3a8f9e589d1c423748b0408e5b71d9b769164", mc.Req.URL.Path)
 }
+
+func TestCmdBlueprintShowCommitOldServer(t *testing.T) {
+	// Test the "blueprints show --commit" command with missing API route
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+    "errors": [
+        {
+            "id": "HTTPError",
+            "msg": "Not Found"
+        }
+    ],
+    "status": false
+}`
+		return &http.Response{
+			Request:    request,
+			StatusCode: 404,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Make sure commit is not set
+	commit = ""
+
+	cmd, out, err := root.ExecuteTest("blueprints", "show", "--commit", "fda3a8f9e589d1c423748b0408e5b71d9b769164", "simple")
+	defer out.Close()
+	require.NotNil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, showCmd)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Equal(t, []byte(""), stdout)
+	assert.Nil(t, err)
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stderr), "/blueprints/change/ is not provided by this server")
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/v1/blueprints/change/simple/fda3a8f9e589d1c423748b0408e5b71d9b769164", mc.Req.URL.Path)
+}
