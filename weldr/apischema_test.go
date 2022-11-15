@@ -81,9 +81,8 @@ func TestNewAPIResponseNone(t *testing.T) {
 func TestNewAPIResponseError(t *testing.T) {
 	json := `{"status": `
 	resp, err := NewAPIResponse([]byte(json))
-	require.NotNil(t, err)
-	require.Nil(t, resp)
-	assert.Contains(t, fmt.Sprintf("%s", err), "unexpected end of JSON input")
+	assert.ErrorContains(t, err, "unexpected end of JSON input")
+	assert.Nil(t, resp)
 }
 
 func TestPackageNEVRAString(t *testing.T) {

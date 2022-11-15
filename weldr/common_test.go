@@ -384,8 +384,7 @@ func TestGetJSONAllMissingTotal(t *testing.T) {
 	tc := NewClient(context.Background(), &mc, 1, "")
 
 	_, _, err := tc.GetJSONAll("/testroute")
-	require.NotNil(t, err)
-	assert.Contains(t, fmt.Sprintf("%s", err), "missing the total value")
+	assert.ErrorContains(t, err, "missing the total value")
 	assert.Equal(t, "/api/v1/testroute", mc.Req.URL.Path)
 }
 
@@ -402,8 +401,7 @@ func TestGetJSONAllBadJSON(t *testing.T) {
 	tc := NewClient(context.Background(), &mc, 1, "")
 
 	_, _, err := tc.GetJSONAll("/testroute")
-	require.NotNil(t, err)
-	assert.Contains(t, fmt.Sprintf("%s", err), "invalid character")
+	assert.ErrorContains(t, err, "invalid character")
 	assert.Equal(t, "/api/v1/testroute", mc.Req.URL.Path)
 }
 
@@ -421,8 +419,7 @@ func TestGetJSONAllBadType(t *testing.T) {
 	tc := NewClient(context.Background(), &mc, 1, "")
 
 	_, _, err := tc.GetJSONAll("/testroute")
-	require.NotNil(t, err)
-	assert.Contains(t, fmt.Sprintf("%s", err), "'total' is not a float64")
+	assert.ErrorContains(t, err, "'total' is not a float64")
 	assert.Equal(t, "/api/v1/testroute", mc.Req.URL.Path)
 }
 
@@ -858,8 +855,7 @@ func TestGetFilePath(t *testing.T) {
 
 	// Test that downloading again returns an error
 	_, _, err = tc.GetFilePath("/file/a-very-short-file", "/tmp")
-	require.NotNil(t, err)
-	assert.Contains(t, fmt.Sprintf("%s", err), "exists, skipping download")
+	assert.ErrorContains(t, err, "exists, skipping download")
 	os.Remove(filename)
 }
 
@@ -893,8 +889,7 @@ func TestGetFilePathFilename(t *testing.T) {
 
 	// Test that downloading again returns an error
 	_, _, err = tc.GetFilePath("/file/a-very-short-file", "/tmp/a-new-file.txt")
-	require.NotNil(t, err)
-	assert.Contains(t, fmt.Sprintf("%s", err), "exists, skipping download")
+	assert.ErrorContains(t, err, "exists, skipping download")
 	os.Remove(filename)
 }
 
@@ -917,14 +912,12 @@ func TestGetFileMissingDir(t *testing.T) {
 	tc := NewClient(context.Background(), &mc, 1, "")
 
 	filename, r, err := tc.GetFilePath("/file/a-very-short-file", "/tmp/no-path-here/")
-	require.NotNil(t, err)
-	require.Nil(t, r)
-	assert.Contains(t, fmt.Sprintf("%s", err), "does not exist")
+	assert.ErrorContains(t, err, "does not exist")
+	assert.Nil(t, r)
 	assert.Equal(t, "", filename)
 	assert.Equal(t, "/api/v1/file/a-very-short-file", mc.Req.URL.Path)
 	_, err = os.Stat(filename)
-	require.NotNil(t, err)
-	assert.Contains(t, fmt.Sprintf("%s", err), "no such file or directory")
+	assert.ErrorContains(t, err, "no such file or directory")
 }
 
 func TestGetFilePathError400(t *testing.T) {
@@ -1106,8 +1099,7 @@ func TestAppendQuery(t *testing.T) {
 func TestCheckSocket(t *testing.T) {
 	// Test with missing file
 	err := checkSocketError("/run/missing/file.socket", nil)
-	assert.NotNil(t, err)
-	assert.Contains(t, fmt.Sprintf("%s", err), "Check to make sure that")
+	assert.ErrorContains(t, err, "Check to make sure that")
 
 	// Test with existing file
 	f, err := os.CreateTemp("", "test-CheckSocket-*")
@@ -1120,8 +1112,7 @@ func TestCheckSocket(t *testing.T) {
 	assert.Nil(t, err)
 
 	err = checkSocketError(f.Name(), fmt.Errorf("test error"))
-	assert.NotNil(t, err)
-	assert.Equal(t, fmt.Sprintf("%s", err), "test error")
+	assert.ErrorContains(t, err, "test error")
 
 	// NOTE: Cannot test permissons. root has access, and user cannot change them
 	// to something it isn't allowed to access.
