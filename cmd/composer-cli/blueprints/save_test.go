@@ -556,3 +556,84 @@ func TestCmdBlueprintSaveCommitOldServer(t *testing.T) {
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/change/simple/fda3a8f9e589d1c423748b0408e5b71d9b769164", mc.Req.URL.Path)
 }
+
+func TestSaveBlueprint(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "test-bp-save-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	toml := `description = "simple blueprint"
+name = "simple"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+`
+
+	// Save the blueprint under tmpDir as simple.toml
+	name, err := saveBlueprint(toml, "", tmpDir)
+	require.Nil(t, err)
+	assert.Equal(t, tmpDir+"/simple.toml", name)
+	_, err = os.Stat(tmpDir + "/simple.toml")
+	assert.Nil(t, err)
+
+	// Save the blueprint under tmpDir as simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml
+	name, err = saveBlueprint(toml, "8ce158ef37d86071128fd548663eb62d4319e7ec", tmpDir)
+	require.Nil(t, err)
+	assert.Equal(t, tmpDir+"/simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml", name)
+	_, err = os.Stat(tmpDir + "/simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml")
+	assert.Nil(t, err)
+
+	// Save the blueprint under tmpDir as different-name.toml
+	name, err = saveBlueprint(toml, "", tmpDir+"/different-name.toml")
+	require.Nil(t, err)
+	assert.Equal(t, tmpDir+"/different-name.toml", name)
+	_, err = os.Stat(tmpDir + "/different-name.toml")
+	assert.Nil(t, err)
+}
+
+func TestSaveBlueprintBadTOML(t *testing.T) {
+	toml := `description = "not a full toml file`
+
+	_, err := saveBlueprint(toml, "", "")
+	require.NotNil(t, err)
+	assert.ErrorContains(t, err, "Unmarshal of blueprint failed")
+}
+
+func TestSaveBlueprintNoName(t *testing.T) {
+	toml := `description = "simple blueprint"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+`
+
+	_, err := saveBlueprint(toml, "", "")
+	assert.ErrorContains(t, err, "no 'name' in blueprint")
+}
+
+func TestSaveBlueprintBadName(t *testing.T) {
+	toml := `description = "simple blueprint"
+name = "/"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+`
+
+	_, err := saveBlueprint(toml, "", "")
+	assert.ErrorContains(t, err, "Invalid blueprint filename")
+}
+
+func TestSaveBlueprintNoDir(t *testing.T) {
+	toml := `description = "simple blueprint"
+name = "simple"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+`
+
+	_, err := saveBlueprint(toml, "", "/tmp/not-a-real-dir/")
+	assert.ErrorContains(t, err, "/tmp/not-a-real-dir/ does not exist")
+}
