@@ -69,7 +69,7 @@ func saveToml(cmd *cobra.Command, args []string) (rcErr error) {
 	}
 
 	for _, data := range bps {
-		err := saveBlueprint(data, "", savePath)
+		_, err := saveBlueprint(data, "", savePath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)
 			rcErr = root.ExecutionError(cmd, "")
@@ -100,7 +100,7 @@ func saveCommit(cmd *cobra.Command, name, commit string) error {
 		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
-	err = saveBlueprint(blueprint, commit, savePath)
+	_, err = saveBlueprint(blueprint, commit, savePath)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		return root.ExecutionError(cmd, "")
@@ -111,17 +111,17 @@ func saveCommit(cmd *cobra.Command, name, commit string) error {
 // saveBlueprint write the TOML blueprint to a file
 // optionally under a path, or as a new filename
 // and if it is a specific blueprint commit that is appended to the base filename.
-func saveBlueprint(data, commit, path string) error {
+func saveBlueprint(data, commit, path string) (string, error) {
 	// Convert the toml blueprint to a struct so we can get the name
 	var bp interface{}
 	err := toml.Unmarshal([]byte(data), &bp)
 	if err != nil {
-		return fmt.Errorf("ERROR: Unmarshal of blueprint failed: %s", err)
+		return "", fmt.Errorf("ERROR: Unmarshal of blueprint failed: %s", err)
 	}
 
 	name, ok := bp.(map[string]interface{})["name"].(string)
 	if !ok {
-		return fmt.Errorf("ERROR: no 'name' in blueprint")
+		return "", fmt.Errorf("ERROR: no 'name' in blueprint")
 	}
 
 	// Save to a file in the current directory, replace spaces with - and
@@ -133,8 +133,8 @@ func saveBlueprint(data, commit, path string) error {
 		filename = filename + "-" + commit
 	}
 	filename = filepath.Base(filename + ".toml")
-	if filename == "/" || filename == "." || filename == ".." {
-		return fmt.Errorf("ERROR: Invalid blueprint filename: %s", name)
+	if filename == ".toml" {
+		return "", fmt.Errorf("ERROR: Invalid blueprint filename: %s", name)
 	}
 
 	if len(path) > 0 {
@@ -153,26 +153,26 @@ func saveBlueprint(data, commit, path string) error {
 			if errors.Is(err, fs.ErrNotExist) {
 				// Does it look like a directory? A directory needs to exist.
 				if path[len(path)-1] == '/' {
-					return fmt.Errorf("ERROR: %s does not exist", path)
+					return "", fmt.Errorf("ERROR: %s does not exist", path)
 				}
 				// Assume it is a file
 				filename = path
 			} else {
 				// Some other error
-				return fmt.Errorf("ERROR: %s", err)
+				return "", fmt.Errorf("ERROR: %s", err)
 			}
 		}
 	}
 
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
 	if err != nil {
-		return fmt.Errorf("ERROR: opening file %s: %s", filename, err)
+		return filename, fmt.Errorf("ERROR: opening file %s: %s", filename, err)
 	}
 	defer f.Close()
 	_, err = f.WriteString(data)
 	if err != nil {
-		return fmt.Errorf("ERROR: writing TOML file: %s", err)
+		return filename, fmt.Errorf("ERROR: writing TOML file: %s", err)
 	}
 
-	return nil
+	return filename, nil
 }
