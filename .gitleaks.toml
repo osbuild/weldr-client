@@ -1,0 +1,7 @@
+[allowlist]
+description = "Allow known fake secrets in weldr-client tests"
+## These are go regexp patterns. See go doc regexp/syntax
+regexes = [
+    '\$6\$CHO2\$3rN8eviE2t50lmVyBYihTgVRHcaecmeCk31LeOUleVK/R/aeWVHVZDi26zAH.o0ywBKH9Tc0/wm7sW/q39uyd1',
+    '\$6\$CHO2\$3rN8eviE2t50lmVyBYihTgVRHcaecmeCk31L\.\.\.'
+]
