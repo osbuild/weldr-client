@@ -53,12 +53,9 @@ uid = 1001
 		}, nil
 	})
 
-	dir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -117,12 +114,9 @@ uid = 1001
 		}, nil
 	})
 
-	dir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -179,12 +173,9 @@ func TestCmdBlueprintsSaveUnknown(t *testing.T) {
 		}, nil
 	})
 
-	dir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -285,12 +276,9 @@ uid = 1001
 		}, nil
 	})
 
-	dir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -347,12 +335,9 @@ func TestCmdBlueprintsSaveUnknownJSON(t *testing.T) {
 		}, nil
 	})
 
-	dir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -411,12 +396,9 @@ uid = 1001
 		}, nil
 	})
 
-	dir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -475,12 +457,9 @@ uid = 1001
 		}, nil
 	})
 
-	dir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -558,9 +537,7 @@ func TestCmdBlueprintSaveCommitOldServer(t *testing.T) {
 }
 
 func TestSaveBlueprint(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(tmpDir)
+	dir := t.TempDir()
 
 	toml := `description = "simple blueprint"
 name = "simple"
@@ -570,25 +547,25 @@ name = "bash"
 version = "*"
 `
 
-	// Save the blueprint under tmpDir as simple.toml
-	name, err := saveBlueprint(toml, "", tmpDir)
+	// Save the blueprint under dir as simple.toml
+	name, err := saveBlueprint(toml, "", dir)
 	require.Nil(t, err)
-	assert.Equal(t, tmpDir+"/simple.toml", name)
-	_, err = os.Stat(tmpDir + "/simple.toml")
+	assert.Equal(t, dir+"/simple.toml", name)
+	_, err = os.Stat(dir + "/simple.toml")
 	assert.Nil(t, err)
 
-	// Save the blueprint under tmpDir as simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml
-	name, err = saveBlueprint(toml, "8ce158ef37d86071128fd548663eb62d4319e7ec", tmpDir)
+	// Save the blueprint under dir as simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml
+	name, err = saveBlueprint(toml, "8ce158ef37d86071128fd548663eb62d4319e7ec", dir)
 	require.Nil(t, err)
-	assert.Equal(t, tmpDir+"/simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml", name)
-	_, err = os.Stat(tmpDir + "/simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml")
+	assert.Equal(t, dir+"/simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml", name)
+	_, err = os.Stat(dir + "/simple-8ce158ef37d86071128fd548663eb62d4319e7ec.toml")
 	assert.Nil(t, err)
 
-	// Save the blueprint under tmpDir as different-name.toml
-	name, err = saveBlueprint(toml, "", tmpDir+"/different-name.toml")
+	// Save the blueprint under dir as different-name.toml
+	name, err = saveBlueprint(toml, "", dir+"/different-name.toml")
 	require.Nil(t, err)
-	assert.Equal(t, tmpDir+"/different-name.toml", name)
-	_, err = os.Stat(tmpDir + "/different-name.toml")
+	assert.Equal(t, dir+"/different-name.toml", name)
+	_, err = os.Stat(dir + "/different-name.toml")
 	assert.Nil(t, err)
 }
 
@@ -626,9 +603,7 @@ version = "*"
 }
 
 func TestSaveBlueprintBadNameFilename(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "test-bp-save-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(tmpDir)
+	dir := t.TempDir()
 
 	toml := `description = "simple blueprint"
 name = "/"
@@ -638,10 +613,10 @@ name = "bash"
 version = "*"
 `
 
-	name, err := saveBlueprint(toml, "", tmpDir+"/valid-name.toml")
+	name, err := saveBlueprint(toml, "", dir+"/valid-name.toml")
 	require.Nil(t, err)
-	assert.Equal(t, tmpDir+"/valid-name.toml", name)
-	_, err = os.Stat(tmpDir + "/valid-name.toml")
+	assert.Equal(t, dir+"/valid-name.toml", name)
+	_, err = os.Stat(dir + "/valid-name.toml")
 	assert.Nil(t, err)
 }
 

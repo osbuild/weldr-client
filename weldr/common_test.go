@@ -1069,9 +1069,7 @@ func TestGetContentFilenameError(t *testing.T) {
 }
 
 func TestMoveFile(t *testing.T) {
-	dir, err := os.MkdirTemp("", "test-move-file-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
+	dir := t.TempDir()
 
 	f, err := os.CreateTemp("", "test-move-file-*")
 	require.Nil(t, err)

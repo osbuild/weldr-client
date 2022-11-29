@@ -39,12 +39,9 @@ And should do the job.`
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := os.MkdirTemp("", "test-metadata-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -96,12 +93,9 @@ And should do the job.`
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := os.MkdirTemp("", "test-metadata-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)

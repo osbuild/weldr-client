@@ -36,12 +36,9 @@ func TestCmdComposeImage(t *testing.T) {
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := os.MkdirTemp("", "test-image-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -88,12 +85,9 @@ func TestCmdComposeImageFilename(t *testing.T) {
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := os.MkdirTemp("", "test-image-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -144,12 +138,9 @@ func TestCmdComposeUnknownImage(t *testing.T) {
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := os.MkdirTemp("", "test-image-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
@@ -202,12 +193,9 @@ func TestCmdComposeUnknownImageJSON(t *testing.T) {
 	})
 
 	// Change to a temporary directory for the file to be saved in
-	dir, err := os.MkdirTemp("", "test-image-*")
-	require.Nil(t, err)
-	defer os.RemoveAll(dir)
-
+	dir := t.TempDir()
 	prevDir, _ := os.Getwd()
-	err = os.Chdir(dir)
+	err := os.Chdir(dir)
 	require.Nil(t, err)
 	//nolint:errcheck
 	defer os.Chdir(prevDir)
