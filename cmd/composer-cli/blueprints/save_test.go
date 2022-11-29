@@ -131,7 +131,7 @@ uid = 1001
 	savePath = ""
 	commit = ""
 
-	cmd, out, err := root.ExecuteTest("blueprints", "save", "--filename", dir+"different.toml", "simple")
+	cmd, out, err := root.ExecuteTest("blueprints", "save", "--filename", dir+"/different.toml", "simple")
 	require.NotNil(t, out)
 	defer out.Close()
 	require.Nil(t, err)
@@ -149,11 +149,11 @@ uid = 1001
 	assert.Equal(t, "/api/v1/blueprints/info/simple", mc.Req.URL.Path)
 	assert.Equal(t, "format=toml", mc.Req.URL.RawQuery)
 
-	_, err = os.Stat(dir + "different.toml")
+	_, err = os.Stat(dir + "/different.toml")
 	assert.Nil(t, err)
 
 	// Make sure it does not contain float values for uid/gid
-	checkUIDGidFloat(t, dir+"different.toml")
+	checkUIDGidFloat(t, dir+"/different.toml")
 }
 
 func TestCmdBlueprintsSaveUnknown(t *testing.T) {
@@ -623,6 +623,26 @@ version = "*"
 
 	_, err := saveBlueprint(toml, "", "")
 	assert.ErrorContains(t, err, "Invalid blueprint filename")
+}
+
+func TestSaveBlueprintBadNameFilename(t *testing.T) {
+	tmpDir, err := os.MkdirTemp("", "test-bp-save-*")
+	require.Nil(t, err)
+	defer os.RemoveAll(tmpDir)
+
+	toml := `description = "simple blueprint"
+name = "/"
+version = "0.1.0"
+[[packages]]
+name = "bash"
+version = "*"
+`
+
+	name, err := saveBlueprint(toml, "", tmpDir+"/valid-name.toml")
+	require.Nil(t, err)
+	assert.Equal(t, tmpDir+"/valid-name.toml", name)
+	_, err = os.Stat(tmpDir + "/valid-name.toml")
+	assert.Nil(t, err)
 }
 
 func TestSaveBlueprintNoDir(t *testing.T) {
