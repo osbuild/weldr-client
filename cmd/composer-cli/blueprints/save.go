@@ -133,9 +133,6 @@ func saveBlueprint(data, commit, path string) (string, error) {
 		filename = filename + "-" + commit
 	}
 	filename = filepath.Base(filename + ".toml")
-	if filename == ".toml" {
-		return "", fmt.Errorf("ERROR: Invalid blueprint filename: %s", name)
-	}
 
 	if len(path) > 0 {
 		// Is the path a directory that exists, or a file to save to?
@@ -162,6 +159,10 @@ func saveBlueprint(data, commit, path string) (string, error) {
 				return "", fmt.Errorf("ERROR: %s", err)
 			}
 		}
+	}
+
+	if basename := filepath.Base(filename); basename == ".toml" {
+		return "", fmt.Errorf("ERROR: Invalid blueprint filename: %s", name)
 	}
 
 	f, err := os.OpenFile(filename, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0600)
