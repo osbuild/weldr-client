@@ -1,5 +1,5 @@
-# Pass --with tests to rpmbuild to build composer-cli-tests
-%bcond_with tests
+# Pass --without tests to skip building composer-cli-tests
+%bcond_without tests
 # Pass --without signed to skip gpg signed tar.gz (DO NOT DO THAT IN PRODUCTION)
 %bcond_without signed
 
