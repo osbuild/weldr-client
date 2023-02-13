@@ -117,6 +117,8 @@ make test
 %package tests
 Summary:    Integration tests for composer-cli
 
+Requires: createrepo_c
+
 %description tests
 Integration tests to be run on a pristine-dedicated system to test the
 composer-cli package.
