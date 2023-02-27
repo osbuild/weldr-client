@@ -2,7 +2,7 @@
 
 This new implementation of composer-cli is broken up into 2 major pieces. The
 `./weldr/` package contains the library functions for communicating with the
-API server. These functions are publicly accessable and should be documented so
+API server. These functions are publicly accessible and should be documented so
 that 3rd party users can use them to communicate with the osbuild-composer
 server.
 
@@ -103,7 +103,7 @@ See `cmd/composer-cli/blueprints/list.go` for an example of this type of handlin
 
 If there could be more than one error, eg. when processing a list of
 blueprints, the command function should print them to `os.Stderr` as `ERROR: ...\n`
-and return a blank root.ExecutionError(cmd, "")` to the root handler. See
+and return a blank `root.ExecutionError(cmd, "")` to the root handler. See
 `cmd/composer-cli/blueprints/push.go` for an example.
 
 
