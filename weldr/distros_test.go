@@ -2,6 +2,7 @@
 // Use of this source is goverend by the Apache License
 // that can be found in the LICENSE file.
 
+//go:build integration
 // +build integration
 
 package weldr
