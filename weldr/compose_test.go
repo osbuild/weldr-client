@@ -49,14 +49,14 @@ func TestGetComposeTypesDistro(t *testing.T) {
 }
 
 func TestStartCompose(t *testing.T) {
-	id, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
+	id, _, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
 }
 
 func TestStartComposeSize(t *testing.T) {
-	id, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 998, 2)
+	id, _, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 998, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
@@ -77,21 +77,21 @@ aws_secret_key = "AWS Secret Key"
 `))
 	require.Nil(t, err)
 
-	id, r, err := testState.client.StartComposeTestUpload("cli-test-bp-1", "qcow2", "test-image", tmpProfile.Name(), 0, 2)
+	id, _, r, err := testState.client.StartComposeTestUpload("cli-test-bp-1", "qcow2", "test-image", tmpProfile.Name(), 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
 }
 
 func TestStartOSTreeCompose(t *testing.T) {
-	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "", 0, 2)
+	id, _, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
 }
 
 func TestStartOSTreeComposeUrl(t *testing.T) {
-	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "", "http://weldr.io", 0, 2)
+	id, _, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
@@ -99,7 +99,7 @@ func TestStartOSTreeComposeUrl(t *testing.T) {
 
 func TestStartOSTreeUrlParentError(t *testing.T) {
 	// Sending both the parent url and the parent id is now allowed
-	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "http://weldr.io", 0, 2)
+	id, _, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
@@ -120,14 +120,14 @@ aws_secret_key = "AWS Secret Key"
 `))
 	require.Nil(t, err)
 
-	id, r, err := testState.client.StartOSTreeComposeTestUpload("cli-test-bp-1", "qcow2", "test-image", tmpProfile.Name(), "refid", "", "http://weldr.io", 0, 2)
+	id, _, r, err := testState.client.StartOSTreeComposeTestUpload("cli-test-bp-1", "qcow2", "test-image", tmpProfile.Name(), "refid", "", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
 }
 
 func TestStartComposeUnknownBlueprint(t *testing.T) {
-	_, r, err := testState.client.StartCompose("thingy", "qcow2", 0)
+	_, _, r, err := testState.client.StartCompose("thingy", "qcow2", 0)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
@@ -135,7 +135,7 @@ func TestStartComposeUnknownBlueprint(t *testing.T) {
 }
 
 func TestStartComposeBadType(t *testing.T) {
-	_, r, err := testState.client.StartCompose("cli-test-bp-1", "punchcard", 0)
+	_, _, r, err := testState.client.StartCompose("cli-test-bp-1", "punchcard", 0)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
@@ -143,7 +143,7 @@ func TestStartComposeBadType(t *testing.T) {
 }
 
 func TestStartComposeBadDepsolve(t *testing.T) {
-	id, r, err := testState.client.StartCompose("cli-test-bp-3", "qcow2", 0)
+	id, _, r, err := testState.client.StartCompose("cli-test-bp-3", "qcow2", 0)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.Equal(t, 0, len(id))
@@ -153,7 +153,7 @@ func TestStartComposeBadDepsolve(t *testing.T) {
 }
 
 func TestDeleteComposes(t *testing.T) {
-	id, rs, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
+	id, _, rs, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, rs)
 	assert.Greater(t, len(id), 0)
@@ -167,7 +167,7 @@ func TestDeleteComposes(t *testing.T) {
 }
 
 func TestDeleteComposesMultiple(t *testing.T) {
-	id, rs, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
+	id, _, rs, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, rs)
 	assert.Greater(t, len(id), 0)
@@ -183,7 +183,7 @@ func TestDeleteComposesMultiple(t *testing.T) {
 }
 
 func TestCancelFinishedCompose(t *testing.T) {
-	id, rs, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
+	id, _, rs, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, rs)
 	assert.Greater(t, len(id), 0)
@@ -220,7 +220,7 @@ func TestComposeLogUnknown(t *testing.T) {
 
 func MakeFinishedCompose(t *testing.T) string {
 	// We need a finished compose to download from
-	id, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
+	id, _, r, err := testState.client.StartComposeTest("cli-test-bp-1", "qcow2", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	require.Greater(t, len(id), 0)

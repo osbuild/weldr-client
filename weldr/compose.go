@@ -111,14 +111,14 @@ func (c Client) GetComposeTypes(distro string) ([]string, *APIResponse, error) {
 
 // StartCompose will start a compose of a blueprint
 // Returns the UUID of the build that was started
-func (c Client) StartCompose(blueprint, composeType string, size uint) (string, *APIResponse, error) {
+func (c Client) StartCompose(blueprint, composeType string, size uint) (string, []string, *APIResponse, error) {
 	return c.StartComposeTest(blueprint, composeType, size, 0)
 }
 
 // StartComposeTest will start a compose of a blueprint, optionally starting a test compose
 // test = 1 creates a fake failed compose
 // test = 2 creates a fake successful compose
-func (c Client) StartComposeTest(blueprint, composeType string, size uint, test uint) (string, *APIResponse, error) {
+func (c Client) StartComposeTest(blueprint, composeType string, size uint, test uint) (string, []string, *APIResponse, error) {
 	var settings struct {
 		Name   string `json:"blueprint_name"`
 		Type   string `json:"compose_type"`
@@ -134,7 +134,7 @@ func (c Client) StartComposeTest(blueprint, composeType string, size uint, test 
 
 // StartComposeUpload will start a compose of a blueprint and upload it to a provider
 // Returns the UUID of the build that was started
-func (c Client) StartComposeUpload(blueprint, composeType, imageName, profileFile string, size uint) (string, *APIResponse, error) {
+func (c Client) StartComposeUpload(blueprint, composeType, imageName, profileFile string, size uint) (string, []string, *APIResponse, error) {
 	return c.StartComposeTestUpload(blueprint, composeType, imageName, profileFile, size, 0)
 }
 
@@ -142,7 +142,7 @@ func (c Client) StartComposeUpload(blueprint, composeType, imageName, profileFil
 // it will also upload the image to a provider.
 // test = 1 creates a fake failed compose
 // test = 2 creates a fake successful compose
-func (c Client) StartComposeTestUpload(blueprint, composeType, imageName, profileFile string, size uint, test uint) (string, *APIResponse, error) {
+func (c Client) StartComposeTestUpload(blueprint, composeType, imageName, profileFile string, size uint, test uint) (string, []string, *APIResponse, error) {
 	var settings struct {
 		Name   string `json:"blueprint_name"`
 		Type   string `json:"compose_type"`
@@ -162,7 +162,7 @@ func (c Client) StartComposeTestUpload(blueprint, composeType, imageName, profil
 	// Read the profile toml file into settings.Upload
 	_, err := toml.DecodeFile(profileFile, &settings.Upload)
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
 	settings.Upload.ImageName = imageName
 
@@ -171,14 +171,14 @@ func (c Client) StartComposeTestUpload(blueprint, composeType, imageName, profil
 
 // StartOSTreeCompose will start a compose of a blueprint
 // Returns the UUID of the build that was started
-func (c Client) StartOSTreeCompose(blueprint, composeType, ref, parent, url string, size uint) (string, *APIResponse, error) {
+func (c Client) StartOSTreeCompose(blueprint, composeType, ref, parent, url string, size uint) (string, []string, *APIResponse, error) {
 	return c.StartOSTreeComposeTest(blueprint, composeType, ref, parent, url, size, 0)
 }
 
 // StartOSTreeComposeTest will start a compose of a blueprint, optionally starting a test compose
 // test = 1 creates a fake failed compose
 // test = 2 creates a fake successful compose
-func (c Client) StartOSTreeComposeTest(blueprint, composeType, ref, parent, url string, size uint, test uint) (string, *APIResponse, error) {
+func (c Client) StartOSTreeComposeTest(blueprint, composeType, ref, parent, url string, size uint, test uint) (string, []string, *APIResponse, error) {
 	var settings struct {
 		Name   string `json:"blueprint_name"`
 		Type   string `json:"compose_type"`
@@ -203,14 +203,14 @@ func (c Client) StartOSTreeComposeTest(blueprint, composeType, ref, parent, url 
 
 // StartOSTreeComposeUpload will start a compose of a blueprint and upload it to a provider
 // Returns the UUID of the build that was started
-func (c Client) StartOSTreeComposeUpload(blueprint, composeType, imageName, profileFile, ref, parent, url string, size uint) (string, *APIResponse, error) {
+func (c Client) StartOSTreeComposeUpload(blueprint, composeType, imageName, profileFile, ref, parent, url string, size uint) (string, []string, *APIResponse, error) {
 	return c.StartOSTreeComposeTestUpload(blueprint, composeType, imageName, profileFile, ref, parent, url, size, 0)
 }
 
 // StartOSTreeComposeTestUpload will start a compose of a blueprint, optionally starting a test compose
 // test = 1 creates a fake failed compose
 // test = 2 creates a fake successful compose
-func (c Client) StartOSTreeComposeTestUpload(blueprint, composeType, imageName, profileFile, ref, parent, url string, size uint, test uint) (string, *APIResponse, error) {
+func (c Client) StartOSTreeComposeTestUpload(blueprint, composeType, imageName, profileFile, ref, parent, url string, size uint, test uint) (string, []string, *APIResponse, error) {
 	var settings struct {
 		Name   string `json:"blueprint_name"`
 		Type   string `json:"compose_type"`
@@ -238,7 +238,7 @@ func (c Client) StartOSTreeComposeTestUpload(blueprint, composeType, imageName, 
 	// Read the profile toml file into settings.Upload
 	_, err := toml.DecodeFile(profileFile, &settings.Upload)
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
 	settings.Upload.ImageName = imageName
 
@@ -248,10 +248,10 @@ func (c Client) StartOSTreeComposeTestUpload(blueprint, composeType, imageName, 
 // startComposeTest is the common function for starting composes
 // It passes through the request to the server, only setting the test flag if it is > 0
 // And returns the server response to the caller
-func (c Client) startComposeTest(request interface{}, test uint) (string, *APIResponse, error) {
+func (c Client) startComposeTest(request interface{}, test uint) (string, []string, *APIResponse, error) {
 	data, err := json.Marshal(request)
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
 
 	var route string
@@ -262,15 +262,15 @@ func (c Client) startComposeTest(request interface{}, test uint) (string, *APIRe
 	}
 	body, resp, err := c.PostJSON(route, string(data))
 	if resp != nil || err != nil {
-		return "", resp, err
+		return "", nil, resp, err
 	}
 	var build ComposeStartV0
 	err = json.Unmarshal(body, &build)
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
 
-	return build.ID, resp, err
+	return build.ID, build.Warnings, resp, err
 }
 
 // DeleteComposes removes a list of composes from the server

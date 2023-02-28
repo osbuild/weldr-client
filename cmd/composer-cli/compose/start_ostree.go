@@ -56,11 +56,12 @@ func startOSTree(cmd *cobra.Command, args []string) error {
 	var resp *weldr.APIResponse
 	var uuid string
 	var err error
+	var warnings []string
 	// 2 args is uploads
 	if len(args) == 2 {
-		uuid, resp, err = root.Client.StartOSTreeCompose(args[0], args[1], ref, parent, url, size)
+		uuid, warnings, resp, err = root.Client.StartOSTreeCompose(args[0], args[1], ref, parent, url, size)
 	} else if len(args) == 4 {
-		uuid, resp, err = root.Client.StartOSTreeComposeUpload(args[0], args[1], args[2], args[3], ref, parent, url, size)
+		uuid, warnings, resp, err = root.Client.StartOSTreeComposeUpload(args[0], args[1], args[2], args[3], ref, parent, url, size)
 
 	}
 	if err != nil {
@@ -70,6 +71,12 @@ func startOSTree(cmd *cobra.Command, args []string) error {
 		return root.ExecutionErrors(cmd, resp.Errors)
 	}
 
+	if len(warnings) > 0 {
+		for _, w := range warnings {
+			fmt.Printf("WARNING: %s", w)
+		}
+		fmt.Printf("\n")
+	}
 	fmt.Printf("Compose %s added to the queue\n", uuid)
 	return nil
 }
