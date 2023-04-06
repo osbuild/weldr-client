@@ -269,8 +269,12 @@ func (c Client) startComposeTest(request interface{}, test uint) (string, *APIRe
 	if err != nil {
 		return "", nil, err
 	}
+	if len(build.Warnings) > 0 {
+		// Make an API response with the warnings
+		resp = &APIResponse{Status: build.Status, Warnings: build.Warnings}
+	}
 
-	return build.ID, resp, err
+	return build.ID, resp, nil
 }
 
 // DeleteComposes removes a list of composes from the server

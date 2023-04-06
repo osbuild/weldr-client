@@ -61,13 +61,18 @@ func startOSTree(cmd *cobra.Command, args []string) error {
 		uuid, resp, err = root.Client.StartOSTreeCompose(args[0], args[1], ref, parent, url, size)
 	} else if len(args) == 4 {
 		uuid, resp, err = root.Client.StartOSTreeComposeUpload(args[0], args[1], args[2], args[3], ref, parent, url, size)
-
 	}
 	if err != nil {
 		return root.ExecutionError(cmd, "Problem starting OSTree compose: %s", err)
 	}
-	if resp != nil && !resp.Status {
-		return root.ExecutionErrors(cmd, resp.Errors)
+	if resp != nil {
+		// Response may be just warnings, just error, or both.
+		for _, w := range resp.Warnings {
+			fmt.Printf("Warning: %s\n", w)
+		}
+		if !resp.Status {
+			return root.ExecutionErrors(cmd, resp.Errors)
+		}
 	}
 
 	fmt.Printf("Compose %s added to the queue\n", uuid)

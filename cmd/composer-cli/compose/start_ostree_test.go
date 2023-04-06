@@ -494,3 +494,52 @@ func TestCmdComposeStartOSTreeUploadUnknown(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)
 }
+
+func TestCmdComposeStartOSTreeWarning(t *testing.T) {
+	// Test the "compose start-ostree" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
+			"status": true,
+			"warnings": ["The first warning", "the second", "The last one."]
+}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Make sure the optional command values are reset to their defaults
+	size = 0
+	ref = ""
+	parent = ""
+	url = ""
+
+	// Start a compose
+	cmd, out, err := root.ExecuteTest("compose", "start-ostree", "--ref", "refid", "--parent", "parentid", "http-server", "qcow2")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, startOSTreeCmd)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`Warning: The first warning
+Warning: the second
+Warning: The last one.
+Compose 876b2946-16cd-4f38-bace-0cdd0093d112 added to the queue
+`), stdout)
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mc.Req.Method)
+	sentBody, err := io.ReadAll(mc.Req.Body)
+	mc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":0,"ostree":{"ref":"refid","parent":"parentid","url":""}}`), sentBody)
+	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
+}

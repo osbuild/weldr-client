@@ -29,6 +29,7 @@ func (r APIErrorMsg) String() string {
 type APIResponse struct {
 	Status     bool          `json:"status"`
 	Errors     []APIErrorMsg `json:"errors,omitempty"`
+	Warnings   []string      // Optional warning string
 	statusCode int           // http status code
 }
 
@@ -38,6 +39,11 @@ func (r APIResponse) String() string {
 		return ""
 	}
 	return r.Errors[0].String()
+}
+
+// IsWarning returns true if is is just warnings
+func (r APIResponse) IsWarning() bool {
+	return r.Status && bool(len(r.Warnings) > 0)
 }
 
 // AllErrors returns a list of error description strings
@@ -167,8 +173,9 @@ type ComposeTypesV0 struct {
 
 // ComposeStartV0 is the response to a successful start compose
 type ComposeStartV0 struct {
-	ID     string `json:"build_id"`
-	Status bool   `json:"status"`
+	ID       string   `json:"build_id"`
+	Status   bool     `json:"status"`
+	Warnings []string `json:"warnings"`
 }
 
 // ComposeDeleteV0 is the response to a delete request

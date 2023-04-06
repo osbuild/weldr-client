@@ -193,3 +193,89 @@ aws_secret_key = "AWS Secret Key"
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
 	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
 }
+
+func TestCmdComposeStartError(t *testing.T) {
+	// Test the "compose start" command with an error response
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+			"errors": [{"id": "UnknownBlueprint", "msg": "Unknown blueprint name: homer"}],
+			"status": false
+}`
+
+		return &http.Response{
+			Request:    request,
+			StatusCode: 400,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Make sure the compose.size value is reset to default
+	size = 0
+
+	// Start a compose
+	cmd, out, err := root.ExecuteTest("compose", "start", "homer", "qcow2")
+	defer out.Close()
+	require.NotNil(t, err)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, startCmd)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stdout)
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("ERROR: UnknownBlueprint: Unknown blueprint name: homer\n"), stderr)
+	assert.Equal(t, "POST", mc.Req.Method)
+	sentBody, err := io.ReadAll(mc.Req.Body)
+	mc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Equal(t, []byte(`{"blueprint_name":"homer","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
+	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
+}
+
+func TestCmdComposeStartWarning(t *testing.T) {
+	// Test the "compose start" command with a warning response
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+			"build_id": "876b2946-16cd-4f38-bace-0cdd0093d112",
+			"status": true,
+			"warnings": ["The first warning", "the second", "The last one."]
+}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Make sure the compose.size value is reset to default
+	size = 0
+
+	// Start a compose
+	cmd, out, err := root.ExecuteTest("compose", "start", "http-server", "qcow2")
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, startCmd)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(`Warning: The first warning
+Warning: the second
+Warning: The last one.
+Compose 876b2946-16cd-4f38-bace-0cdd0093d112 added to the queue
+`), stdout)
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mc.Req.Method)
+	sentBody, err := io.ReadAll(mc.Req.Body)
+	mc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
+	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
+}
