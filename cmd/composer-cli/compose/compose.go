@@ -18,7 +18,7 @@ var (
 
   The 'start' and 'start-ostree' commands can optionally upload the results,
   view the full upload profile reference here:
-  https://www.osbuild.org/guides/user-guide/uploading-to-cloud.html
+  https://www.osbuild.org/guides/image-builder-on-premises/uploading-to-cloud.html
 `,
 		Example: `  TOML profile for uploading to AWS
 
