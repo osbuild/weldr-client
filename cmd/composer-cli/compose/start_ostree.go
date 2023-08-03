@@ -23,7 +23,7 @@ var (
   --size is supported by osbuild-composer, and is in MiB.
 
   The full details of the start-ostree command can be viewed here:
-  https://www.osbuild.org/guides/user-guide/building-ostree-images.html
+  https://www.osbuild.org/guides/image-builder-on-premises/building-ostree-images.html
 `,
 		Example: `  composer-cli compose start-ostree tmux-image fedora-iot-container
   composer-cli compose start-ostree tmux-image fedora-iot-container iot-name upload.toml

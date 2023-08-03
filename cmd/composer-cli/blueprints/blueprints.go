@@ -17,7 +17,7 @@ var (
 		Long: `Manage blueprints on the server
 
   The full blueprint reference can be found here:
-  https://www.osbuild.org/guides/blueprint-reference/blueprint-reference.html
+  https://www.osbuild.org/guides/image-builder-on-premises/blueprint-reference.html
 `,
 		Example: `  TOML blueprint for an image with tmux, a user, and a new group for the user:
 
