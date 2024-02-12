@@ -117,7 +117,7 @@ scratch-rpm: $(RPM_SPECFILE) archive
 		$(RPM_SPECFILE)
 
 build-in-podman: archive
-	podman build -t weldr-client:$(VERSION) -f Containerfile.test .
+	podman build --security-opt seccomp=unconfined -t weldr-client:$(VERSION) -f Containerfile.test .
 
 update-mods:
 	go get -u ./...
