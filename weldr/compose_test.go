@@ -83,11 +83,13 @@ aws_secret_key = "AWS Secret Key"
 	assert.Greater(t, len(id), 0)
 }
 
-func TestStartOSTreeCompose(t *testing.T) {
-	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "", 0, 2)
+// parentid with no url should result in an error
+func TestStartOSTreeParentNoURL(t *testing.T) {
+	_, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "", 0, 2)
 	require.Nil(t, err)
-	require.Nil(t, r)
-	assert.Greater(t, len(id), 0)
+	require.NotNil(t, r)
+	assert.False(t, r.Status)
+	assert.Equal(t, APIErrorMsg{"ManifestCreationFailed", "failed to initialize osbuild manifest: ostree parent ref specified, but no URL to retrieve it"}, r.Errors[0])
 }
 
 func TestStartOSTreeComposeUrl(t *testing.T) {
@@ -97,7 +99,7 @@ func TestStartOSTreeComposeUrl(t *testing.T) {
 	assert.Greater(t, len(id), 0)
 }
 
-func TestStartOSTreeUrlParentError(t *testing.T) {
+func TestStartOSTreeParentAndUrl(t *testing.T) {
 	// Sending both the parent url and the parent id is now allowed
 	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
