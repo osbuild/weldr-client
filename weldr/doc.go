@@ -11,6 +11,5 @@ struct that you can then use to interact with the server.
 
 For testing you can initialize a temporary weldr.Client using weldr.NewClient(),
 this is used in the weldr test functions.
-
 */
 package weldr
