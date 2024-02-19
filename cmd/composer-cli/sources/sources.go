@@ -17,7 +17,7 @@ var (
 		Long: `Manage project sources on the server
 
   The full source reference can be found here:
-  https://www.osbuild.org/guides/image-builder-on-premises/managing-repositories.html
+  https://osbuild.org/docs/on-premises/installation/managing-repositories
 `,
 		Example: `  TOML source for 3rd party rpm repository without gpg checking
 
