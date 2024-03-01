@@ -17,6 +17,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func mustParseDuration(s string) time.Duration {
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		panic(err)
+	}
+	return d
+}
+
 func TestListComposes(t *testing.T) {
 	composes, r, err := testState.client.ListComposes()
 	require.Nil(t, err)
@@ -227,22 +235,12 @@ func MakeFinishedCompose(t *testing.T) string {
 	require.Nil(t, r)
 	require.Greater(t, len(id), 0)
 
-	// It should be available immediately, but just in case, try 3 times with a delay
-	var found bool
-	for i := 0; i < 3 && !found; i++ {
-		composes, r, err := testState.client.ListComposes()
-		require.Nil(t, err)
-		require.Nil(t, r)
-		require.NotNil(t, composes)
-		for _, c := range composes {
-			if c.ID == id && c.Status == "FINISHED" {
-				found = true
-				break
-			}
-		}
-		time.Sleep(5 * time.Second)
-	}
-	require.True(t, found)
+	// Should be done immediately, but use ComposeWait to make sure
+	aborted, info, r, err := testState.client.ComposeWait(id, mustParseDuration("30s"), mustParseDuration("2s"))
+	require.False(t, aborted)
+	require.Nil(t, err)
+	require.Nil(t, r)
+	require.Equal(t, "FINISHED", info.QueueStatus)
 
 	return id
 }
@@ -366,6 +364,26 @@ func TestComposeInfoUnknown(t *testing.T) {
 	// Get the details about the compose
 	info, r, err := testState.client.ComposeInfo("fcb032c5-5734-4cda-bc60-c4e72c0f76fd")
 	require.Nil(t, err)
+	require.NotNil(t, r)
+	assert.Equal(t, false, r.Status)
+	assert.Equal(t, 1, len(r.Errors))
+	assert.Equal(t, APIErrorMsg{"UnknownUUID", "fcb032c5-5734-4cda-bc60-c4e72c0f76fd is not a valid build uuid"}, r.Errors[0])
+	require.Equal(t, ComposeInfoV0{}, info)
+}
+
+// TestComposeWaitError tests for an error response when interval is < timeout
+func TestComposeWaitError(t *testing.T) {
+	aborted, _, r, err := testState.client.ComposeWait("fcb032c5-5734-4cda-bc60-c4e72c0f76fd", mustParseDuration("5s"), mustParseDuration("30m"))
+	assert.False(t, aborted)
+	assert.Nil(t, r)
+	assert.Error(t, err)
+}
+
+// TestComposeWaitError tests for an error response when interval is < timeout
+func TestComposeWaitUnknown(t *testing.T) {
+	aborted, info, r, err := testState.client.ComposeWait("fcb032c5-5734-4cda-bc60-c4e72c0f76fd", mustParseDuration("30s"), mustParseDuration("5s"))
+	require.Nil(t, err)
+	assert.False(t, aborted)
 	require.NotNil(t, r)
 	assert.Equal(t, false, r.Status)
 	assert.Equal(t, 1, len(r.Errors))
