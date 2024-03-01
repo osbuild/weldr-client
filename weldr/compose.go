@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 )
@@ -405,4 +406,35 @@ func (c Client) ComposeInfo(id string) (info ComposeInfoV0, resp *APIResponse, e
 		return info, nil, fmt.Errorf("ERROR: %s", err.Error())
 	}
 	return info, resp, nil
+}
+
+// ComposeWait waits for the specified compose to be done
+// Check the status until it is either FINISHED or FAILED or a timeout is exceeded
+// aborted will be true if the timeout was exceeded, info will have the last status from
+// the server before the timeout.
+func (c Client) ComposeWait(id string, timeout, interval time.Duration) (aborted bool, info ComposeInfoV0, resp *APIResponse, err error) {
+	if interval >= timeout {
+		return false, info, nil, fmt.Errorf("Cannot wait, check interval (%v) must be < timeout (%v)", interval, timeout)
+	}
+
+	abort := time.NewTimer(timeout)
+	check := time.NewTimer(time.Second)
+	for {
+		select {
+		case <-check.C:
+			// Poll the server for the current status
+			info, resp, err = c.ComposeInfo(id)
+			if err != nil || resp != nil {
+				return false, info, resp, err
+			}
+
+			if info.QueueStatus == "FINISHED" || info.QueueStatus == "FAILED" {
+				return false, info, resp, err
+			}
+			check.Reset(interval)
+		case <-abort.C:
+			// Timed out, but no errors to report, info will have last status
+			return true, info, nil, nil
+		}
+	}
 }
