@@ -7,6 +7,7 @@ package compose
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -49,6 +50,9 @@ func init() {
 	startOSTreeCmd.Flags().StringVarP(&ref, "ref", "", "", "OSTree reference")
 	startOSTreeCmd.Flags().StringVarP(&parent, "parent", "", "", "OSTree parent")
 	startOSTreeCmd.Flags().StringVarP(&url, "url", "", "", "OSTree url")
+	startOSTreeCmd.Flags().BoolVarP(&wait, "wait", "", false, "Wait for compose to finish")
+	startOSTreeCmd.Flags().StringVarP(&timeoutStr, "timeout", "", "5m", "Maximum time to wait")
+	startOSTreeCmd.Flags().StringVarP(&pollStr, "poll", "", "10s", "Polling interval")
 	composeCmd.AddCommand(startOSTreeCmd)
 }
 
@@ -56,6 +60,16 @@ func startOSTree(cmd *cobra.Command, args []string) error {
 	var resp *weldr.APIResponse
 	var uuid string
 	var err error
+
+	timeout, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		return root.ExecutionError(cmd, "Wait Error: timeout - %s", err)
+	}
+	interval, err := time.ParseDuration(pollStr)
+	if err != nil {
+		return root.ExecutionError(cmd, "Wait Error: poll - %s", err)
+	}
+
 	// 2 args is uploads
 	if len(args) == 2 {
 		uuid, resp, err = root.Client.StartOSTreeCompose(args[0], args[1], ref, parent, url, size)
@@ -76,5 +90,25 @@ func startOSTree(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Compose %s added to the queue\n", uuid)
+
+	if wait {
+		fmt.Printf("Waiting %v for compose to finish\n", timeout)
+		aborted, info, resp, err := root.Client.ComposeWait(uuid, timeout, interval)
+		if err != nil {
+			return root.ExecutionError(cmd, "Wait Error: %s", err)
+		}
+		if resp != nil {
+			return root.ExecutionErrors(cmd, resp.Errors)
+		}
+		if aborted {
+			return root.ExecutionError(cmd, "Wait Error: timeout after %v", timeout)
+		}
+
+		fmt.Printf("%s %s\n",
+			info.ID,
+			info.QueueStatus,
+		)
+	}
+
 	return nil
 }
