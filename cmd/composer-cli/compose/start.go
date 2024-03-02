@@ -7,6 +7,7 @@ package compose
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/spf13/cobra"
 
@@ -35,6 +36,9 @@ var (
 
 func init() {
 	startCmd.Flags().UintVarP(&size, "size", "", 0, "Size of image in MiB")
+	startCmd.Flags().BoolVarP(&wait, "wait", "", false, "Wait for compose to finish")
+	startCmd.Flags().StringVarP(&timeoutStr, "timeout", "", "5m", "Maximum time to wait")
+	startCmd.Flags().StringVarP(&pollStr, "poll", "", "10s", "Polling interval")
 	composeCmd.AddCommand(startCmd)
 }
 
@@ -42,6 +46,16 @@ func start(cmd *cobra.Command, args []string) error {
 	var resp *weldr.APIResponse
 	var uuid string
 	var err error
+
+	timeout, err := time.ParseDuration(timeoutStr)
+	if err != nil {
+		return root.ExecutionError(cmd, "Wait Error: timeout - %s", err)
+	}
+	interval, err := time.ParseDuration(pollStr)
+	if err != nil {
+		return root.ExecutionError(cmd, "Wait Error: poll - %s", err)
+	}
+
 	// 2 args is uploads
 	if len(args) == 2 {
 		uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
@@ -62,5 +76,25 @@ func start(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Printf("Compose %s added to the queue\n", uuid)
+
+	if wait {
+		fmt.Printf("Waiting %v for compose to finish\n", timeout)
+		aborted, info, resp, err := root.Client.ComposeWait(uuid, timeout, interval)
+		if err != nil {
+			return root.ExecutionError(cmd, "Wait Error: %s", err)
+		}
+		if resp != nil {
+			return root.ExecutionErrors(cmd, resp.Errors)
+		}
+		if aborted {
+			return root.ExecutionError(cmd, "Wait Error: timeout after %v", timeout)
+		}
+
+		fmt.Printf("%s %s\n",
+			info.ID,
+			info.QueueStatus,
+		)
+	}
+
 	return nil
 }

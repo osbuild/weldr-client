@@ -19,9 +19,10 @@ var (
 		Short:   "Wait for a compose to finish",
 		Long:    "Wait for a compose to finish, fail, or time out",
 		Example: "  composer-cli compose wait 914bb03b-e4c8-4074-bc31-6869961ee2f3",
-		RunE:    wait,
+		RunE:    waitForCompose,
 		Args:    cobra.ExactArgs(1),
 	}
+	wait       bool // Defined here, used by start and start-ostree
 	timeoutStr string
 	pollStr    string
 )
@@ -32,7 +33,7 @@ func init() {
 	composeCmd.AddCommand(waitCmd)
 }
 
-func wait(cmd *cobra.Command, args []string) error {
+func waitForCompose(cmd *cobra.Command, args []string) error {
 	timeout, err := time.ParseDuration(timeoutStr)
 	if err != nil {
 		return root.ExecutionError(cmd, "Wait Error: timeout - %s", err)
