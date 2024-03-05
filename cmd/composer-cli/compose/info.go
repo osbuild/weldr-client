@@ -47,6 +47,17 @@ func info(cmd *cobra.Command, args []string) error {
 		info.ComposeType,
 		imageSize)
 
+	if len(info.Uploads) > 0 {
+		fmt.Printf("Uploads:\n")
+		for i := range info.Uploads {
+			fmt.Printf("    %s %-8s %-15s %s\n",
+				info.Uploads[i].UUID,
+				info.Uploads[i].Status,
+				info.Uploads[i].Name,
+				info.Uploads[i].Provider)
+		}
+	}
+
 	fmt.Println("Packages:")
 	for _, p := range info.Blueprint.Packages {
 		fmt.Printf("    %s\n", p)

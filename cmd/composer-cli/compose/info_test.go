@@ -251,3 +251,99 @@ func TestCmdComposeInfoUnknownJSON(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestCmdComposeInfoUpload(t *testing.T) {
+	// Test the "compose info" command
+	mc := root.SetupCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+    "blueprint": {
+        "customizations": {
+            "user": [
+                {
+                    "name": "root",
+                    "password": "qweqweqwe"
+                }
+            ]
+        },
+        "description": "composer-cli blueprint test 1",
+        "groups": [],
+        "modules": [
+            {
+                "name": "util-linux",
+                "version": "*"
+            }
+        ],
+        "name": "cli-test-bp-1",
+        "packages": [
+            {
+                "name": "bash",
+                "version": "*"
+            }
+        ],
+        "version": "0.0.1"
+    },
+    "commit": "",
+    "compose_type": "qcow2",
+    "config": "",
+    "deps": {
+        "packages": [
+			{
+                "arch": "x86_64",
+                "check_gpg": true,
+                "checksum": "sha256:e711b7570827fb4fdc50a706549a377491203963fea7260db7f879f71bbf056d",
+                "epoch": 0,
+                "name": "chrony",
+                "release": "1.fc33",
+                "remote_location": "http://mirror.siena.edu/fedora/linux/updates/33/Everything/x86_64/Packages/c/chrony-4.0-1.fc33.x86_64.rpm",
+                "version": "4.0"
+            }
+		]
+    },
+    "id": "ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+    "image_size": 2147483648,
+    "queue_status": "FINISHED",
+	"uploads": [
+        {
+			"creation_time": 1709665570.0230541,
+			"image_name": "timeserver",
+			"provider_name": "aws",
+			"settings": {
+				"bucket": "AWS_BUCKET",
+				"key": "OBJECT_KEY",
+				"region": "AWS_REGION"
+			},
+			"status": "FINISHED",
+			"uuid": "d01f8af4-26fc-4ba8-b980-989d31d414a4"
+        }
+    ]
+}`
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get info about a compose
+	cmd, out, err := root.ExecuteTest("compose", "info", "ddcf50e5-1ffa-4de6-95ed-42749ac1f389")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, infoCmd)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "ddcf50e5-1ffa-4de6-95ed-42749ac1f389")
+	assert.Contains(t, string(stdout), "FINISHED")
+	assert.Contains(t, string(stdout), "bash-*")
+	assert.Contains(t, string(stdout), "chrony-4.0-1.fc33.x86_64")
+	assert.Contains(t, string(stdout), "d01f8af4-26fc-4ba8-b980-989d31d414a4")
+	assert.Contains(t, string(stdout), "timeserver")
+	assert.Contains(t, string(stdout), "aws")
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+
+}
