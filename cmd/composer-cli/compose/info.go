@@ -49,12 +49,12 @@ func info(cmd *cobra.Command, args []string) error {
 
 	fmt.Println("Packages:")
 	for _, p := range info.Blueprint.Packages {
-		fmt.Printf("    %s-%s\n", p.Name, p.Version)
+		fmt.Printf("    %s\n", p)
 	}
 
 	fmt.Println("Modules:")
 	for _, m := range info.Blueprint.Modules {
-		fmt.Printf("    %s-%s\n", m.Name, m.Version)
+		fmt.Printf("    %s\n", m)
 	}
 
 	fmt.Println("Dependencies:")
