@@ -123,7 +123,9 @@ function is parsed correctly.
 The `weldr.MockClient` function that is used to handle the requests adds a `.Req`
 element that can be examined in the tests. eg:
 
-    assert.Equal(t, "/api/v1/blueprints/list", mc.Req.URL.Path)
+```
+assert.Equal(t, "/api/v1/blueprints/list", mc.Req.URL.Path)
+```
 
 If the test returns an error the `MockClient` `DoFunc` needs to return the
 request so that the `apiError` function can pass it to the callback function.
