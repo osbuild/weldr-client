@@ -221,6 +221,14 @@ type Group struct {
 	Name string `json:"name" toml:"name"`
 }
 
+// infoBlueprint contains the parts of the upload status useful for the compose info command
+type infoUpload struct {
+	Name     string `json:"image_name"`
+	Provider string `json:"provider_name"`
+	Status   string `json:"status"`
+	UUID     string `json:"uuid"`
+}
+
 // ComposeInfoV0 is the response to a compose/info request
 type ComposeInfoV0 struct {
 	ID        string        `json:"id"`
@@ -230,9 +238,10 @@ type ComposeInfoV0 struct {
 	Deps      struct {
 		Packages []PackageNEVRA `json:"packages"`
 	} `json:"deps"`
-	ComposeType string `json:"compose_type"`
-	QueueStatus string `json:"queue_status"`
-	ImageSize   uint64 `json:"image_size"`
+	ComposeType string       `json:"compose_type"`
+	QueueStatus string       `json:"queue_status"`
+	ImageSize   uint64       `json:"image_size"`
+	Uploads     []infoUpload `json:"uploads"` // upload parts that info cares about
 }
 
 // ModulesListV0 is the response to /modules/list request
