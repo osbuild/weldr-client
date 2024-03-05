@@ -1,4 +1,4 @@
-# composer-cli - Use osbuild-composer from the command line
+# composer-cli
 
 `composer-cli` is a command line utility used with
 [osbuild-composer](https://www.osbuild.org) to manage blueprints, build and
@@ -59,8 +59,9 @@ Downloading the final image is done with `composer-cli compose image UUID` and
 it will save the qcow2 image as `UUID-disk.qcow2` which you can then use to
 boot a VM like this:
 
-    qemu-kvm --name test-image -m 1024 -hda ./UUID-disk.qcow2
-
+```
+qemu-kvm --name test-image -m 1024 -hda ./UUID-disk.qcow2
+```
 
 # Image Uploads
 
@@ -68,8 +69,9 @@ boot a VM like this:
 Azure, and VMWare. The upload can be started when the build is finished by
 passing the service's profile.toml to the `compose start` command. For example:
 
-    composer-cli compose start http-server server aws.toml
-
+```
+composer-cli compose start http-server server aws.toml
+```
 
 ## providers.toml
 
@@ -81,13 +83,14 @@ requirements.
 
 A `provider.toml` file for AWS looks like this:
 
-    [settings]
-    bucket = "AWS Bucket"
-    region = "AWS Region"
-    key = "AWS Key"
-    accessKeyID = "AWS Access Key"
-    secretAccessKey = "AWS Secret Key"
-
+```
+[settings]
+bucket = "AWS Bucket"
+region = "AWS Region"
+key = "AWS Key"
+accessKeyID = "AWS Access Key"
+secretAccessKey = "AWS Secret Key"
+```
 
 The access key and secret key can be created by going to the
 `IAM->Users->Security Credentials` section and creating a new access key. The
@@ -105,34 +108,40 @@ object if you have not deleted it in the meantime, speeding up the process.
 
 For Azure the `provider.toml` looks like:
 
-    [settings]
-    storageAccount = "account"
-    storageAccessKey = "key"
-    container = "container"
-
+```
+[settings]
+storageAccount = "account"
+storageAccessKey = "key"
+container = "container"
+```
 
 ### VMWare
 
 The VMWare `provider.toml` uses this template:
 
-    [settings]
-    host =  "Hostname"
-    username =  "Username"
-    password = "Password"
-    datacenter = "Datacenter"
-    cluster = "Cluster"
-    datastore = "Datastore"
-
+```
+[settings]
+host =  "Hostname"
+username =  "Username"
+password = "Password"
+datacenter = "Datacenter"
+cluster = "Cluster"
+datastore = "Datastore"
+```
 
 # Build an image and upload results
 
 If you have a profile named `test-uploads`:
 
-    composer-cli compose start example-http-server ami "http image" aws test-uploads
+```
+composer-cli compose start example-http-server ami "http image" aws test-uploads
+```
 
 Or if you have the settings stored in a TOML file:
 
-    composer-cli compose start example-http-server ami "http image" aws-settings.toml
+```
+composer-cli compose start example-http-server ami "http image" aws-settings.toml
+```
 
 It will return the UUID of the image build, and the UUID of the upload. Once
 the build has finished successfully it will start the upload process, which you
@@ -140,7 +149,9 @@ can monitor with `composer-cli upload info <UPLOAD-UUID>`
 
 You can also view the upload logs from the Ansible playbook with:
 
-    `composer-cli upload log <UPLOAD-UUID>`
+```
+composer-cli upload log <UPLOAD-UUID>
+```
 
 The type of the image must match the type supported by the provider.
 
@@ -161,32 +172,34 @@ them.
 For example, the JSON response from a `composer-cli blueprints list` looks like
 this:
 
-    [{
-        "method": "GET",
-        "path": "/blueprints/list?limit=0",
-        "status": 200,
-        "body": {
-            "blueprints": [],
-            "limit": 0,
-            "offset": 0,
-            "total": 3
-        }
-    },
-    {
-        "method": "GET",
-        "path": "/blueprints/list?limit=23",
-        "status": 200,
-        "body": {
-            "blueprints": [
-                "http-server-bp-1"
-                "database-bp-1"
-                "dev-bp-1"
-            ],
-            "limit": 3,
-            "offset": 0,
-            "total": 3
-        }
-    }]
+```
+[{
+    "method": "GET",
+    "path": "/blueprints/list?limit=0",
+    "status": 200,
+    "body": {
+        "blueprints": [],
+        "limit": 0,
+        "offset": 0,
+        "total": 3
+    }
+},
+{
+    "method": "GET",
+    "path": "/blueprints/list?limit=23",
+    "status": 200,
+    "body": {
+        "blueprints": [
+            "http-server-bp-1"
+            "database-bp-1"
+            "dev-bp-1"
+        ],
+        "limit": 3,
+        "offset": 0,
+        "total": 3
+    }
+}]
+```
 
 NOTE: This output format changed in weldr-client v35.6, it used to be a stream of objectes and is
 now a proper JSON list of objects, making it easier to parse.
@@ -200,13 +213,15 @@ of customizations to make to the final image.
 
 Example blueprints can be found in [here][examples], with a simple one looking like this:
 
-    name = "base"
-    description = "A base system with bash"
-    version = "0.0.1"
+```
+name = "base"
+description = "A base system with bash"
+version = "0.0.1"
 
-    [[packages]]
-    name = "bash"
-    version = "4.4.*"
+[[packages]]
+name = "bash"
+version = "4.4.*"
+```
 
 The `name` field is the name of the blueprint. It can contain spaces, but they will be converted to `-`
 when it is written to disk. It should be short and descriptive.
@@ -235,15 +250,15 @@ just use `[[packages]]` for now.
 For example, to install `tmux-2.9a` and `openssh-server-8.*`, you would add
 this to your blueprint:
 
-    [[packages]]
-    name = "tmux"
-    version = "2.9a"
+```
+[[packages]]
+name = "tmux"
+version = "2.9a"
 
-    [[packages]]
-    name = "openssh-server"
-    version = "8.*"
-
-
+[[packages]]
+name = "openssh-server"
+version = "8.*"
+```
 
 ## [[groups]]
 
@@ -259,8 +274,10 @@ for selecting optional packages.
 For example, if you want to install the `anaconda-tools` group you would add this to your
 blueprint:
 
-    [[groups]]
-    name="anaconda-tools"
+```
+[[groups]]
+name="anaconda-tools"
+```
 
 `groups` is a TOML list, so each group needs to be listed separately, like `packages` but with
 no version number.
@@ -270,8 +287,10 @@ no version number.
 
 The `[customizations]` section can be used to configure the hostname of the final image. eg.:
 
-    [customizations]
-    hostname = "baseimage"
+```
+[customizations]
+hostname = "baseimage"
+```
 
 This is optional and may be left out to use the defaults.
 
@@ -283,17 +302,20 @@ effect on `tar` or `ext4-filesystem` images since they do not include a bootload
 
 For example:
 
-    [customizations.kernel]
-    append = "nosmt=force"
-
+```
+[customizations.kernel]
+append = "nosmt=force"
+```
 
 ### [[customizations.sshkey]]
 
 Set an existing user's ssh key in the final image:
 
-    [[customizations.sshkey]]
-    user = "root"
-    key = "PUBLIC SSH KEY"
+```
+[[customizations.sshkey]]
+user = "root"
+key = "PUBLIC SSH KEY"
+```
 
 The key will be added to the user's `authorized_keys` file.
 
@@ -310,16 +332,18 @@ The key will be added to the user's `authorized_keys` file.
 Add a user to the image, and/or set their ssh key.
 All fields for this section are optional except for the `name`, here is a complete example:
 
-    [[customizations.user]]
-    name = "admin"
-    description = "Administrator account"
-    password = "$6$CHO2$3rN8eviE2t50lmVyBYihTgVRHcaecmeCk31L..."
-    key = "PUBLIC SSH KEY"
-    home = "/srv/widget/"
-    shell = "/usr/bin/bash"
-    groups = ["widget", "users", "wheel"]
-    uid = 1200
-    gid = 1200
+```
+[[customizations.user]]
+name = "admin"
+description = "Administrator account"
+password = "$6$CHO2$3rN8eviE2t50lmVyBYihTgVRHcaecmeCk31L..."
+key = "PUBLIC SSH KEY"
+home = "/srv/widget/"
+shell = "/usr/bin/bash"
+groups = ["widget", "users", "wheel"]
+uid = 1200
+gid = 1200
+```
 
 If the password starts with `$6$`, `$5$`, or `$2b$` it will be stored as
 an encrypted password. Otherwise it will be treated as a plain text password.
@@ -336,18 +360,21 @@ an encrypted password. Otherwise it will be treated as a plain text password.
 
 Add a new group to the image. `name` is required and `gid` is optional:
 
-    [[customizations.group]]
-    name = "widget"
-    gid = 1130
-
+```
+[[customizations.group]]
+name = "widget"
+gid = 1130
+```
 
 ### [customizations.timezone]
 
 Customizing the timezone and the NTP servers to use for the system:
 
-    [customizations.timezone]
-    timezone = "US/Eastern"
-    ntpservers = ["0.north-america.pool.ntp.org", "1.north-america.pool.ntp.org"]
+```
+[customizations.timezone]
+timezone = "US/Eastern"
+ntpservers = ["0.north-america.pool.ntp.org", "1.north-america.pool.ntp.org"]
+```
 
 The values supported by `timezone` can be listed by running `timedatectl list-timezones`.
 
@@ -363,9 +390,11 @@ timezone will be updated to the one selected in the blueprint.
 
 Customize the locale settings for the system:
 
-    [customizations.locale]
-    languages = ["en_US.UTF-8"]
-    keyboard = "us"
+```
+[customizations.locale]
+languages = ["en_US.UTF-8"]
+keyboard = "us"
+```
 
 The values supported by `languages` can be listed by running `localectl list-locales` from
 the command line.
@@ -384,8 +413,10 @@ By default the firewall blocks all access except for services that enable their 
 like `sshd`. This command can be used to open other ports or services. Ports are configured using
 the port:protocol format:
 
-    [customizations.firewall]
-    ports = ["22:tcp", "80:tcp", "imap:tcp", "53:tcp", "53:udp"]
+```
+[customizations.firewall]
+ports = ["22:tcp", "80:tcp", "imap:tcp", "53:tcp", "53:udp"]
+```
 
 Numeric ports, or their names from `/etc/services` can be used in the `ports` enabled/disabled lists.
 
@@ -395,9 +426,11 @@ already enabled it will extend the list of ports with the ones listed by the blu
 If the distribution uses `firewalld` you can specify services listed by `firewall-cmd --get-services`
 in a `customizations.firewall.services` section:
 
-    [customizations.firewall.services]
-    enabled = ["ftp", "ntp", "dhcp"]
-    disabled = ["telnet"]
+```
+[customizations.firewall.services]
+enabled = ["ftp", "ntp", "dhcp"]
+disabled = ["telnet"]
+```
 
 Remember that the `firewall.services` are different from the names in `/etc/services`.
 
@@ -419,10 +452,11 @@ compose type, if any.
 The service names are systemd service units. You may specify any systemd unit
 file accepted by `systemctl enable` eg. `cockpit.socket`:
 
-    [customizations.services]
-    enabled = ["sshd", "cockpit.socket", "httpd"]
-    disabled = ["postfix", "telnetd"]
-
+```
+[customizations.services]
+enabled = ["sshd", "cockpit.socket", "httpd"]
+disabled = ["postfix", "telnetd"]
+```
 
 # Package Sources
 
@@ -435,13 +469,15 @@ A new source repository can be added by creating a TOML file with the details
 of the repository and add it to the server with `composer-cli sources add
 newrepo.toml`:
 
-    name = "custom-source-1"
-    url = "https://url/path/to/repository/"
-    type = "yum-baseurl"
-    proxy = "https://proxy-url/"
-    check_ssl = true
-    check_gpg = true
-    gpgkey_urls = ["https://url/path/to/gpg-key"]
+```
+name = "custom-source-1"
+url = "https://url/path/to/repository/"
+type = "yum-baseurl"
+proxy = "https://proxy-url/"
+check_ssl = true
+check_gpg = true
+gpgkey_urls = ["https://url/path/to/gpg-key"]
+```
 
 The `proxy` and `gpgkey_urls` entries are optional. All of the others are required. The supported
 types for the urls are:
