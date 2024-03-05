@@ -96,3 +96,12 @@ func TestPackageNEVRAString(t *testing.T) {
 	//nolint:gosimple // using Sprintf on purpose
 	assert.Equal(t, "grub2-common-1:2.04-33.fc33.noarch", fmt.Sprintf("%s", pkgList[1]))
 }
+
+func TestPackageString(t *testing.T) {
+	//nolint:gosimple // using Sprintf on purpose
+	assert.Equal(t, "tmux", fmt.Sprintf("%s", Package{"tmux", ""}))
+	//nolint:gosimple // using Sprintf on purpose
+	assert.Equal(t, "tmux-*", fmt.Sprintf("%s", Package{"tmux", "*"}))
+	//nolint:gosimple // using Sprintf on purpose
+	assert.Equal(t, "tmux-1.3", fmt.Sprintf("%s", Package{"tmux", "1.3"}))
+}

@@ -207,6 +207,15 @@ type Package struct {
 	Version string `json:"version,omitempty" toml:"version,omitempty"`
 }
 
+// String returns the name of the package with the optional version
+func (p Package) String() string {
+	if len(p.Version) > 0 {
+		return fmt.Sprintf("%s-%s", p.Name, p.Version)
+	}
+
+	return p.Name
+}
+
 // Group specifies a package group.
 type Group struct {
 	Name string `json:"name" toml:"name"`
