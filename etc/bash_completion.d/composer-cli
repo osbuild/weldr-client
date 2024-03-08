@@ -3,7 +3,7 @@
 __composer_cli_flags="-h --help -j --json -s --socket --log -a --api --test -V"
 
 declare -A __composer_cli_cmds=(
-  [compose]="list start start-ostree types status log cancel delete info metadata logs results image"
+  [compose]="list start start-ostree types status log cancel delete info metadata logs results image wait"
   [blueprints]="list show changes diff save delete depsolve push freeze tag undo workspace"
   [modules]="list"
   [projects]="list info depsolve"
@@ -115,6 +115,9 @@ _composer_cli() {
             ;;
             compose:image)
                 COMPREPLY=($(compgen -W "$(__composer_composes finished)" -- "${cur}"))
+            ;;
+            compose:wait)
+                COMPREPLY=($(compgen -W "$(__composer_composes running waiting)" -- "${cur}"))
             ;;
             compose:*)
                 COMPREPLY=($(compgen -W "$(__composer_composes)" -- "${cur}"))
