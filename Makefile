@@ -117,7 +117,10 @@ scratch-rpm: $(RPM_SPECFILE) archive
 		$(RPM_SPECFILE)
 
 build-in-podman: archive
-	podman build --security-opt seccomp=unconfined -t weldr-client:$(VERSION) -f Containerfile.test .
+	podman build --security-opt seccomp=unconfined \
+		--build-arg VERSION=$(VERSION) \
+		-t weldr-client:$(VERSION) \
+		-f Containerfile.test .
 
 CONTAINER_IMAGE_CLI ?= osbuild-cli_dev
 CONTAINERFILE_CLI ?= Containerfile.dev
