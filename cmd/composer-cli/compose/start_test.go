@@ -279,3 +279,53 @@ Compose 876b2946-16cd-4f38-bace-0cdd0093d112 added to the queue
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
 	assert.Equal(t, "/api/v1/compose", mc.Req.URL.Path)
 }
+
+func TestCmdComposeStartLocalBP(t *testing.T) {
+	// Test the "compose start" command with a local blueprint file
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{"href": "/api/image-builder-composer/v2/compose", "id": "008fc5ad-adad-42ec-b412-7923733483a8", "kind": "ComposeId"}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Need a temporary test file
+	tmpBP, err := os.CreateTemp("", "test-bp-p*.toml")
+	require.Nil(t, err)
+	defer os.Remove(tmpBP.Name())
+
+	_, err = tmpBP.Write([]byte(`name = "test bp"
+version = "1.1.0"
+[[packages]]
+name = "tmux"
+version = "3.5a"
+`))
+	require.Nil(t, err)
+
+	// Make sure the compose.size value is reset to default
+	size = 0
+
+	// Start a compose
+	cmd, out, err := root.ExecuteTest("compose", "start", tmpBP.Name(), "qcow2")
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, startCmd)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Equal(t, "Compose 008fc5ad-adad-42ec-b412-7923733483a8 added to the queue\n", string(stdout))
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mcc.Req.Method)
+	sentBody, err := io.ReadAll(mcc.Req.Body)
+	mcc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Contains(t, string(sentBody), `"blueprint":{"name":"test bp","packages":[{"name":"tmux","version":"3.5a"}],"version":"1.1.0"}`)
+	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/image-builder-composer/v2/compose", mcc.Req.URL.Path)
+}
