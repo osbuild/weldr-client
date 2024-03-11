@@ -7,8 +7,11 @@ package compose
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
@@ -56,27 +59,56 @@ func start(cmd *cobra.Command, args []string) error {
 		return root.ExecutionError(cmd, "Wait Error: poll - %s", err)
 	}
 
-	// 2 args is uploads
-	if len(args) == 2 {
-		uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
-	} else if len(args) == 4 {
-		uuid, resp, err = root.Client.StartComposeUpload(args[0], args[1], args[2], args[3], size)
-	}
-	if err != nil {
-		return root.ExecutionError(cmd, "Push TOML Error: %s", err)
-	}
-	if resp != nil {
-		// Response may be just warnings, just error, or both.
-		for _, w := range resp.Warnings {
-			fmt.Printf("Warning: %s\n", w)
+	// Is the blueprint a local file? If so, try to use the cloud API for the compose
+	f, err := os.Open(args[0])
+	if err == nil {
+		defer f.Close()
+
+		if !root.Cloud.Exists() {
+			return root.ExecutionError(cmd, "Using a local blueprint requires server support. Check to make sure that the cloudapi socket is enabled.")
 		}
-		if !resp.Status {
-			return root.ExecutionErrors(cmd, resp.Errors)
+
+		data, err := io.ReadAll(f)
+		if err != nil {
+			return root.ExecutionError(cmd, "Error reading %s - %s", args[0], err)
 		}
+		var blueprint interface{}
+		err = toml.Unmarshal([]byte(data), &blueprint)
+		if err != nil {
+			return root.ExecutionError(cmd, "Error reading %s - %s", args[0], err)
+		}
+
+		// TODO Check for upload settings or 'local'
+
+		// Start the cloud API compose
+		uuid, err = root.Cloud.StartCompose(blueprint, args[1], size)
+		if err != nil {
+			return root.ExecutionError(cmd, "Error starting cloud API compose: %s", err)
+		}
+	} else {
+		// 2 args is uploads
+		if len(args) == 2 {
+			uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
+		} else if len(args) == 4 {
+			uuid, resp, err = root.Client.StartComposeUpload(args[0], args[1], args[2], args[3], size)
+		}
+		if err != nil {
+			return root.ExecutionError(cmd, "Error starting compose: %s", err)
+		}
+		if resp != nil {
+			// Response may be just warnings, just error, or both.
+			for _, w := range resp.Warnings {
+				fmt.Printf("Warning: %s\n", w)
+			}
+			if !resp.Status {
+				return root.ExecutionErrors(cmd, resp.Errors)
+			}
+		}
+
+		fmt.Printf("Compose %s added to the queue\n", uuid)
 	}
 
-	fmt.Printf("Compose %s added to the queue\n", uuid)
-
+	// TODO Make this work with cloud API
 	if wait {
 		fmt.Printf("Waiting %v for compose to finish\n", timeout)
 		aborted, info, resp, err := root.Client.ComposeWait(uuid, timeout, interval)
