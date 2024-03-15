@@ -78,15 +78,34 @@ func start(cmd *cobra.Command, args []string) error {
 			return root.ExecutionError(cmd, "Error reading %s - %s", args[0], err)
 		}
 
-		// TODO Check for upload settings or 'local'
-
 		// Start the cloud API compose
-		uuid, err = root.Cloud.StartCompose(blueprint, args[1], size)
+		// 2 args is saved locally, 4 is uploaded to the specified service
+		if len(args) == 2 {
+			uuid, err = root.Cloud.StartCompose(blueprint, args[1], size)
+		} else if len(args) == 4 {
+			// Read the upload options from the file
+			f, err = os.Open(args[3])
+			if err != nil {
+				return root.ExecutionError(cmd, "Error reading %s - %s", args[3], err)
+			}
+			data, err = io.ReadAll(f)
+			if err != nil {
+				return root.ExecutionError(cmd, "Error reading %s - %s", args[3], err)
+			}
+			var uploadOptions interface{}
+			err = toml.Unmarshal([]byte(data), &uploadOptions)
+			if err != nil {
+				return root.ExecutionError(cmd, "Error reading %s - %s", args[3], err)
+			}
+
+			uuid, err = root.Cloud.StartComposeUpload(blueprint, args[1], args[2], uploadOptions, nil, size)
+		}
+
 		if err != nil {
 			return root.ExecutionError(cmd, "Error starting cloud API compose: %s", err)
 		}
 	} else {
-		// 2 args is uploads
+		// 2 args is saved locally, 4 is uploaded to the specified service
 		if len(args) == 2 {
 			uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
 		} else if len(args) == 4 {
@@ -105,8 +124,8 @@ func start(cmd *cobra.Command, args []string) error {
 			}
 		}
 
-		fmt.Printf("Compose %s added to the queue\n", uuid)
 	}
+	fmt.Printf("Compose %s added to the queue\n", uuid)
 
 	// TODO Make this work with cloud API
 	if wait {
