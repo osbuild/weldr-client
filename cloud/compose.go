@@ -24,20 +24,18 @@ type localUpload struct {
 	LocalSave bool `json:"local_save"`
 }
 
-// Start a compose
-//
-// Needs:
-// - distribution
-// - blueprint
-// - image type
-// - upload targer info or local for debugging
-// - optional size
+// StartCompose uses a blueprint to start a compose
+// This uses the cloud API, and it expects the server to have the local save option
+// enabled in the osbuild-composer.service file
+// The composeType must be one of the cloud API supported types
 func (c Client) StartCompose(blueprint interface{}, composeType string, size uint) (string, error) {
-	// Where is distribution going to come from? It's required.
+	return c.StartComposeUpload(blueprint, composeType, "local", localUpload{LocalSave: true}, size)
+}
 
+// StartComposeUpload uses a blueprint and an upload options description to start a compose
+// The composeType must be one of the cloud API supported types
+func (c Client) StartComposeUpload(blueprint interface{}, composeType string, uploadName string, uploadOptions interface{}, size uint) (string, error) {
 	byteSize := uint64(size) * 1024 * 1024
-
-	// TODO Should this first check blueprint? Or should the server handle overriding it? Does it?
 	distro, err := GetHostDistroName()
 	if err != nil {
 		return "", err
@@ -51,7 +49,7 @@ func (c Client) StartCompose(blueprint interface{}, composeType string, size uin
 				Architecture:  HostArch(), // Build for the same arch as the host
 				ImageType:     composeType,
 				Size:          byteSize,
-				UploadOptions: localUpload{LocalSave: true},
+				UploadOptions: uploadOptions,
 				Repositories:  []interface{}{}, // Empty repository list uses host repos
 			},
 		},
@@ -67,7 +65,6 @@ func (c Client) StartCompose(blueprint interface{}, composeType string, size uin
 		return "", fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	// TODO parse response
 	var r struct {
 		Kind string
 		ID   string
