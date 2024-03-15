@@ -13,31 +13,35 @@ type request struct {
 }
 
 type imageRequest struct {
-	Architecture  string        `json:"architecture"`
-	ImageType     string        `json:"image_type"`
-	Size          uint64        `json:"size"`
-	Repositories  []interface{} `json:"repositories"`
-	UploadOptions interface{}   `json:"upload_options"`
+	Architecture  string      `json:"architecture"`
+	ImageType     string      `json:"image_type"`
+	Size          uint64      `json:"size,omitempty"`
+	Repositories  interface{} `json:"repositories"`
+	UploadOptions interface{} `json:"upload_options,omitempty"`
+	UploadTargets interface{} `json:"upload_targets,omitempty"`
 }
 
-type localUpload struct {
-	LocalSave bool `json:"local_save"`
+type noRepos struct{} // Empty list of repositories
+
+// localTarget is used to pass 'local' and an empty upload_options object to the cloud API
+type localTarget struct {
+	Type          string   `json:"type"`
+	UploadOptions struct{} `json:"upload_options"`
 }
 
-// Start a compose
-//
-// Needs:
-// - distribution
-// - blueprint
-// - image type
-// - upload targer info or local for debugging
-// - optional size
+// StartCompose uses a blueprint to start a compose
+// This uses the cloud API, and it expects the server to have the local save option
+// enabled in the osbuild-composer.service file
+// The composeType must be one of the cloud API supported types
 func (c Client) StartCompose(blueprint interface{}, composeType string, size uint) (string, error) {
-	// Where is distribution going to come from? It's required.
+	local := []localTarget{localTarget{Type: "local"}}
+	return c.StartComposeUpload(blueprint, composeType, "local", nil, local, size)
+}
 
+// StartComposeUpload uses a blueprint and an upload options description to start a compose
+// The composeType must be one of the cloud API supported types
+func (c Client) StartComposeUpload(blueprint interface{}, composeType string, uploadName string, uploadOptions interface{}, uploadTargets interface{}, size uint) (string, error) {
 	byteSize := uint64(size) * 1024 * 1024
-
-	// TODO Should this first check blueprint? Or should the server handle overriding it? Does it?
 	distro, err := GetHostDistroName()
 	if err != nil {
 		return "", err
@@ -51,8 +55,9 @@ func (c Client) StartCompose(blueprint interface{}, composeType string, size uin
 				Architecture:  HostArch(), // Build for the same arch as the host
 				ImageType:     composeType,
 				Size:          byteSize,
-				UploadOptions: localUpload{LocalSave: true},
-				Repositories:  []interface{}{}, // Empty repository list uses host repos
+				Repositories:  []noRepos{}, // Empty list of repos, use default for distro
+				UploadOptions: uploadOptions,
+				UploadTargets: uploadTargets,
 			},
 		},
 	}
@@ -67,7 +72,6 @@ func (c Client) StartCompose(blueprint interface{}, composeType string, size uin
 		return "", fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	// TODO parse response
 	var r struct {
 		Kind string
 		ID   string
