@@ -70,12 +70,12 @@ func start(cmd *cobra.Command, args []string) error {
 
 		data, err := io.ReadAll(f)
 		if err != nil {
-			return root.ExecutionError(cmd, "Error reading %s - %s", args[0], err)
+			return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
 		}
 		var blueprint interface{}
 		err = toml.Unmarshal([]byte(data), &blueprint)
 		if err != nil {
-			return root.ExecutionError(cmd, "Error reading %s - %s", args[0], err)
+			return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
 		}
 
 		// Start the cloud API compose
@@ -86,23 +86,23 @@ func start(cmd *cobra.Command, args []string) error {
 			// Read the upload options from the file
 			f, err = os.Open(args[3])
 			if err != nil {
-				return root.ExecutionError(cmd, "Error reading %s - %s", args[3], err)
+				return root.ExecutionError(cmd, "reading %s - %s", args[3], err)
 			}
 			data, err = io.ReadAll(f)
 			if err != nil {
-				return root.ExecutionError(cmd, "Error reading %s - %s", args[3], err)
+				return root.ExecutionError(cmd, "reading %s - %s", args[3], err)
 			}
 			var uploadOptions interface{}
 			err = toml.Unmarshal([]byte(data), &uploadOptions)
 			if err != nil {
-				return root.ExecutionError(cmd, "Error reading %s - %s", args[3], err)
+				return root.ExecutionError(cmd, "reading %s - %s", args[3], err)
 			}
 
 			uuid, err = root.Cloud.StartComposeUpload(blueprint, args[1], args[2], uploadOptions, size)
 		}
 
 		if err != nil {
-			return root.ExecutionError(cmd, "Error starting cloud API compose: %s", err)
+			return root.ExecutionError(cmd, "starting cloud API compose: %s", err)
 		}
 	} else {
 		// 2 args is saved locally, 4 is uploaded to the specified service
@@ -112,7 +112,7 @@ func start(cmd *cobra.Command, args []string) error {
 			uuid, resp, err = root.Client.StartComposeUpload(args[0], args[1], args[2], args[3], size)
 		}
 		if err != nil {
-			return root.ExecutionError(cmd, "Error starting compose: %s", err)
+			return root.ExecutionError(cmd, "starting compose: %s", err)
 		}
 		if resp != nil {
 			// Response may be just warnings, just error, or both.
