@@ -3,6 +3,7 @@ package cloud
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 // Just what we need from the cloudapi compose request
@@ -108,4 +109,35 @@ func (c Client) ComposeInfo(id string) (ComposeInfo, error) {
 	}
 
 	return status, nil
+}
+
+// ComposeWait waits for the specified compose to be done
+// Check the status until it is not 'pending' or a timeout is exceeded
+// aborted will be true if the timeout was exceeded, info will have the last status from
+// the server before the timeout.
+func (c Client) ComposeWait(id string, timeout, interval time.Duration) (aborted bool, status ComposeInfo, err error) {
+	if interval >= timeout {
+		return false, ComposeInfo{}, fmt.Errorf("Cannot wait, check interval (%v) must be < timeout (%v)", interval, timeout)
+	}
+
+	abort := time.NewTimer(timeout)
+	check := time.NewTimer(time.Second)
+	for {
+		select {
+		case <-check.C:
+			// Poll the server for the current status
+			status, err = c.ComposeInfo(id)
+			if err != nil {
+				return false, status, err
+			}
+
+			if status.Status != "pending" {
+				return false, status, err
+			}
+			check.Reset(interval)
+		case <-abort.C:
+			// Timed out, but no errors to report, status will have last status
+			return true, status, nil
+		}
+	}
 }
