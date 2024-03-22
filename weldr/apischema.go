@@ -59,6 +59,16 @@ func (r *APIResponse) StatusCode() int {
 	return r.statusCode
 }
 
+// HasErrorID returns true if one of the errors matches the ID
+func (r APIResponse) HasErrorID(id string) bool {
+	for _, e := range r.Errors {
+		if e.ID == id {
+			return true
+		}
+	}
+	return false
+}
+
 // NewAPIResponse converts the response body to a status response
 func NewAPIResponse(body []byte) (*APIResponse, error) {
 	var status APIResponse
