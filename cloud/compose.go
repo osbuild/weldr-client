@@ -79,3 +79,30 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 
 	return r.ID, nil
 }
+
+// ComposeStatus holds the information returned by /compose/UUID request
+type ComposeStatus struct {
+	Kind   string
+	Status string
+	// TODO add image_status?
+}
+
+// ComposeStatus returns information on the status of a compose
+func (c Client) ComposeStatus(id string) (ComposeStatus, error) {
+	// TODO
+	// Handle errors
+	// What to return? It's going to be different than weldr
+
+	body, err := c.GetJSON("api/image-builder-composer/v2/composes/" + id)
+	if err != nil {
+		return ComposeStatus{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
+	}
+
+	var status ComposeStatus
+	err = json.Unmarshal(body, &status)
+	if err != nil {
+		return ComposeStatus{}, fmt.Errorf("Error parsing body of status: %s", err)
+	}
+
+	return status, nil
+}
