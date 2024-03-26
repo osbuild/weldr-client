@@ -100,9 +100,22 @@ func start(cmd *cobra.Command, args []string) error {
 
 			uuid, err = root.Cloud.StartComposeUpload(blueprint, args[1], args[2], uploadOptions, size)
 		}
-
 		if err != nil {
 			return root.ExecutionError(cmd, "starting cloud API compose: %s", err)
+		}
+		fmt.Printf("Compose %s added to the queue\n", uuid)
+
+		if wait {
+			fmt.Printf("Waiting %v for compose to finish\n", timeout)
+			aborted, status, err := root.Cloud.ComposeWait(uuid, timeout, interval)
+			if err != nil {
+				return root.ExecutionError(cmd, "%s", err)
+			}
+			if aborted {
+				return root.ExecutionError(cmd, "timeout after %v", timeout)
+			}
+
+			fmt.Printf("%s %s\n", uuid, status.Status)
 		}
 	} else {
 		// 2 args is saved locally, 4 is uploaded to the specified service
@@ -123,28 +136,23 @@ func start(cmd *cobra.Command, args []string) error {
 				return root.ExecutionErrors(cmd, resp.Errors)
 			}
 		}
+		fmt.Printf("Compose %s added to the queue\n", uuid)
 
-	}
-	fmt.Printf("Compose %s added to the queue\n", uuid)
+		if wait {
+			fmt.Printf("Waiting %v for compose to finish\n", timeout)
+			aborted, info, resp, err := root.Client.ComposeWait(uuid, timeout, interval)
+			if err != nil {
+				return root.ExecutionError(cmd, "Wait: %s", err)
+			}
+			if resp != nil {
+				return root.ExecutionErrors(cmd, resp.Errors)
+			}
+			if aborted {
+				return root.ExecutionError(cmd, "Wait: timeout after %v", timeout)
+			}
 
-	// TODO Make this work with cloud API
-	if wait {
-		fmt.Printf("Waiting %v for compose to finish\n", timeout)
-		aborted, info, resp, err := root.Client.ComposeWait(uuid, timeout, interval)
-		if err != nil {
-			return root.ExecutionError(cmd, "Wait Error: %s", err)
+			fmt.Printf("%s %s\n", info.ID, info.QueueStatus)
 		}
-		if resp != nil {
-			return root.ExecutionErrors(cmd, resp.Errors)
-		}
-		if aborted {
-			return root.ExecutionError(cmd, "Wait Error: timeout after %v", timeout)
-		}
-
-		fmt.Printf("%s %s\n",
-			info.ID,
-			info.QueueStatus,
-		)
 	}
 
 	return nil
