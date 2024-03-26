@@ -36,28 +36,36 @@ func init() {
 func waitForCompose(cmd *cobra.Command, args []string) error {
 	timeout, err := time.ParseDuration(timeoutStr)
 	if err != nil {
-		return root.ExecutionError(cmd, "Wait Error: timeout - %s", err)
+		return root.ExecutionError(cmd, "timeout - %s", err)
 	}
 	interval, err := time.ParseDuration(pollStr)
 	if err != nil {
-		return root.ExecutionError(cmd, "Wait Error: poll - %s", err)
+		return root.ExecutionError(cmd, "poll - %s", err)
+	}
+	fmt.Printf("Waiting %v for compose to finish\n", timeout)
+
+	// Try the UUID with the cloud API first
+	aborted, status, err := root.Cloud.ComposeWait(args[0], timeout, interval)
+	if aborted {
+		return root.ExecutionError(cmd, "timeout after %v", timeout)
+	}
+	if err == nil {
+		fmt.Printf("%s %s\n", args[0], status.Status)
+		return nil
 	}
 
+	// Not found with cloud API, try weldr API
 	aborted, info, resp, err := root.Client.ComposeWait(args[0], timeout, interval)
+	if aborted {
+		return root.ExecutionError(cmd, "timeout after %v", timeout)
+	}
 	if err != nil {
-		return root.ExecutionError(cmd, "Wait Error: %s", err)
+		return root.ExecutionError(cmd, "%s", err)
 	}
 	if resp != nil {
 		return root.ExecutionErrors(cmd, resp.Errors)
 	}
-	if aborted {
-		return root.ExecutionError(cmd, "Wait Error: timeout after %v", timeout)
-	}
-
-	fmt.Printf("%s %s\n",
-		info.ID,
-		info.QueueStatus,
-	)
+	fmt.Printf("%s %s\n", info.ID, info.QueueStatus)
 
 	return nil
 }
