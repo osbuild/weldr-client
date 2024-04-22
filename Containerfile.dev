@@ -1,0 +1,11 @@
+ARG OSBUILD_BASE_DISTRIBUTION=registry.fedoraproject.org/fedora:latest
+FROM $OSBUILD_BASE_DISTRIBUTION
+RUN dnf -y install make tar python3-dnf-plugins-core go-rpm-macros git rpm-build bash-completion dnf5-plugins
+
+RUN mkdir /source
+COPY . /source
+
+RUN cd /source && make builddep install
+
+RUN mkdir /data
+WORKDIR /data
