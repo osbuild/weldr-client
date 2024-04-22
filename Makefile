@@ -119,9 +119,32 @@ scratch-rpm: $(RPM_SPECFILE) archive
 build-in-podman: archive
 	podman build --security-opt seccomp=unconfined -t weldr-client:$(VERSION) -f Containerfile.test .
 
+CONTAINER_IMAGE_CLI ?= osbuild-cli_dev
+CONTAINERFILE_CLI ?= Containerfile.dev
+
+CONTAINER_EXECUTABLE ?= podman
+
+SRC_DEPS_DIRS := cmd weldr examples
+CLI_SRC_DEPS := $(shell find $(SRC_DEPS_DIRS) -name *.go -or -name *.toml)
+
+container_cli_built.info: $(CLI_SRC_DEPS) $(CONTAINERFILE_CLI)
+	$(CONTAINER_EXECUTABLE) build -t $(CONTAINER_IMAGE_CLI) -f $(CONTAINERFILE_CLI) --build-arg GOMODARGS="$(GOMODARGS)" --build-arg GCFLAGS="$(GCFLAGS)" .
+	echo "CLI last built on" > $@
+	date >> $@
+
+# build a container with the cli from full source
+.PHONY: container.dev
+container.dev: container_cli_built.info
+
 update-mods:
 	go get -u ./...
 	go mod vendor
 	$(MAKE) test
+
+clean:
+	rm -f weldr-client.spec
+	rm -f composer-cli
+	rm -f container_cli_built.info
+	rm -rf $(CURDIR)/rpmbuild
 
 .PHONY: build check test integration install srpm rpm weldr-client.spec update-mods build-in-podman

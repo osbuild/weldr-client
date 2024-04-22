@@ -1,2 +1,6 @@
-./composer-cli
+/composer-cli
 *swp
+weldr-client-*.tar.gz
+container_cli_built.info
+weldr-client.spec
+rpmbuild/
