@@ -80,7 +80,7 @@ $(RPM_TARBALL): archive sign
 	cp weldr-client-$(VERSION).tar.gz* gpg-$(GPGKEY).key rpmbuild/SOURCES/
 
 builddep: $(RPM_SPECFILE)
-	dnf builddep -y --spec -D 'with 1' $(RPM_SPECFILE)
+	dnf builddep -y -D 'with 1' $(RPM_SPECFILE)
 
 srpm: $(RPM_SPECFILE) $(RPM_TARBALL)
 	rpmbuild -bs \
