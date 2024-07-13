@@ -15,7 +15,6 @@ jobs:
       fail-fast: false
       matrix:
         go:
-          - 20
           - 21
           - 22
     runs-on: ubuntu-latest
@@ -34,7 +33,6 @@ jobs:
       fail-fast: false
       matrix:
         go:
-          - 20
           - 21
           - 22
     runs-on: ubuntu-latest
@@ -48,8 +46,8 @@ jobs:
       - name: Run unit tests on go 1.${{matrix.go}}.x
         run: make test
 
-      - name: Send coverage to codecov.io for go v1.19.x
-        if: matrix.go == 19
+      - name: Send coverage to codecov.io for go v1.21.x
+        if: matrix.go == 21
         run: bash <(curl -s https://codecov.io/bash)
 
   govulncheck:
