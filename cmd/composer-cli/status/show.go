@@ -49,5 +49,14 @@ func show(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	if root.Cloud.Exists() {
+		cloudStatus, err := root.Cloud.ServerStatus()
+		if err != nil {
+			return root.ExecutionError(cmd, "Show Error: %s", err)
+		}
+		fmt.Println("\nCloud API server status:")
+		fmt.Printf("    Name:      %s\n", cloudStatus.Title)
+		fmt.Printf("    Version:   %s\n", cloudStatus.Version)
+	}
 	return nil
 }
