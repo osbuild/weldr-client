@@ -14,7 +14,7 @@ upload images, and manage source repositories.
 * [Blueprint Format](#blueprint-format)
 * [Package Sources](#package-sources)
 
-# Edit a Blueprint
+## Edit a Blueprint
 
 Start out by listing the available blueprints using `composer-cli blueprints
 list`, pick one and save it to the local directory by running `composer-cli
@@ -30,7 +30,7 @@ See the [Blueprint Format](#blueprint-format) section for the details on how to
 create a blueprint.
 
 
-# Build an image
+## Build an image
 
 Build a `qcow2` disk image from this blueprint by running `composer-cli
 compose start http-server qcow2`. It will print a UUID that you can use to
@@ -43,7 +43,7 @@ You can optionally start an upload of the finished image, see
 [Image Uploads](#image-uploads) for more information.
 
 
-# Monitor the build status
+## Monitor the build status
 
 Monitor it using `composer-cli compose info UUID` where UUID is the UUID
 returned by the start command. This will show the status of the build. You can
@@ -53,7 +53,7 @@ compose log UUID`
 Once the build is in the `FINISHED` state you can download the image.
 
 
-# Download the image
+## Download the image
 
 Downloading the final image is done with `composer-cli compose image UUID` and
 it will save the qcow2 image as `UUID-disk.qcow2` which you can then use to
@@ -63,7 +63,7 @@ boot a VM like this:
 qemu-kvm --name test-image -m 1024 -hda ./UUID-disk.qcow2
 ```
 
-# Image Uploads
+## Image Uploads
 
 `composer-cli` can upload the images to a number of services, including AWS,
 Azure, and VMWare. The upload can be started when the build is finished by
@@ -73,13 +73,13 @@ passing the service's profile.toml to the `compose start` command. For example:
 composer-cli compose start http-server server aws.toml
 ```
 
-## providers.toml
+### providers.toml
 
 Each provider requires it's own set of details in order to upload to it, this
 usually involves authentication information. Each provider has its own list of
 requirements.
 
-### AWS
+#### AWS
 
 A `provider.toml` file for AWS looks like this:
 
@@ -104,7 +104,7 @@ converted to an AMI.  If the conversion is successful the s3 object will be
 deleted. If it fails, re-trying after correcting the problem will re-use the
 object if you have not deleted it in the meantime, speeding up the process.
 
-### Azure
+#### Azure
 
 For Azure the `provider.toml` looks like:
 
@@ -115,7 +115,7 @@ storageAccessKey = "key"
 container = "container"
 ```
 
-### VMWare
+#### VMWare
 
 The VMWare `provider.toml` uses this template:
 
@@ -129,7 +129,7 @@ cluster = "Cluster"
 datastore = "Datastore"
 ```
 
-# Build an image and upload results
+## Build an image and upload results
 
 If you have a profile named `test-uploads`:
 
@@ -156,7 +156,7 @@ composer-cli upload log <UPLOAD-UUID>
 The type of the image must match the type supported by the provider.
 
 
-# JSON Output
+## JSON Output
 
 `composer-cli` can output the JSON data returned by the `osbuild-composer` API,
 either for debugging or testing purposes. The return format is a JSON 'object'
@@ -205,7 +205,7 @@ NOTE: This output format changed in weldr-client v35.6, it used to be a stream o
 now a proper JSON list of objects, making it easier to parse.
 
 
-# Blueprint Format
+## Blueprint Format
 
 Blueprints are simple text files in [TOML](https://github.com/toml-lang/toml) format that describe
 which packages, and what versions, to install into the image. They can also define a limited set
@@ -235,7 +235,7 @@ doesn't match it will be used as is. eg. Uploading a blueprint with `version`
 set to `0.1.0` when the existing blueprint `version` is `0.0.1` will
 result in the new blueprint being stored as `version 0.1.0`.
 
-## [[packages]] and [[modules]]
+### [[packages]] and [[modules]]
 
 These entries describe the package names and matching version glob to be installed into the image.
 
@@ -260,7 +260,7 @@ name = "openssh-server"
 version = "8.*"
 ```
 
-## [[groups]]
+### [[groups]]
 
 The `groups` entries describe a group of packages to be installed into the image.  Package groups are
 defined in the repository metadata.  Each group has a descriptive name used primarily for display
@@ -283,7 +283,7 @@ name="anaconda-tools"
 no version number.
 
 
-## Customizations
+### Customizations
 
 The `[customizations]` section can be used to configure the hostname of the final image. eg.:
 
@@ -295,7 +295,7 @@ hostname = "baseimage"
 This is optional and may be left out to use the defaults.
 
 
-### [customizations.kernel]
+#### [customizations.kernel]
 
 This allows you to append arguments to the bootloader's kernel commandline. This will not have any
 effect on `tar` or `ext4-filesystem` images since they do not include a bootloader.
@@ -307,7 +307,7 @@ For example:
 append = "nosmt=force"
 ```
 
-### [[customizations.sshkey]]
+#### [[customizations.sshkey]]
 
 Set an existing user's ssh key in the final image:
 
@@ -327,7 +327,7 @@ The key will be added to the user's `authorized_keys` file.
 ---
 
 
-### [[customizations.user]]
+#### [[customizations.user]]
 
 Add a user to the image, and/or set their ssh key.
 All fields for this section are optional except for the `name`, here is a complete example:
@@ -356,7 +356,7 @@ an encrypted password. Otherwise it will be treated as a plain text password.
 ---
 
 
-### [[customizations.group]]
+#### [[customizations.group]]
 
 Add a new group to the image. `name` is required and `gid` is optional:
 
@@ -366,7 +366,7 @@ name = "widget"
 gid = 1130
 ```
 
-### [customizations.timezone]
+#### [customizations.timezone]
 
 Customizing the timezone and the NTP servers to use for the system:
 
@@ -386,7 +386,7 @@ cannot be overridden because they are required to boot in the selected environme
 timezone will be updated to the one selected in the blueprint.
 
 
-### [customizations.locale]
+#### [customizations.locale]
 
 Customize the locale settings for the system:
 
@@ -407,7 +407,7 @@ primary, and the others are added as secondary. One or the other of `languages`
 or `keyboard` must be included (or both) in the section.
 
 
-### [customizations.firewall]
+#### [customizations.firewall]
 
 By default the firewall blocks all access except for services that enable their ports explicitly,
 like `sshd`. This command can be used to open other ports or services. Ports are configured using
@@ -440,7 +440,7 @@ only want the default firewall setup this section can be omitted from the bluepr
 NOTE: Some compose types disable the firewall, this cannot be overridden by the blueprint.
 
 
-### [customizations.services]
+#### [customizations.services]
 
 This section can be used to control which services are enabled at boot time.
 Some image types already have services enabled or disabled in order for the
@@ -458,7 +458,7 @@ enabled = ["sshd", "cockpit.socket", "httpd"]
 disabled = ["postfix", "telnetd"]
 ```
 
-# Package Sources
+## Package Sources
 
 By default osbuild-composer uses the host's configured repositories.
 These are immutable system
