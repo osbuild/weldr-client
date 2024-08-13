@@ -8,7 +8,7 @@ upload images, and manage source repositories.
 * [Build an image](#build-an-image)
 * [Monitor the build status](#monitor-the-build-status)
 * [Download the image](#download-the-image)
-* [Image Uploads](#image-Uploads)
+* [Image Uploads](#image-uploads)
 * [Build an image and upload results](#build-an-image-and-upload-results)
 * [JSON Output](#json-output)
 * [Blueprint Format](#blueprint-format)
