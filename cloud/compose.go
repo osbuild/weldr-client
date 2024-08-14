@@ -25,9 +25,51 @@ type localUpload struct {
 	LocalSave bool `json:"local_save"`
 }
 
-// ListComposes returns details about the cloud composes on the server
-func (c Client) ListComposes() error {
+// ComposeInfo wraps cloudComposeInfo with the UUID
+type ComposeInfo struct {
+	ID string
+	cloudComposeInfo
+}
 
+// NewComposeInfo creates a ComposeInfo wrapper of cloudComposeInfo with the UUID
+func NewComposeInfo(id string, info cloudComposeInfo) ComposeInfo {
+	return ComposeInfo{
+		ID: id,
+		cloudComposeInfo: cloudComposeInfo{
+			Kind:   info.Kind,
+			Status: info.Status,
+		},
+	}
+}
+
+// ListComposes returns details about the cloud composes on the server
+func (c Client) ListComposes() ([]ComposeInfo, error) {
+	// TODO
+	// Handle errors
+	// What to return? It's going to be different than weldr
+
+	body, err := c.GetJSON("api/image-builder-composer/v2/composes")
+	if err != nil {
+		return nil, fmt.Errorf("%s - %s", ErrorToString(body), err)
+	}
+
+	var uuids []string
+	err = json.Unmarshal(body, &uuids)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing body of status: %s", err)
+	}
+
+	var infos []ComposeInfo
+	for _, id := range uuids {
+		i, err := c.ComposeInfo(id)
+		if err != nil {
+			return nil, err
+		}
+
+		infos = append(infos, i)
+	}
+
+	return infos, nil
 }
 
 // StartCompose uses a blueprint to start a compose
@@ -87,7 +129,7 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 }
 
 // ComposeInfo holds the information returned by /composes/UUID request
-type ComposeInfo struct {
+type cloudComposeInfo struct {
 	Kind   string
 	Status string
 	// TODO add image_status?
@@ -104,13 +146,13 @@ func (c Client) ComposeInfo(id string) (ComposeInfo, error) {
 		return ComposeInfo{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	var status ComposeInfo
-	err = json.Unmarshal(body, &status)
+	var info cloudComposeInfo
+	err = json.Unmarshal(body, &info)
 	if err != nil {
 		return ComposeInfo{}, fmt.Errorf("Error parsing body of status: %s", err)
 	}
 
-	return status, nil
+	return NewComposeInfo(id, info), nil
 }
 
 // ComposeWait waits for the specified compose to be done
