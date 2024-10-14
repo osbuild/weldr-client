@@ -4,6 +4,13 @@
 [osbuild-composer](https://www.osbuild.org) to manage blueprints, build and
 upload images, and manage source repositories.
 
+## Project
+
+* **Website**: https://www.osbuild.org
+* **Bug Tracker**: https://github.com/osbuild/weldr-client/issues
+* **Discussions**: https://github.com/orgs/osbuild/discussions
+* **Matrix**: #image-builder on [fedoraproject.org](https://matrix.to/#/#image-builder:fedoraproject.org)
+
 * [Edit a Blueprint](#edit-a-blueprint)
 * [Build an image](#build-an-image)
 * [Monitor the build status](#monitor-the-build-status)
