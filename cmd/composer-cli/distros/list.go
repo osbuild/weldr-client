@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
 var (
@@ -27,12 +28,24 @@ func init() {
 }
 
 func list(cmd *cobra.Command, args []string) error {
-	distros, resp, err := root.Client.ListDistros()
-	if err != nil {
-		return root.ExecutionError(cmd, "Types Error: %s", err)
-	}
-	if resp != nil && !resp.Status {
-		return root.ExecutionErrors(cmd, resp.Errors)
+	var distros []string
+	var err error
+	var resp *weldr.APIResponse
+
+	// First check the cloudapi, if available use that
+	if root.Cloud.Exists() {
+		distros, err = root.Cloud.ListDistros()
+		if err != nil {
+			return root.ExecutionError(cmd, "Show Error: %s", err)
+		}
+	} else {
+		distros, resp, err = root.Client.ListDistros()
+		if err != nil {
+			return root.ExecutionError(cmd, "Types Error: %s", err)
+		}
+		if resp != nil && !resp.Status {
+			return root.ExecutionErrors(cmd, resp.Errors)
+		}
 	}
 
 	for _, name := range distros {
