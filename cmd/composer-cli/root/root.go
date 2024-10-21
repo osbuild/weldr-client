@@ -23,6 +23,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 
+	"github.com/osbuild/weldr-client/v2/cloud"
 	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
@@ -73,16 +74,19 @@ var (
 	apiVersion  int
 	httpTimeout int
 	// JSONOutput is the state of --json cmdline flag
-	JSONOutput bool
-	logPath    string
-	socketPath string
-	testMode   int
+	JSONOutput      bool
+	logPath         string
+	weldrSocketPath string
+	cloudSocketPath string
+	testMode        int
 
 	// Version is set by the build
 	Version = "DEVEL"
 
 	// Client is the weldr.Client used to communicate with the server
 	Client weldr.Client
+	// Cloud is the cloud.Client used to communicate with the cloudapi service
+	Cloud cloud.Client
 
 	// Original Stdout
 	oldStdout *os.File
@@ -92,10 +96,11 @@ var (
 )
 
 func init() {
-	rootCmd.PersistentFlags().IntVarP(&apiVersion, "api", "a", 1, "Server API Version to use")
+	rootCmd.PersistentFlags().IntVarP(&apiVersion, "api", "a", 1, "WELDR Server API Version to use")
 	rootCmd.PersistentFlags().BoolVarP(&JSONOutput, "json", "j", false, "Output the raw JSON response instead of the normal output")
 	rootCmd.PersistentFlags().StringVar(&logPath, "log", "", "Path to optional logfile")
-	rootCmd.PersistentFlags().StringVarP(&socketPath, "socket", "s", "/run/weldr/api.socket", "Path to the server's socket file")
+	rootCmd.PersistentFlags().StringVarP(&weldrSocketPath, "socket", "s", "/run/weldr/api.socket", "Path to the WELDR API server's socket file")
+	rootCmd.PersistentFlags().StringVarP(&cloudSocketPath, "cloudsocket", "", "/run/cloudapi/api.socket", "Path to the cloudapi server's socket file")
 	rootCmd.PersistentFlags().IntVar(&testMode, "test", 0, "Pass test mode to compose. 1=Mock compose with fail. 2=Mock compose with finished.")
 	rootCmd.PersistentFlags().IntVar(&httpTimeout, "timeout", 240, "Timeout to use for server communication. Set to 0 for no timeout")
 
@@ -113,6 +118,12 @@ func Init() {
 }
 
 func initConfig() {
+	initWeldrClient()
+	initCloudClient()
+	setupJSONOutput()
+}
+
+func initWeldrClient() {
 	var ctx context.Context
 	var cancel context.CancelFunc
 	ctx = context.Background()
@@ -122,8 +133,20 @@ func initConfig() {
 		defer cancel()
 	}
 
-	Client = weldr.InitClientUnixSocket(ctx, apiVersion, socketPath)
-	setupJSONOutput()
+	Client = weldr.InitClientUnixSocket(ctx, apiVersion, weldrSocketPath)
+}
+
+func initCloudClient() {
+	var ctx context.Context
+	var cancel context.CancelFunc
+	ctx = context.Background()
+
+	if httpTimeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, time.Duration(httpTimeout)*time.Second)
+		defer cancel()
+	}
+
+	Cloud = cloud.InitClientUnixSocket(ctx, cloudSocketPath)
 }
 
 // setupJSONOutput configures the callback function and disables Stdout
@@ -144,12 +167,24 @@ func setupJSONOutput() {
 				jsonResponses = append(jsonResponses, r)
 			}
 		})
+		Cloud.SetRawCallback(func(method string, path string, status int, data []byte) {
+			// Convert the data to a generic data structure, then pretty-print it
+			var r jsonResponse
+			r.Method = method
+			r.Path = path
+			r.Status = status
+			err := json.Unmarshal(data, &r.Body)
+			if err == nil {
+				jsonResponses = append(jsonResponses, r)
+			}
+		})
 	} else {
 		if oldStdout != nil {
 			os.Stdout = oldStdout
 			oldStdout = nil
 		}
 		Client.SetRawCallback(func(string, string, int, []byte) {})
+		Cloud.SetRawCallback(func(string, string, int, []byte) {})
 	}
 }
 
