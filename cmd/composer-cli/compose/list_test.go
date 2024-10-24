@@ -278,3 +278,151 @@ func TestCmdComposeListJSON(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestComposeListCloud(t *testing.T) {
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		var json string
+		var sc int
+
+		if request.URL.Path == "/api/image-builder-composer/v2/composes/" {
+			// List of composes and their status
+			sc = 200
+			json = `[{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": {
+        "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	  },
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": {
+          "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	    },
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+},
+{
+    "href": "/api/image-builder-composer/v2/composes/fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7",
+    "id": "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7",
+    "kind": "ComposeStatus",
+    "image_status": {
+      "error": {
+        "details": "osbuild did not return any output",
+        "id": 10,
+        "reason": "osbuild build failed"
+      },
+      "status": "failure"
+    },
+    "status": "failure"
+}]`
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata" {
+			sc = 200
+			json = `{"href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata",
+      "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+      "kind": "ComposeMetadata",
+      "packages": [
+        {
+          "arch": "x86_64",
+          "epoch": "1",
+          "name": "NetworkManager",
+          "release": "1.fc40",
+          "sigmd5": "442ad6fb6f6efd73f4386757883c92e7",
+          "type": "rpm",
+          "version": "1.46.2"
+        }]
+ }`
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7/metadata" {
+			sc = 200
+			json = `{"href":"/api/image-builder-composer/v2/composes/fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7/metadata","id":"fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7","kind":"ComposeMetadata"}`
+		} else {
+			sc = 404
+			json = `{"kind":"ComposeError", "...":"unknown url"}`
+		}
+
+		return &http.Response{
+			StatusCode: sc,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// List all of the composes
+	cmd, out, err := root.ExecuteTest("compose", "list")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, listCmd)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7   FAILED")
+	assert.Contains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8   FINISHED")
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mcc.Req.Method)
+
+	// List running composes
+	cmd, out, err = root.ExecuteTest("compose", "list", "running")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, listCmd)
+	stdout, err = io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.NotContains(t, string(stdout), "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7   FAILED")
+	assert.NotContains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8   FINISHED")
+	stderr, err = io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mcc.Req.Method)
+
+	// List finished composes
+	cmd, out, err = root.ExecuteTest("compose", "list", "finished")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, listCmd)
+	stdout, err = io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8   FINISHED")
+	stderr, err = io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mcc.Req.Method)
+
+	// List failed composes
+	cmd, out, err = root.ExecuteTest("compose", "list", "failed")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, listCmd)
+	stdout, err = io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7   FAILED")
+	stderr, err = io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mcc.Req.Method)
+}
