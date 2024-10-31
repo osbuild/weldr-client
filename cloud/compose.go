@@ -86,3 +86,26 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 
 	return r.ID, nil
 }
+
+// ComposeInfo holds the information returned by /composes/UUID request
+type ComposeInfo struct {
+	ID     string
+	Kind   string
+	Status string
+}
+
+// ComposeInfo returns information on the status of a compose
+func (c Client) ComposeInfo(id string) (ComposeInfo, error) {
+	body, err := c.GetJSON("api/image-builder-composer/v2/composes/" + id)
+	if err != nil {
+		return ComposeInfo{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
+	}
+
+	var status ComposeInfo
+	err = json.Unmarshal(body, &status)
+	if err != nil {
+		return ComposeInfo{}, fmt.Errorf("Error parsing body of status: %s", err)
+	}
+
+	return status, nil
+}
