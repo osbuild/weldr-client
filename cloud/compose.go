@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
 // Just what we need from the cloudapi compose request
@@ -53,7 +55,7 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 		Blueprint:    blueprint,
 		ImageRequests: []imageRequest{
 			imageRequest{
-				Architecture:  HostArch(), // Build for the same arch as the host
+				Architecture:  common.HostArch(), // Build for the same arch as the host
 				ImageType:     composeType,
 				Size:          byteSize,
 				Repositories:  []noRepos{}, // Empty list of repos, use default for distro
