@@ -10,6 +10,7 @@ package weldr
 import (
 	"bytes"
 	"encoding/json"
+	"slices"
 	"testing"
 
 	"github.com/BurntSushi/toml"
@@ -24,8 +25,8 @@ func TestListBlueprints(t *testing.T) {
 	require.Nil(t, r)
 	require.NotNil(t, blueprints)
 	assert.GreaterOrEqual(t, len(blueprints), 2)
-	assert.True(t, IsStringInSlice(blueprints, "cli-test-bp-1"))
-	assert.True(t, IsStringInSlice(blueprints, "cli-test-bp-2"))
+	assert.True(t, slices.Contains(blueprints, "cli-test-bp-1"))
+	assert.True(t, slices.Contains(blueprints, "cli-test-bp-2"))
 }
 
 func TestGetBlueprintsTOML(t *testing.T) {
