@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"syscall"
 )
@@ -98,4 +99,18 @@ func CheckSocketError(socketPath string, reqError error) error {
 
 	// Doesn't look like a problem with the socket, return the request's error
 	return reqError
+}
+
+// HostArch returns the host architecture string
+// This differes from GOARCH becasuse the names used by osbuild-composer are not quite the
+// same as those used by Go
+func HostArch() string {
+	switch runtime.GOARCH {
+	case "amd64":
+		return "x86_64"
+	case "arm64":
+		return "aarch64"
+	default:
+		return runtime.GOARCH
+	}
 }
