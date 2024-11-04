@@ -7,13 +7,13 @@ package compose
 import (
 	"fmt"
 	"os"
+	"slices"
 	"sort"
 	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
-	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
 var (
@@ -60,7 +60,7 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 	w := tabwriter.NewWriter(os.Stdout, 5, 0, 3, ' ', 0)
 	fmt.Fprintln(w, "ID\tStatus\tBlueprint\tVersion\tType")
 	for i := range composes {
-		if len(filter) > 0 && !weldr.IsStringInSlice(filter, composes[i].Status) {
+		if len(filter) > 0 && !slices.Contains(filter, composes[i].Status) {
 			continue
 		}
 

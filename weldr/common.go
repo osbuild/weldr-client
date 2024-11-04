@@ -15,21 +15,15 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/user"
 	"path/filepath"
 	"sort"
-	"strings"
-	"syscall"
-)
 
-// HTTPClient make it easier to swap out the client socket for testing
-type HTTPClient interface {
-	Do(req *http.Request) (*http.Response, error)
-}
+	"github.com/osbuild/weldr-client/v2/internal/common"
+)
 
 // NewClient initializes the values of the weldr API client configuration
 // used to query the server.
-func NewClient(ctx context.Context, socket HTTPClient, apiVersion int, socketPath string) Client {
+func NewClient(ctx context.Context, socket common.HTTPClient, apiVersion int, socketPath string) Client {
 	// TODO
 	// - check for valid API versions
 	// - check for valid server path
@@ -61,7 +55,7 @@ func InitClientUnixSocket(ctx context.Context, apiVersion int, socketPath string
 // Client contains details about the API server connection as well as functions to interact with the server
 type Client struct {
 	ctx        context.Context
-	socket     HTTPClient
+	socket     common.HTTPClient
 	protocol   string // defaults to http
 	host       string // defaults to localhost
 	socketPath string
@@ -101,7 +95,7 @@ func (c Client) RawURL(route string) string {
 func (c Client) Request(method, route, body string, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, c.APIURL(route), bytes.NewReader([]byte(body)))
 	if err != nil {
-		return nil, checkSocketError(c.socketPath, err)
+		return nil, common.CheckSocketError(c.socketPath, err)
 	}
 
 	for h, v := range headers {
@@ -110,7 +104,7 @@ func (c Client) Request(method, route, body string, headers map[string]string) (
 
 	resp, err := c.socket.Do(req)
 	if err != nil {
-		return nil, checkSocketError(c.socketPath, err)
+		return nil, common.CheckSocketError(c.socketPath, err)
 	}
 
 	return resp, nil
@@ -128,7 +122,7 @@ func (c Client) Request(method, route, body string, headers map[string]string) (
 func (c Client) RequestRawURL(method, route, body string, headers map[string]string) (*http.Response, error) {
 	req, err := http.NewRequest(method, c.RawURL(route), bytes.NewReader([]byte(body)))
 	if err != nil {
-		return nil, checkSocketError(c.socketPath, err)
+		return nil, common.CheckSocketError(c.socketPath, err)
 	}
 
 	for h, v := range headers {
@@ -137,7 +131,7 @@ func (c Client) RequestRawURL(method, route, body string, headers map[string]str
 
 	resp, err := c.socket.Do(req)
 	if err != nil {
-		return nil, checkSocketError(c.socketPath, err)
+		return nil, common.CheckSocketError(c.socketPath, err)
 	}
 
 	return resp, nil
@@ -213,7 +207,7 @@ func (c Client) GetJSONAll(path string) ([]byte, *APIResponse, error) {
 // there are, and this value is then used in a second call to retrieve
 // all of them.
 func (c Client) GetJSONAllFnTotal(path string, fn func([]byte) (float64, error)) ([]byte, *APIResponse, error) {
-	body, api, err := c.GetRaw("GET", AppendQuery(path, "limit=0"))
+	body, api, err := c.GetRaw("GET", common.AppendQuery(path, "limit=0"))
 	if api != nil || err != nil {
 		return nil, api, err
 	}
@@ -223,7 +217,7 @@ func (c Client) GetJSONAllFnTotal(path string, fn func([]byte) (float64, error))
 		return nil, nil, err
 	}
 
-	return c.GetRaw("GET", AppendQuery(path, fmt.Sprintf("limit=%v", total)))
+	return c.GetRaw("GET", common.AppendQuery(path, fmt.Sprintf("limit=%v", total)))
 }
 
 // GetFile writes a to a temporary file and returns the path, content-disposition, and content-type
@@ -282,7 +276,7 @@ func (c Client) GetFilePath(route, path string) (fileName string, apiResponse *A
 	// Save to server provided filename under current directory
 	if len(path) == 0 {
 		// The fileName returned is safe to write to
-		fileName, err = GetContentFilename(resp.Header.Get("content-disposition"))
+		fileName, err = common.GetContentFilename(resp.Header.Get("content-disposition"))
 		if err != nil {
 			return
 		}
@@ -295,7 +289,7 @@ func (c Client) GetFilePath(route, path string) (fileName string, apiResponse *A
 		fi, err = os.Stat(path)
 		if err == nil {
 			if fi.IsDir() {
-				fileName, err = GetContentFilename(resp.Header.Get("content-disposition"))
+				fileName, err = common.GetContentFilename(resp.Header.Get("content-disposition"))
 				if err != nil {
 					return
 				}
@@ -430,92 +424,4 @@ func SortComposeStatusV0(composes []ComposeStatusV0) []ComposeStatusV0 {
 			}
 		})
 	return composes
-}
-
-// IsStringInSlice returns true if the string is present, false if not
-// slice must be sorted
-func IsStringInSlice(slice []string, s string) bool {
-	i := sort.SearchStrings(slice, s)
-	if i < len(slice) && slice[i] == s {
-		return true
-	}
-	return false
-}
-
-// GetContentFilename returns the filename from a content disposition header
-func GetContentFilename(header string) (string, error) {
-
-	// Get the filename from the content-disposition header
-	// Split it on ; and strip whitespace
-	parts := strings.Split(header, ";")
-	for _, p := range parts {
-		p = strings.TrimSpace(p)
-		fields := strings.Split(p, "=")
-		if len(fields) == 2 && fields[0] == "filename" {
-			filename := filepath.Base(strings.TrimSpace(fields[1]))
-
-			if filename == "/" || filename == "." || filename == ".." {
-				return "", fmt.Errorf("Invalid filename in header: %s", p)
-			}
-			return filename, nil
-		}
-	}
-	return "", fmt.Errorf("No filename in header: %s", header)
-}
-
-// MoveFile will copy the src file to the destination file and remove the source on success
-// It assumes the destination file doesn't exist, or if it does that it should be overwritten
-func MoveFile(src, dst string) error {
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	dstFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-	_, err = io.Copy(dstFile, srcFile)
-	if err == nil {
-		srcFile.Close()
-		os.Remove(src)
-	}
-	return err
-}
-
-// AppendQuery adds the query string to the current url using ? for the first and & for subsequent ones
-func AppendQuery(url, query string) string {
-	if strings.Contains(url, "?") {
-		return url + "&" + query
-	}
-
-	return url + "?" + query
-}
-
-func checkSocketError(socketPath string, reqError error) error {
-	if info, err := os.Stat(socketPath); err == nil {
-		var group string
-		if stat, ok := info.Sys().(*syscall.Stat_t); ok {
-			if GroupInfo, err := user.LookupGroupId(fmt.Sprintf("%d", stat.Gid)); err == nil {
-				group = GroupInfo.Name
-			}
-		}
-		// Check R_OK and W_OK access to the file
-		if syscall.Access(socketPath, 0x06) != nil {
-			if len(group) == 0 {
-				return fmt.Errorf("you do not have permission to access %s", socketPath)
-			}
-			return fmt.Errorf("you do not have permission to access %s.  Check to make sure that you are a member of the %s group", socketPath, group)
-
-		}
-	} else if os.IsNotExist(err) {
-		return fmt.Errorf("%s does not exist.\n  Check to make sure that osbuild-composer.socket is enabled and started. eg.\n  systemctl enable osbuild-composer.socket && systemctl start osbuild-composer.socket", socketPath)
-	} else {
-		return err
-	}
-
-	// Doesn't look like a problem with the socket, return the request's error
-	return reqError
 }
