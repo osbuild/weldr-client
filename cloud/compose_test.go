@@ -85,3 +85,45 @@ func TestStartComposeUpload(t *testing.T) {
 	assert.NotContains(t, string(body), "local_save")
 	assert.Contains(t, string(body), "AWS_SECRET_ACCESS_KEY")
 }
+
+func TestComposeInfo(t *testing.T) {
+	json := `{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": null,
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": null,
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+}`
+
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	info, err := tc.ComposeInfo("008fc5ad-adad-42ec-b412-7923733483a8")
+	require.Nil(t, err)
+	assert.Equal(t, "008fc5ad-adad-42ec-b412-7923733483a8", info.ID)
+	assert.Equal(t, "success", info.Status)
+	assert.Equal(t, "ComposeStatus", info.Kind)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8", mc.Req.URL.Path)
+}
