@@ -278,3 +278,67 @@ func TestComposeTypes(t *testing.T) {
 	_, err = tc.GetComposeTypes("distro-1", "arch-3")
 	require.Error(t, err)
 }
+
+func TestListComposes(t *testing.T) {
+	json := `[{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": {
+        "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	  },
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": {
+          "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	    },
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+},
+{
+    "href": "/api/image-builder-composer/v2/composes/fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7",
+    "id": "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7",
+    "kind": "ComposeStatus",
+    "image_status": {
+      "error": {
+        "details": "osbuild did not return any output",
+        "id": 10,
+        "reason": "osbuild build failed"
+      },
+      "status": "failure"
+    },
+    "status": "failure"
+}]`
+
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	composes, err := tc.ListComposes()
+	assert.Nil(t, err)
+	require.Equal(t, 2, len(composes))
+	assert.Equal(t, "008fc5ad-adad-42ec-b412-7923733483a8", composes[0].ID)
+	assert.Equal(t, "success", composes[0].Status)
+	assert.Equal(t, "ComposeStatus", composes[0].Kind)
+	assert.Equal(t, "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7", composes[1].ID)
+	assert.Equal(t, "failure", composes[1].Status)
+	assert.Equal(t, "ComposeStatus", composes[1].Kind)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/", mc.Req.URL.Path)
+}
