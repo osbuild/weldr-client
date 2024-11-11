@@ -30,10 +30,6 @@ func TestCmdComposeTypes(t *testing.T) {
             "enabled": true
         },
         {
-            "name": "openstack",
-            "enabled": true
-        },
-        {
             "name": "qcow2",
             "enabled": true
         },
@@ -65,7 +61,7 @@ func TestCmdComposeTypes(t *testing.T) {
 	assert.Equal(t, cmd, typesCmd)
 	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
-	assert.Contains(t, string(stdout), "openstack")
+	assert.Contains(t, string(stdout), "ami")
 	assert.Contains(t, string(stdout), "qcow2")
 	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
@@ -84,10 +80,6 @@ func TestCmdComposeTypesJSON(t *testing.T) {
         },
         {
             "name": "fedora-iot-commit",
-            "enabled": true
-        },
-        {
-            "name": "openstack",
             "enabled": true
         },
         {
@@ -123,7 +115,7 @@ func TestCmdComposeTypesJSON(t *testing.T) {
 	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.True(t, root.IsJSONList(stdout))
-	assert.Contains(t, string(stdout), "\"name\": \"openstack\"")
+	assert.Contains(t, string(stdout), "\"name\": \"ami\"")
 	assert.Contains(t, string(stdout), "\"name\": \"qcow2\"")
 	assert.Contains(t, string(stdout), "\"path\": \"/compose/types\"")
 	stderr, err := io.ReadAll(out.Stderr)

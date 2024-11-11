@@ -39,7 +39,7 @@ func TestGetComposeTypes(t *testing.T) {
 	require.Nil(t, r)
 	require.NotNil(t, types)
 	assert.GreaterOrEqual(t, len(types), 6)
-	assert.Contains(t, types, "openstack")
+	assert.Contains(t, types, "qcow2")
 }
 
 func TestGetComposeTypesDistro(t *testing.T) {
@@ -53,7 +53,7 @@ func TestGetComposeTypesDistro(t *testing.T) {
 	require.Nil(t, r)
 	require.NotNil(t, types)
 	assert.GreaterOrEqual(t, len(types), 6)
-	assert.Contains(t, types, "openstack")
+	assert.Contains(t, types, "qcow2")
 }
 
 func TestStartCompose(t *testing.T) {
