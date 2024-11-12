@@ -1,5 +1,5 @@
 DESTDIR ?= /
-VERSION ?= 35.13
+VERSION ?= 35.14
 TAG = v$(VERSION)
 PREVTAG := $(shell git tag --sort=-creatordate | head -n 2 | tail -n 1)
 COMMITS := $(shell git log --pretty=oneline --no-merges ${PREVTAG}..HEAD | wc -l)
