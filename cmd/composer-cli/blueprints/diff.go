@@ -43,24 +43,24 @@ func diff(cmd *cobra.Command, args []string) (rcErr error) {
 	if root.JSONOutput {
 		err := getBlueprintJSON(args[0], args[1])
 		if err != nil {
-			return root.ExecutionError(cmd, err.Error())
+			return root.ExecutionError(cmd, "%s", err.Error())
 		}
 
 		err = getBlueprintJSON(args[0], args[2])
 		if err != nil {
-			return root.ExecutionError(cmd, err.Error())
+			return root.ExecutionError(cmd, "%s", err.Error())
 		}
 		return nil
 	}
 
 	fromBlueprint, err := getBlueprint(args[0], args[1])
 	if err != nil {
-		return root.ExecutionError(cmd, err.Error())
+		return root.ExecutionError(cmd, "%s", err.Error())
 	}
 
 	toBlueprint, err := getBlueprint(args[0], args[2])
 	if err != nil {
-		return root.ExecutionError(cmd, err.Error())
+		return root.ExecutionError(cmd, "%s", err.Error())
 	}
 
 	// Everything after args[2] is passed to diff
@@ -86,7 +86,7 @@ func getBlueprint(name, commit string) (string, error) {
 			return "", err
 		}
 		if resp != nil && !resp.Status {
-			return "", fmt.Errorf(strings.Join(resp.AllErrors(), ", "))
+			return "", fmt.Errorf("%s", strings.Join(resp.AllErrors(), ", "))
 		}
 		if len(bps) == 0 {
 			return "", fmt.Errorf("no blueprints")
@@ -99,7 +99,7 @@ func getBlueprint(name, commit string) (string, error) {
 			return "", err
 		}
 		if len(resp) > 0 {
-			return "", fmt.Errorf(resp[0].String())
+			return "", fmt.Errorf("%s", resp[0].String())
 		}
 		if len(bps) < 1 {
 			return "", fmt.Errorf("no blueprints")
@@ -116,7 +116,7 @@ func getBlueprint(name, commit string) (string, error) {
 		return "", err
 	}
 	if resp != nil && !resp.Status {
-		return "", fmt.Errorf(strings.Join(resp.AllErrors(), ", "))
+		return "", fmt.Errorf("%s", strings.Join(resp.AllErrors(), ", "))
 	}
 	return bp, nil
 }
@@ -192,7 +192,7 @@ func getBlueprintJSON(name, commit string) error {
 			return err
 		}
 		if len(resp) > 0 {
-			return fmt.Errorf(resp[0].String())
+			return fmt.Errorf("%s", resp[0].String())
 		}
 		if len(bps) == 0 {
 			return fmt.Errorf("no blueprints")
@@ -205,7 +205,7 @@ func getBlueprintJSON(name, commit string) error {
 			return err
 		}
 		if len(resp) > 0 {
-			return fmt.Errorf(resp[0].String())
+			return fmt.Errorf("%s", resp[0].String())
 		}
 		if len(bps) < 1 {
 			return fmt.Errorf("no blueprints")
@@ -222,7 +222,7 @@ func getBlueprintJSON(name, commit string) error {
 		return err
 	}
 	if resp != nil && !resp.Status {
-		return fmt.Errorf(strings.Join(resp.AllErrors(), ", "))
+		return fmt.Errorf("%s", strings.Join(resp.AllErrors(), ", "))
 	}
 	return nil
 }
