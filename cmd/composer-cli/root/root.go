@@ -180,7 +180,7 @@ func ExecutionError(cmd *cobra.Command, format string, a ...interface{}) error {
 	}
 	cmd.SilenceErrors = true // cobra will not print errors returned from commands after this
 	cmd.SilenceUsage = true  // cobra will not print usage on errors after this
-	return fmt.Errorf(s)
+	return fmt.Errorf("%s", s)
 }
 
 // ExecutionErrors prints a list of errors to stderr, then calls ExecutionError
