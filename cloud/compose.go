@@ -172,3 +172,19 @@ func (c Client) GetComposeTypes(distro, arch string) ([]string, error) {
 
 	return common.SortedMapKeys(matrix[distro][arch]), nil
 }
+
+// ListComposes returns status of all of the cloud composes on the server
+func (c Client) ListComposes() ([]ComposeInfo, error) {
+	body, err := c.GetJSON("api/image-builder-composer/v2/composes/")
+	if err != nil {
+		return nil, fmt.Errorf("%s - %s", ErrorToString(body), err)
+	}
+
+	var status []ComposeInfo
+	err = json.Unmarshal(body, &status)
+	if err != nil {
+		return nil, fmt.Errorf("Error parsing body of status: %s", err)
+	}
+
+	return status, nil
+}
