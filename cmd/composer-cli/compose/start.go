@@ -7,8 +7,11 @@ package compose
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
@@ -56,44 +59,100 @@ func start(cmd *cobra.Command, args []string) error {
 		return root.ExecutionError(cmd, "Wait Error: poll - %s", err)
 	}
 
-	// 2 args is uploads
-	if len(args) == 2 {
-		uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
-	} else if len(args) == 4 {
-		uuid, resp, err = root.Client.StartComposeUpload(args[0], args[1], args[2], args[3], size)
-	}
-	if err != nil {
-		return root.ExecutionError(cmd, "Push TOML Error: %s", err)
-	}
-	if resp != nil {
-		// Response may be just warnings, just error, or both.
-		for _, w := range resp.Warnings {
-			fmt.Printf("Warning: %s\n", w)
-		}
-		if !resp.Status {
-			return root.ExecutionErrors(cmd, resp.Errors)
-		}
-	}
+	// Is the blueprint a local file? If so, try to use the cloud API for the compose
+	f, err := os.Open(args[0])
+	if err == nil {
+		defer f.Close()
 
-	fmt.Printf("Compose %s added to the queue\n", uuid)
+		if !root.Cloud.Exists() {
+			return root.ExecutionError(cmd, "Using a local blueprint requires server support. Check to make sure that the cloudapi socket is enabled.")
+		}
 
-	if wait {
-		fmt.Printf("Waiting %v for compose to finish\n", timeout)
-		aborted, info, resp, err := root.Client.ComposeWait(uuid, timeout, interval)
+		data, err := io.ReadAll(f)
 		if err != nil {
-			return root.ExecutionError(cmd, "Wait Error: %s", err)
+			return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
+		}
+		var blueprint interface{}
+		err = toml.Unmarshal([]byte(data), &blueprint)
+		if err != nil {
+			return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
+		}
+
+		// Start the cloud API compose
+		// 2 args is saved locally, 4 is uploaded to the specified service
+		if len(args) == 2 {
+			uuid, err = root.Cloud.StartCompose(blueprint, args[1], size)
+		} else if len(args) == 4 {
+			// Read the upload options from the file
+			f, err = os.Open(args[3])
+			if err != nil {
+				return root.ExecutionError(cmd, "reading %s - %s", args[3], err)
+			}
+			data, err = io.ReadAll(f)
+			if err != nil {
+				return root.ExecutionError(cmd, "reading %s - %s", args[3], err)
+			}
+			var uploadOptions interface{}
+			err = toml.Unmarshal([]byte(data), &uploadOptions)
+			if err != nil {
+				return root.ExecutionError(cmd, "reading %s - %s", args[3], err)
+			}
+
+			uuid, err = root.Cloud.StartComposeUpload(blueprint, args[1], args[2], uploadOptions, nil, size)
+		}
+		if err != nil {
+			return root.ExecutionError(cmd, "starting cloud API compose: %s", err)
+		}
+		fmt.Printf("Compose %s added to the queue\n", uuid)
+
+		if wait {
+			fmt.Printf("Waiting %v for compose to finish\n", timeout)
+			aborted, status, err := root.Cloud.ComposeWait(uuid, timeout, interval)
+			if err != nil {
+				return root.ExecutionError(cmd, "%s", err)
+			}
+			if aborted {
+				return root.ExecutionError(cmd, "timeout after %v", timeout)
+			}
+
+			fmt.Printf("%s %s\n", uuid, status.Status)
+		}
+	} else {
+		// 2 args is saved locally, 4 is uploaded to the specified service
+		if len(args) == 2 {
+			uuid, resp, err = root.Client.StartCompose(args[0], args[1], size)
+		} else if len(args) == 4 {
+			uuid, resp, err = root.Client.StartComposeUpload(args[0], args[1], args[2], args[3], size)
+		}
+		if err != nil {
+			return root.ExecutionError(cmd, "starting compose: %s", err)
 		}
 		if resp != nil {
-			return root.ExecutionErrors(cmd, resp.Errors)
+			// Response may be just warnings, just error, or both.
+			for _, w := range resp.Warnings {
+				fmt.Printf("Warning: %s\n", w)
+			}
+			if !resp.Status {
+				return root.ExecutionErrors(cmd, resp.Errors)
+			}
 		}
-		if aborted {
-			return root.ExecutionError(cmd, "Wait Error: timeout after %v", timeout)
-		}
+		fmt.Printf("Compose %s added to the queue\n", uuid)
 
-		fmt.Printf("%s %s\n",
-			info.ID,
-			info.QueueStatus,
-		)
+		if wait {
+			fmt.Printf("Waiting %v for compose to finish\n", timeout)
+			aborted, info, resp, err := root.Client.ComposeWait(uuid, timeout, interval)
+			if err != nil {
+				return root.ExecutionError(cmd, "Wait: %s", err)
+			}
+			if resp != nil {
+				return root.ExecutionErrors(cmd, resp.Errors)
+			}
+			if aborted {
+				return root.ExecutionError(cmd, "Wait: timeout after %v", timeout)
+			}
+
+			fmt.Printf("%s %s\n", info.ID, info.QueueStatus)
+		}
 	}
 
 	return nil

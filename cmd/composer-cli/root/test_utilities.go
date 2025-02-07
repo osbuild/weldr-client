@@ -15,14 +15,12 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/osbuild/weldr-client/v2/cloud"
 	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
 // CobraInitialized make sure that cobra.OnInitialize is only called once
 var cobraInitialized bool
-
-// mockClient is used to setup the http client for testing
-var mockClient weldr.MockClient
 
 // OutputCapture holds the details used for capturing output during testing
 type OutputCapture struct {
@@ -31,6 +29,10 @@ type OutputCapture struct {
 	originalOut *os.File
 	originalErr *os.File
 }
+
+// Used for testing
+var mockWeldrClient weldr.MockClient
+var mockCloudClient cloud.MockClient
 
 // NewOutputCapture returns an initialized struct with stdout and stderr redirected to files
 // The user needs to call .Rewind() before reading the output
@@ -94,6 +96,8 @@ func (c *OutputCapture) Rewind() error {
 // is executed and subcommands dispatched in the same way they are during normal
 // operation.
 func ExecuteTest(args ...string) (*cobra.Command, *OutputCapture, error) {
+	cobraInit()
+
 	// Reset the root flags
 	JSONOutput = false
 	testMode = 0
@@ -127,22 +131,39 @@ func ExecuteTest(args ...string) (*cobra.Command, *OutputCapture, error) {
 	return ranCmd, output, err
 }
 
-// SetupCmdTest initializes the weldr client with a Mock Client used to capture test details
-// Pass in a function to be run when the client queries the server. See weldr.
-func SetupCmdTest(f func(request *http.Request) (*http.Response, error)) *weldr.MockClient {
-	mockClient = weldr.MockClient{
-		DoFunc: f,
-	}
-
+// cobraInit is executed once to setup mock clients pointing to the variables
+func cobraInit() {
 	// Only call this once! It appends to the list of functions in cobra.initializers
 	if !cobraInitialized {
 		cobra.OnInitialize(func() {
-			Client = weldr.NewClient(context.Background(), &mockClient, 1, "")
+			// This function is called at the start of each command execution
+			Client = weldr.NewClient(context.Background(), &mockWeldrClient, 1, "")
+			Cloud = cloud.NewClient(context.Background(), &mockCloudClient, "")
+			Cloud.Test = mockCloudClient.Test
 			setupJSONOutput()
 		})
 		cobraInitialized = true
 	}
-	return &mockClient
+}
+
+// SetupCmdTest initializes the weldr client with a Mock Client used to capture test details
+// Pass in a function to be run when the client queries the server. See weldr test functions.
+func SetupCmdTest(f func(request *http.Request) (*http.Response, error)) *weldr.MockClient {
+	mockCloudClient.Test = false
+	mockWeldrClient = weldr.MockClient{
+		DoFunc: f,
+	}
+	return &mockWeldrClient
+}
+
+// SetupCloudCmdTest initializes the cloud client with a Mock Client used to capture test details
+// Pass in a function to be run when the client queries the server. See cloud test functions.
+func SetupCloudCmdTest(f func(request *http.Request) (*http.Response, error)) *cloud.MockClient {
+	mockCloudClient = cloud.MockClient{
+		DoFunc: f,
+		Test:   true,
+	}
+	return &mockCloudClient
 }
 
 // MakeTarBytes makes a simple tar file with a filename and some data in it
