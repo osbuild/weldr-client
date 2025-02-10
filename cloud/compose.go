@@ -45,7 +45,7 @@ func (c Client) StartCompose(blueprint interface{}, composeType string, size uin
 // The composeType must be one of the cloud API supported types
 func (c Client) StartComposeUpload(blueprint interface{}, composeType string, uploadName string, uploadOptions interface{}, uploadTargets interface{}, size uint) (string, error) {
 	byteSize := uint64(size) * 1024 * 1024
-	distro, err := GetHostDistroName()
+	distro, err := common.GetHostDistroName()
 	if err != nil {
 		return "", err
 	}

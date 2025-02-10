@@ -1,4 +1,4 @@
-package cloud
+package common
 
 // Copied from osbuild images pkg/distro/host.go to avoid adding a dependency on it
 
