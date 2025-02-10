@@ -230,3 +230,51 @@ func TestComposeWait(t *testing.T) {
 	assert.Equal(t, "success", info.Status)
 	assert.Equal(t, "ComposeStatus", info.Kind)
 }
+
+func TestComposeTypes(t *testing.T) {
+	json := `{
+  "distro-1": {
+    "arch-1": {
+	  "image-1-1-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-1-1-2": [{"name": "fedora"}, {"name": "updates"}]
+	},
+    "arch-2": {
+	  "image-1-2-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-1-2-2": [{"name": "fedora"}, {"name": "updates"}]
+	}
+  },
+  "distro-2": {
+    "arch-1": {
+	  "image-2-1-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-2-1-2": [{"name": "fedora"}, {"name": "updates"}]
+	},
+    "arch-2": {
+	  "image-2-2-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-2-2-2": [{"name": "fedora"}, {"name": "updates"}]
+	}
+  }
+}`
+
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	imageTypes, err := tc.GetComposeTypes("distro-1", "arch-1")
+	require.Nil(t, err)
+	require.Greater(t, len(imageTypes), 0)
+	assert.Equal(t, imageTypes, []string{"image-1-1-1", "image-1-1-2"})
+
+	// Unsupported distro
+	_, err = tc.GetComposeTypes("distro-3", "arch-1")
+	require.Error(t, err)
+
+	// Unsupported arch
+	_, err = tc.GetComposeTypes("distro-1", "arch-3")
+	require.Error(t, err)
+}
