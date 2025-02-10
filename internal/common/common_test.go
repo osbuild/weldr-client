@@ -81,3 +81,11 @@ func TestCheckSocket(t *testing.T) {
 	// NOTE: Cannot test permissons. root has access, and user cannot change them
 	// to something it isn't allowed to access.
 }
+
+func TestSortedMapKeys(t *testing.T) {
+
+	assert.Equal(t, SortedMapKeys(map[string]any{"quick": 1, "brown": 2, "fox": 3}), []string{"brown", "fox", "quick"})
+	assert.Equal(t, SortedMapKeys(map[string]any{"fox": 3}), []string{"fox"})
+	assert.Equal(t, SortedMapKeys(map[string]any{}), []string{})
+
+}
