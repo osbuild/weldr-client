@@ -1,4 +1,4 @@
-package cloud
+package common
 
 import (
 	"strings"
