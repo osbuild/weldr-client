@@ -7,10 +7,10 @@ package common
 import (
 	"fmt"
 	"io"
+	"mime"
 	"net/http"
 	"os"
 	"os/user"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -23,23 +23,18 @@ type HTTPClient interface {
 
 // GetContentFilename returns the filename from a content disposition header
 func GetContentFilename(header string) (string, error) {
-
-	// Get the filename from the content-disposition header
-	// Split it on ; and strip whitespace
-	parts := strings.Split(header, ";")
-	for _, p := range parts {
-		p = strings.TrimSpace(p)
-		fields := strings.Split(p, "=")
-		if len(fields) == 2 && fields[0] == "filename" {
-			filename := filepath.Base(strings.TrimSpace(fields[1]))
-
-			if filename == "/" || filename == "." || filename == ".." {
-				return "", fmt.Errorf("Invalid filename in header: %s", p)
-			}
-			return filename, nil
-		}
+	_, params, err := mime.ParseMediaType(header)
+	if err != nil {
+		return "", err
 	}
-	return "", fmt.Errorf("No filename in header: %s", header)
+	filename, ok := params["filename"]
+	if !ok {
+		return "", fmt.Errorf("No filename in header: %s", header)
+	}
+	if filename == "/" || filename == "." || filename == ".." {
+		return "", fmt.Errorf("Invalid filename in header: %s", header)
+	}
+	return filename, nil
 }
 
 // MoveFile will copy the src file to the destination file and remove the source on success

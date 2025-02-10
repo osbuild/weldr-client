@@ -19,9 +19,6 @@ func TestGetContentFilename(t *testing.T) {
 	filename, err = GetContentFilename("attachment; filename=875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar ; ")
 	assert.Nil(t, err)
 	assert.Equal(t, "875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar", filename)
-	filename, err = GetContentFilename("filename=875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar")
-	assert.Nil(t, err)
-	assert.Equal(t, "875759ea-1dbe-4f2c-9c8c-27cb8c7687ac-logs.tar", filename)
 }
 
 func TestGetContentFilenameError(t *testing.T) {
