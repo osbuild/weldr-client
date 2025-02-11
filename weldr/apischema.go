@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
 // APIErrorMsg is an individual API error with an ID and a message string
@@ -101,24 +103,6 @@ func (c Client) apiError(resp *http.Response) (*APIResponse, error) {
 	// Include the http status code
 	r.statusCode = resp.StatusCode
 	return r, nil
-}
-
-// PackageNEVRA contains the details about a package
-type PackageNEVRA struct {
-	Arch    string `json:"arch"`
-	Epoch   int    `json:"epoch"`
-	Name    string `json:"name"`
-	Version string `json:"version"`
-	Release string `json:"release"`
-}
-
-// String returns the package name, epoch, version and release as a string
-func (pkg PackageNEVRA) String() string {
-	if pkg.Epoch == 0 {
-		return fmt.Sprintf("%s-%s-%s.%s", pkg.Name, pkg.Version, pkg.Release, pkg.Arch)
-	}
-
-	return fmt.Sprintf("%s-%d:%s-%s.%s", pkg.Name, pkg.Epoch, pkg.Version, pkg.Release, pkg.Arch)
 }
 
 // StatusV0 is the response to /api/status from a v0+ server
@@ -246,7 +230,7 @@ type ComposeInfoV0 struct {
 	Blueprint infoBlueprint `json:"blueprint"` // blueprint parts that info cares about
 	Commit    string        `json:"commit"`    // empty for now
 	Deps      struct {
-		Packages []PackageNEVRA `json:"packages"`
+		Packages []common.PackageNEVRA `json:"packages"`
 	} `json:"deps"`
 	ComposeType string       `json:"compose_type"`
 	QueueStatus string       `json:"queue_status"`
