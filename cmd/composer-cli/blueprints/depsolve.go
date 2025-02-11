@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
 var (
@@ -29,27 +30,12 @@ func init() {
 	blueprintsCmd.AddCommand(depsolveCmd)
 }
 
-type pkg struct {
-	Name    string
-	Epoch   int
-	Version string
-	Release string
-	Arch    string
-}
-
-func (p pkg) String() string {
-	if p.Epoch == 0 {
-		return fmt.Sprintf("%s-%s-%s.%s", p.Name, p.Version, p.Release, p.Arch)
-	}
-	return fmt.Sprintf("%d:%s-%s-%s.%s", p.Epoch, p.Name, p.Version, p.Release, p.Arch)
-}
-
 type depsolvedBlueprint struct {
 	Blueprint struct {
 		Name    string
 		Version string
 	}
-	Dependencies []pkg
+	Dependencies []common.PackageNEVRA
 }
 
 func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
