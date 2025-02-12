@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -273,4 +274,73 @@ func TestCmdBlueprintsBadDepsolveJSON(t *testing.T) {
 	assert.Equal(t, "", string(stderr))
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/v1/blueprints/depsolve/cli-test-bp-1", mc.Req.URL.Path)
+}
+
+func TestCmdBlueprintsDepsolveLocalBP(t *testing.T) {
+	// Test the "blueprint depsolve" command with a local blueprint file
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+	"packages": [
+		{
+		  "arch": "x86_64",
+		  "checksum": "sha256:4e8d09770255a4945b86a8842282bda5c9e08717d67c1e0115d8804653535c86",
+		  "name": "tmux",
+		  "release": "2.fc41",
+		  "type": "rpm",
+		  "version": "3.5a"
+		},
+		{
+		  "arch": "x86_64",
+		  "checksum": "sha256:05486c33ff403f74fd3242e878900decf743ecafe809f5a65b95f16c9cd83165",
+		  "epoch": "2",
+		  "name": "vim-enhanced",
+		  "release": "1.fc41",
+		  "type": "rpm",
+		  "version": "9.1.1081"
+		}
+	]
+}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Need a temporary test file
+	tmpBP, err := os.CreateTemp("", "test-bp-p*.toml")
+	require.Nil(t, err)
+	defer os.Remove(tmpBP.Name())
+
+	_, err = tmpBP.Write([]byte(`name = "test bp"
+version = "1.1.0"
+[[packages]]
+name = "tmux"
+version = "3.5a"
+`))
+	require.Nil(t, err)
+
+	// Start a depsolve
+	cmd, out, err := root.ExecuteTest("blueprints", "depsolve", tmpBP.Name())
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, depsolveCmd)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "blueprint: test bp v1.1.0")
+	assert.Contains(t, string(stdout), "vim-enhanced-2:9.1.1081-1.fc41.x86_64")
+	assert.Contains(t, string(stdout), "tmux-3.5a-2.fc41.x86_64")
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mcc.Req.Method)
+	sentBody, err := io.ReadAll(mcc.Req.Body)
+	mcc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Contains(t, string(sentBody), `"blueprint":{"name":"test bp","packages":[{"name":"tmux","version":"3.5a"}],"version":"1.1.0"}`)
+	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/image-builder-composer/v2/depsolve/blueprint", mcc.Req.URL.Path)
 }
