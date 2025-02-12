@@ -5,6 +5,7 @@
 package weldr
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -321,4 +322,29 @@ func (p ProjectSpecV0) String() string {
 	}
 
 	return fmt.Sprintf("%s-%d:%s-%s.%s", p.Name, p.Epoch, p.Version, p.Release, p.Arch)
+}
+
+// DepsolveBlueprintResponseV0 holds the details from a depsolve response
+// The Blueprint only contains the fields needed and ignores the rest
+type DepsolveBlueprintResponseV0 struct {
+	Blueprint struct {
+		Name    string
+		Version string
+	}
+	Dependencies []common.PackageNEVRA
+}
+
+func ParseDepsolveResponse(blueprints []interface{}) ([]DepsolveBlueprintResponseV0, error) {
+	// Encode it using json
+	data := new(bytes.Buffer)
+	if err := json.NewEncoder(data).Encode(blueprints); err != nil {
+		return nil, err
+	}
+
+	// Decode the parts we care about
+	var response []DepsolveBlueprintResponseV0
+	if err := json.Unmarshal(data.Bytes(), &response); err != nil {
+		return nil, err
+	}
+	return response, nil
 }
