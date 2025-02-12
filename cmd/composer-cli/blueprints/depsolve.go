@@ -5,15 +5,12 @@
 package blueprints
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
-	"github.com/osbuild/weldr-client/v2/internal/common"
+	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
 var (
@@ -30,17 +27,9 @@ func init() {
 	blueprintsCmd.AddCommand(depsolveCmd)
 }
 
-type depsolvedBlueprint struct {
-	Blueprint struct {
-		Name    string
-		Version string
-	}
-	Dependencies []common.PackageNEVRA
-}
-
 func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
 	names := root.GetCommaArgs(args)
-	bps, errors, err := root.Client.DepsolveBlueprints(names)
+	response, errors, err := root.Client.DepsolveBlueprints(names)
 	if err != nil {
 		return root.ExecutionError(cmd, "Depsolve Error: %s", err)
 	}
@@ -48,25 +37,14 @@ func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
 		rcErr = root.ExecutionErrors(cmd, errors)
 	}
 
+	bps, err := weldr.ParseDepsolveResponse(response)
+	if err != nil {
+		return root.ExecutionError(cmd, "Depsolve Error: %s", err)
+	}
+
 	for _, bp := range bps {
-		// Encode it using json
-		data := new(bytes.Buffer)
-		if err := json.NewEncoder(data).Encode(bp); err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: converting depsolved blueprint: %s\n", err)
-			rcErr = root.ExecutionError(cmd, "")
-			continue
-		}
-
-		// Decode the parts we care about
-		var parts depsolvedBlueprint
-		if err = json.Unmarshal(data.Bytes(), &parts); err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: decoding depsolved blueprint: %s\n", err)
-			rcErr = root.ExecutionError(cmd, "")
-			continue
-		}
-
-		fmt.Printf("blueprint: %s v%s\n", parts.Blueprint.Name, parts.Blueprint.Version)
-		for _, d := range parts.Dependencies {
+		fmt.Printf("blueprint: %s v%s\n", bp.Blueprint.Name, bp.Blueprint.Version)
+		for _, d := range bp.Dependencies {
 			fmt.Printf("    %s\n", d)
 		}
 	}
