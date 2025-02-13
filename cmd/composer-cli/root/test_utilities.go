@@ -138,8 +138,7 @@ func cobraInit() {
 		cobra.OnInitialize(func() {
 			// This function is called at the start of each command execution
 			Client = weldr.NewClient(context.Background(), &mockWeldrClient, 1, "")
-			Cloud = cloud.NewClient(context.Background(), &mockCloudClient, "")
-			Cloud.Test = mockCloudClient.Test
+			Cloud = cloud.NewTestClient(context.Background(), &mockCloudClient, "")
 			setupJSONOutput()
 		})
 		cobraInitialized = true
@@ -149,7 +148,7 @@ func cobraInit() {
 // SetupCmdTest initializes the weldr client with a Mock Client used to capture test details
 // Pass in a function to be run when the client queries the server. See weldr test functions.
 func SetupCmdTest(f func(request *http.Request) (*http.Response, error)) *weldr.MockClient {
-	mockCloudClient.Test = false
+	mockCloudClient.TestOff()
 	mockWeldrClient = weldr.MockClient{
 		DoFunc: f,
 	}
@@ -157,12 +156,12 @@ func SetupCmdTest(f func(request *http.Request) (*http.Response, error)) *weldr.
 }
 
 // SetupCloudCmdTest initializes the cloud client with a Mock Client used to capture test details
-// Pass in a function to be run when the client queries the server. See cloud test functions.
+// Pass in a function to be run when the client queries the server. Set cloud test functions.
 func SetupCloudCmdTest(f func(request *http.Request) (*http.Response, error)) *cloud.MockClient {
 	mockCloudClient = cloud.MockClient{
 		DoFunc: f,
-		Test:   true,
 	}
+	mockCloudClient.TestOn()
 	return &mockCloudClient
 }
 
