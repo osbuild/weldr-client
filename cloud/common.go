@@ -41,6 +41,14 @@ func NewClient(ctx context.Context, socket HTTPClient, socketPath string) Client
 	}
 }
 
+// NewTestClient returns the initialized client with test value set
+// from the mock client passed into it.
+func NewTestClient(ctx context.Context, mock *MockClient, socketPath string) Client {
+	client := NewClient(ctx, mock, socketPath)
+	client.test = mock.test
+	return client
+}
+
 // InitClientUnixSocket configures the client to use a unix domain socket
 // This configures the cloud.Client with the socket path
 // It must be called before using any of the cloud.Client functions.
@@ -64,7 +72,7 @@ type Client struct {
 	host       string // defaults to localhost
 	socketPath string
 	rawFunc    func(string, string, int, []byte) // Pass the raw json data to a user function
-	Test       bool                              // Used to fake the presense of the socket for testing
+	test       bool                              // Used to fake the presense of the socket for testing
 }
 
 // SetRawCallback sets a function that will be called with the server response
@@ -233,7 +241,7 @@ func AppendQuery(url, query string) string {
 }
 
 func (c Client) Exists() bool {
-	if c.Test {
+	if c.test {
 		return true
 	}
 	return checkSocketError(c.socketPath, nil) == nil

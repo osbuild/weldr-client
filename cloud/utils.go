@@ -58,7 +58,7 @@ func TearDownTemporaryRepository(dir string) error {
 type MockClient struct {
 	DoFunc func(req *http.Request) (*http.Response, error)
 	Req    http.Request
-	Test   bool
+	test   bool
 }
 
 // Do saves the request in m.Req and runs the function set in m.DoFunc
@@ -66,4 +66,14 @@ type MockClient struct {
 func (m *MockClient) Do(req *http.Request) (*http.Response, error) {
 	m.Req = *req
 	return m.DoFunc(req)
+}
+
+// TestOff turns off the test flag used to fake the presense of the socket file
+func (m *MockClient) TestOff() {
+	m.test = false
+}
+
+// TestOn turns on the test flag used to fake the presense of the socket file
+func (m *MockClient) TestOn() {
+	m.test = true
 }
