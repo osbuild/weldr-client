@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"time"
 
@@ -117,6 +118,9 @@ func start(cmd *cobra.Command, args []string) error {
 
 			fmt.Printf("%s %s\n", uuid, status.Status)
 		}
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		// File exists, but there was an error opening it
+		return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
 	} else {
 		// 2 args is saved locally, 4 is uploaded to the specified service
 		if len(args) == 2 {
