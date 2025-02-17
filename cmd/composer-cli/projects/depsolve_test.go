@@ -379,3 +379,51 @@ func TestCmdProjectsDepsolveUnknownJSON(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestCmdProjectsDepsolveCloud(t *testing.T) {
+	// Test the "blueprint depsolve" command with a local blueprint file
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+		"packages": [
+		 {
+			"arch": "noarch",
+			"checksum": "sha256:930722d893b77edf204d16d9f9c6403ecefe339036b699bc445ad9ab87e0e323",
+			"name": "basesystem",
+			"release": "21.fc41",
+			"type": "rpm",
+			"version": "11"
+		},
+		{
+			"arch": "x86_64",
+			"checksum": "sha256:b10f7b9039bd3079d27e9883cd412f66acdac73b530b336c8c33e105a26391e8",
+			"name": "bash",
+			"release": "1.fc41",
+			"type": "rpm",
+			"version": "5.2.32"
+		}]
+	}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	cmd, out, err := root.ExecuteTest("projects", "depsolve", "bash")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, depsolveCmd)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.NotContains(t, string(stdout), "{")
+	assert.Contains(t, string(stdout), "basesystem-11-21.fc41.noarch")
+	assert.Contains(t, string(stdout), "bash-5.2.32-1.fc41.x86_64")
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mcc.Req.Method)
+}
