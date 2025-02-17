@@ -413,3 +413,51 @@ func TestCmdProjectsInfoBadDistroJSON(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestCmdProjectsInfoCloud(t *testing.T) {
+	// Test the "projects info tmux" command
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		j := `{
+    "packages": [
+		{
+		  "arch": "x86_64",
+		  "buildtime": "2024-10-10T00:19:06Z",
+		  "description": "tmux description",
+		  "license": "ISC AND BSD-2-Clause AND BSD-3-Clause AND SSH-short AND LicenseRef-Fedora-Public-Domain",
+		  "name": "tmux",
+		  "release": "2.fc41",
+		  "summary": "A terminal multiplexer",
+		  "url": "https://tmux.github.io/",
+		  "version": "3.5a"
+		}
+	]}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(j))),
+		}, nil
+	})
+
+	cmd, out, err := root.ExecuteTest("projects", "info", "tmux")
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, infoCmd)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "Name: tmux")
+	assert.Contains(t, string(stdout), "Summary: A terminal multiplexer")
+
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mcc.Req.Method)
+	sentBody, err := io.ReadAll(mcc.Req.Body)
+	mcc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Contains(t, string(sentBody), `{"distribution":"homer","architecture":"x86_64","packages":["tmux"]}`)
+	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/image-builder-composer/v2/search/packages", mcc.Req.URL.Path)
+}
