@@ -305,3 +305,65 @@ func TestCmdProjectsListBadDistro(t *testing.T) {
 	assert.Contains(t, string(stderr), "DistroError: Invalid distro: homer")
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestCmdProjectsListCloud(t *testing.T) {
+	// Test the "projects list" command (with a short list of packages)
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		j := `{
+    "packages": [
+		{
+		  "arch": "x86_64",
+		  "buildtime": "2024-10-10T00:19:06Z",
+		  "description": "tmux description",
+		  "license": "ISC AND BSD-2-Clause AND BSD-3-Clause AND SSH-short AND LicenseRef-Fedora-Public-Domain",
+		  "name": "tmux",
+		  "release": "2.fc41",
+		  "summary": "A terminal multiplexer",
+		  "url": "https://tmux.github.io/",
+		  "version": "3.5a"
+		},
+		{
+		  "arch": "x86_64",
+		  "buildtime": "2025-02-07T11:18:08Z",
+		  "description": "vim description",
+		  "epoch": "2",
+		  "license": "Vim AND LGPL-2.1-or-later AND MIT AND GPL-1.0-only AND (GPL-2.0-only OR Vim) AND Apache-2.0 AND BSD-2-Clause AND BSD-3-Clause AND GPL-2.0-or-later AND GPL-3.0-or-later AND OPUBL-1.0 AND Apache-2.0 WITH Swift-exception",
+		  "name": "vim-enhanced",
+		  "release": "1.fc41",
+		  "summary": "A version of the VIM editor which includes recent enhancements",
+		  "url": "http://www.vim.org/",
+		  "version": "9.1.1081"
+		}
+	]}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(j))),
+		}, nil
+	})
+
+	cmd, out, err := root.ExecuteTest("projects", "list")
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, listCmd)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "Name: tmux")
+	assert.Contains(t, string(stdout), "Summary: A terminal multiplexer")
+	assert.Contains(t, string(stdout), "Name: vim-enhanced")
+	assert.Contains(t, string(stdout), "Description: vim description")
+
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "POST", mcc.Req.Method)
+	sentBody, err := io.ReadAll(mcc.Req.Body)
+	mcc.Req.Body.Close()
+	require.Nil(t, err)
+	assert.Contains(t, string(sentBody), `{"distribution":"homer","architecture":"x86_64","packages":["*"]}`)
+	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
+	assert.Equal(t, "/api/image-builder-composer/v2/search/packages", mcc.Req.URL.Path)
+}
