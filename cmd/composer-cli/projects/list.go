@@ -22,6 +22,7 @@ var (
 		RunE: list,
 	}
 	distro string
+	arch   string
 )
 
 func init() {
