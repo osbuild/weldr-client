@@ -93,7 +93,7 @@ aws_secret_key = "AWS Secret Key"
 
 // parentid with no url should result in an error
 func TestStartOSTreeParentNoURL(t *testing.T) {
-	_, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "", 0, 2)
+	_, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "iot-qcow2-image", "refid", "parent", "", 0, 2)
 	require.Nil(t, err)
 	require.NotNil(t, r)
 	assert.False(t, r.Status)
@@ -101,7 +101,7 @@ func TestStartOSTreeParentNoURL(t *testing.T) {
 }
 
 func TestStartOSTreeComposeUrl(t *testing.T) {
-	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "", "http://weldr.io", 0, 2)
+	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "iot-qcow2-image", "refid", "", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
@@ -109,7 +109,7 @@ func TestStartOSTreeComposeUrl(t *testing.T) {
 
 func TestStartOSTreeParentAndUrl(t *testing.T) {
 	// Sending both the parent url and the parent id is now allowed
-	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "qcow2", "refid", "parent", "http://weldr.io", 0, 2)
+	id, r, err := testState.client.StartOSTreeComposeTest("cli-test-bp-1", "iot-qcow2-image", "refid", "parent", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
@@ -130,7 +130,7 @@ aws_secret_key = "AWS Secret Key"
 `))
 	require.Nil(t, err)
 
-	id, r, err := testState.client.StartOSTreeComposeTestUpload("cli-test-bp-1", "qcow2", "test-image", tmpProfile.Name(), "refid", "", "http://weldr.io", 0, 2)
+	id, r, err := testState.client.StartOSTreeComposeTestUpload("cli-test-bp-1", "iot-qcow2-image", "test-image", tmpProfile.Name(), "refid", "", "http://weldr.io", 0, 2)
 	require.Nil(t, err)
 	require.Nil(t, r)
 	assert.Greater(t, len(id), 0)
