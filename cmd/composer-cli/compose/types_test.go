@@ -285,3 +285,58 @@ func TestCmdComposeTypesBadDistroJSON(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "GET", mc.Req.Method)
 }
+
+func TestCmdComposeTypesCloud(t *testing.T) {
+	// Test the "compose types" command using the cloudapi
+	mc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		json := `{
+  "distro-1": {
+    "arch-1": {
+	  "image-1-1-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-1-1-2": [{"name": "fedora"}, {"name": "updates"}]
+	},
+    "arch-2": {
+	  "image-1-2-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-1-2-2": [{"name": "fedora"}, {"name": "updates"}]
+	}
+  },
+  "distro-2": {
+    "arch-1": {
+	  "image-2-1-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-2-1-2": [{"name": "fedora"}, {"name": "updates"}]
+	},
+    "arch-2": {
+	  "image-2-2-1": [{"name": "fedora"}, {"name": "updates"}],
+	  "image-2-2-2": [{"name": "fedora"}, {"name": "updates"}]
+	}
+  }
+}`
+
+		return &http.Response{
+			StatusCode: 200,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Clear the module's cmdline variables
+	arch = ""
+	distro = ""
+
+	// Get the image types
+	cmd, out, err := root.ExecuteTest("compose", "types", "--distro", "distro-2", "--arch", "arch-1")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, typesCmd)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "image-2-1-1")
+	assert.Contains(t, string(stdout), "image-2-1-2")
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mc.Req.Method)
+}

@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/user"
 	"runtime"
+	"sort"
 	"strings"
 	"syscall"
 )
@@ -108,4 +109,16 @@ func HostArch() string {
 	default:
 		return runtime.GOARCH
 	}
+}
+
+// SortedMapKeys returns a sorted list of the map keys
+// Only works on maps with string as the key
+func SortedMapKeys(m map[string]any) []string {
+	keys := []string{}
+	for k := range m {
+		keys = append(keys, k)
+	}
+
+	sort.Strings(keys)
+	return keys
 }

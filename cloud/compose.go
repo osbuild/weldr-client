@@ -143,3 +143,32 @@ func (c Client) ComposeWait(id string, timeout, interval time.Duration) (aborted
 		}
 	}
 }
+
+// ComposeTypes returns the list of supported image types
+// Requires a distribution name and an arch
+// It actually uses
+func (c Client) GetComposeTypes(distro, arch string) ([]string, error) {
+	// Get the distribution/arch/image-type matrix from the server
+	body, err := c.GetJSON("api/image-builder-composer/v2/distributions")
+	if err != nil {
+		return nil, fmt.Errorf("%s - %s", ErrorToString(body), err)
+	}
+
+	// The response is a map of: distro -> arch -> [image-type...]
+	var matrix map[string]map[string]map[string]interface{}
+	err = json.Unmarshal(body, &matrix)
+	if err != nil {
+		return nil, err
+	}
+
+	// If the distro isn't in the map, return an error
+	if _, ok := matrix[distro]; !ok {
+		return nil, fmt.Errorf("%s is not a supported distribution", distro)
+	}
+	// If the arch isn't in the map, return an error
+	if _, ok := matrix[distro][arch]; !ok {
+		return nil, fmt.Errorf("%s is not a supported architecture", arch)
+	}
+
+	return common.SortedMapKeys(matrix[distro][arch]), nil
+}
