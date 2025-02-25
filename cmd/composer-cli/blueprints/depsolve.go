@@ -5,86 +5,112 @@
 package blueprints
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
+	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/v2/internal/common"
+	"github.com/osbuild/weldr-client/v2/weldr"
 )
 
 var (
 	depsolveCmd = &cobra.Command{
-		Use:     "depsolve BLUEPRINT,...",
-		Short:   "Depsolve the blueprints and output the package lists",
-		Example: "  composer-cli blueprints depsolve tmux-image",
-		RunE:    depsolve,
-		Args:    cobra.MinimumNArgs(1),
+		Use:   "depsolve BLUEPRINT,...",
+		Short: "Depsolve the blueprints and output the package lists",
+		Example: `  composer-cli blueprints depsolve tmux-image
+  composer-cli blueprints depsolve ./tmux-image.toml
+  composer-cli blueprints depsolve --distro fedora-36 ./tmux-image.toml
+  composer-cli blueprints depsolve --distro fedora-36 --arch aarch64 ./tmux-image.toml`,
+		RunE: depsolve,
+		Args: cobra.MinimumNArgs(1),
 	}
+	distro string
+	arch   string
 )
 
 func init() {
+	depsolveCmd.Flags().StringVarP(&distro, "distro", "", "", "Distribution")
+	depsolveCmd.Flags().StringVarP(&arch, "arch", "", "", "Architecture")
 	blueprintsCmd.AddCommand(depsolveCmd)
 }
 
-type pkg struct {
-	Name    string
-	Epoch   int
-	Version string
-	Release string
-	Arch    string
-}
-
-func (p pkg) String() string {
-	if p.Epoch == 0 {
-		return fmt.Sprintf("%s-%s-%s.%s", p.Name, p.Version, p.Release, p.Arch)
-	}
-	return fmt.Sprintf("%d:%s-%s-%s.%s", p.Epoch, p.Name, p.Version, p.Release, p.Arch)
-}
-
-type depsolvedBlueprint struct {
-	Blueprint struct {
-		Name    string
-		Version string
-	}
-	Dependencies []pkg
-}
-
 func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
-	names := root.GetCommaArgs(args)
-	bps, errors, err := root.Client.DepsolveBlueprints(names)
-	if err != nil {
-		return root.ExecutionError(cmd, "Depsolve Error: %s", err)
-	}
-	if len(errors) > 0 {
-		rcErr = root.ExecutionErrors(cmd, errors)
-	}
+	// Is the blueprint a local file? If so, try to use the cloud API for the depsolve
+	f, err := os.Open(args[0])
+	if err == nil {
+		defer f.Close()
 
-	for _, bp := range bps {
-		// Encode it using json
-		data := new(bytes.Buffer)
-		if err := json.NewEncoder(data).Encode(bp); err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: converting depsolved blueprint: %s\n", err)
-			rcErr = root.ExecutionError(cmd, "")
-			continue
+		if !root.Cloud.Exists() {
+			return root.ExecutionError(cmd, "Using a local blueprint requires server support. Check to make sure that the cloudapi socket is enabled.")
 		}
 
-		// Decode the parts we care about
-		var parts depsolvedBlueprint
-		if err = json.Unmarshal(data.Bytes(), &parts); err != nil {
-			fmt.Fprintf(os.Stderr, "ERROR: decoding depsolved blueprint: %s\n", err)
-			rcErr = root.ExecutionError(cmd, "")
-			continue
+		if len(distro) == 0 {
+			distro, err = common.GetHostDistroName()
+			if err != nil {
+				return root.ExecutionError(cmd, "Error determining host distribution: %s", err)
+			}
 		}
 
-		fmt.Printf("blueprint: %s v%s\n", parts.Blueprint.Name, parts.Blueprint.Version)
-		for _, d := range parts.Dependencies {
+		if len(arch) == 0 {
+			arch = common.HostArch()
+		}
+
+		data, err := io.ReadAll(f)
+		if err != nil {
+			return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
+		}
+		var blueprint interface{}
+		err = toml.Unmarshal([]byte(data), &blueprint)
+		if err != nil {
+			return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
+		}
+
+		deps, err := root.Cloud.DepsolveBlueprint(blueprint, distro, arch)
+		if err != nil {
+			return root.ExecutionError(cmd, "Depsolve Error: %s", err)
+		}
+
+		// Get the blueprint name and version
+		var bpNameVersion struct {
+			Name    string
+			Version string
+		}
+		err = toml.Unmarshal([]byte(data), &bpNameVersion)
+		if err != nil {
+			return root.ExecutionError(cmd, "reading %s - %s", args[0], err)
+		}
+
+		fmt.Printf("blueprint: %s v%s\n", bpNameVersion.Name, bpNameVersion.Version)
+		for _, d := range deps {
 			fmt.Printf("    %s\n", d)
 		}
-	}
+	} else {
 
+		names := root.GetCommaArgs(args)
+		response, errors, err := root.Client.DepsolveBlueprints(names)
+		if err != nil {
+			return root.ExecutionError(cmd, "Depsolve Error: %s", err)
+		}
+		if len(errors) > 0 {
+			rcErr = root.ExecutionErrors(cmd, errors)
+		}
+
+		bps, err := weldr.ParseDepsolveResponse(response)
+		if err != nil {
+			return root.ExecutionError(cmd, "Depsolve Error: %s", err)
+		}
+
+		for _, bp := range bps {
+			fmt.Printf("blueprint: %s v%s\n", bp.Blueprint.Name, bp.Blueprint.Version)
+			for _, d := range bp.Dependencies {
+				fmt.Printf("    %s\n", d)
+			}
+		}
+	}
 	// If there were any errors, even if other blueprints succeeded, it returns an error
 	return rcErr
 }
