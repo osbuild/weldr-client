@@ -79,6 +79,7 @@ var (
 	weldrSocketPath string
 	cloudSocketPath string
 	testMode        int
+	weldrOnly       bool
 
 	// Version is set by the build
 	Version = "DEVEL"
@@ -103,7 +104,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&cloudSocketPath, "cloudsocket", "", "/run/cloudapi/api.socket", "Path to the cloudapi server's socket file")
 	rootCmd.PersistentFlags().IntVar(&testMode, "test", 0, "Pass test mode to compose. 1=Mock compose with fail. 2=Mock compose with finished.")
 	rootCmd.PersistentFlags().IntVar(&httpTimeout, "timeout", 240, "Timeout to use for server communication. Set to 0 for no timeout")
-
+	rootCmd.PersistentFlags().BoolVarP(&weldrOnly, "weldr-only", "", false, "Only use the WELDR API; skip using the newer Cloud API")
 }
 
 // Init sets up Cobra and adds the doc command to the root cmdline parser
@@ -146,6 +147,10 @@ func initCloudClient() {
 		defer cancel()
 	}
 
+	if weldrOnly {
+		// Skip the cloudapi by removing the socketPath
+		cloudSocketPath = ""
+	}
 	Cloud = cloud.InitClientUnixSocket(ctx, cloudSocketPath)
 }
 
