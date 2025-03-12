@@ -276,3 +276,18 @@ func TestPostJSON(t *testing.T) {
 	assert.Equal(t, "/testroute", mc.Req.URL.Path)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
 }
+
+func TestStatusMap(t *testing.T) {
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(""))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	assert.Equal(t, "FINISHED", tc.StatusMap("success"))
+	assert.Equal(t, "Unknown", tc.StatusMap("stuck"))
+}

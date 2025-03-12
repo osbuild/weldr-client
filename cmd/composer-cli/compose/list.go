@@ -64,10 +64,6 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 			}
 			sort.Strings(filter)
 
-			// The cloudapi status is slightly different than the weldrapi
-			// convert them into consistent statuses
-			statusMap := map[string]string{"pending": "RUNNING", "success": "FINISHED", "failure": "FAILED"}
-
 			for i := range composes {
 				if len(filter) > 0 && !slices.Contains(filter, composes[i].Status) {
 					continue
@@ -77,11 +73,8 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 				// This depends on the type of build and how it was started so some fields may
 				// be blank.
 				bpName, bpVersion, imageType := composeDetails(composes[i].ID)
-				status, ok := statusMap[composes[i].Status]
-				if !ok {
-					status = "Unknown"
-				}
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", composes[i].ID, status,
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", composes[i].ID,
+					root.Cloud.StatusMap(composes[i].Status),
 					bpName, bpVersion, imageType)
 			}
 		}

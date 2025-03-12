@@ -192,3 +192,14 @@ func ErrorToString(body []byte) string {
 	}
 	return r.Details
 }
+
+// StatusMap maps the cloud api status to a WELDR API status used for output
+func (c Client) StatusMap(cloudStatus string) string {
+	statusMap := map[string]string{"pending": "RUNNING", "success": "FINISHED", "failure": "FAILED"}
+
+	status, ok := statusMap[cloudStatus]
+	if !ok {
+		return "Unknown"
+	}
+	return status
+}

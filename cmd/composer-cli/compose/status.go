@@ -39,20 +39,14 @@ func status(cmd *cobra.Command, args []string) (rcErr error) {
 	if root.Cloud.Exists() {
 		composes, _ := root.Cloud.ListComposes()
 		if len(composes) > 0 {
-			// The cloudapi status is slightly different than the weldrapi
-			// convert them into consistent statuses
-			statusMap := map[string]string{"pending": "RUNNING", "success": "FINISHED", "failure": "FAILED"}
-
 			for i := range composes {
 				// Get as much detail as we can about the compose
 				// This depends on the type of build and how it was started so some fields may
 				// be blank. Currently no details are available so they are left blank.
 				bpName, bpVersion, imageType := composeDetails(composes[i].ID)
-				status, ok := statusMap[composes[i].Status]
-				if !ok {
-					status = "Unknown"
-				}
-				fmt.Fprintf(w, "%s\t%-8s\t%s\t%-15s\t%s\t%-16s\t%s\n", composes[i].ID, status, "",
+				fmt.Fprintf(w, "%s\t%-8s\t%s\t%-15s\t%s\t%-16s\t%s\n", composes[i].ID,
+					root.Cloud.StatusMap(composes[i].Status),
+					"",
 					bpName, bpVersion, imageType, "")
 			}
 		}
