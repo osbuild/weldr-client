@@ -63,3 +63,43 @@ func (pkg *PackageDetailsV1) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+// ComposeRequestV1 is used to start a compose and as part of the metadata response
+type ComposeRequestV1 struct {
+	Distribution  string         `json:"distribution"`
+	Blueprint     interface{}    `json:"blueprint"`
+	ImageRequests []imageRequest `json:"image_requests"`
+}
+
+type imageRequest struct {
+	Architecture  string      `json:"architecture"`
+	ImageType     string      `json:"image_type"`
+	Size          uint64      `json:"size,omitempty"`
+	Repositories  interface{} `json:"repositories"`
+	UploadOptions interface{} `json:"upload_options,omitempty"`
+	UploadTargets interface{} `json:"upload_targets,omitempty"`
+}
+
+type noRepos struct{} // Empty list of repositories
+
+// localTarget is used to pass 'local' and an empty upload_options object to the cloud API
+type localTarget struct {
+	Type          string   `json:"type"`
+	UploadOptions struct{} `json:"upload_options"`
+}
+
+// InfoRequestV1 is used for the info output, it contains a subset of the blueprint fields
+// and is only suitable for output. For starting a compose use ComposeRequestV1
+type InfoRequestV1 struct {
+	Distribution  string               `json:"distribution"`
+	Blueprint     common.InfoBlueprint `json:"blueprint"`
+	ImageRequests []imageRequest       `json:"image_requests"`
+}
+
+// ComposeMetadataV1 is returned by the /composes/UUID/metadata request
+// It contains the depsolved package list, the original request (on newer
+// releases of osbuild-composer), and the upload requests.
+type ComposeMetadataV1 struct {
+	Packages []common.PackageNEVRA `json:"packages"`
+	Request  InfoRequestV1         `json:"request"`
+}
