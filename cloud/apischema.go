@@ -22,6 +22,12 @@ type APIResponse struct {
 	Reason  string `json:"reason"`
 }
 
+// ComposeResultV1 is returned when starting a new compose
+type ComposeResponseV1 struct {
+	Kind string `json:"kind"`
+	ID   string `json:"id"`
+}
+
 // ComposeInfoV1 holds the information returned by /composes/UUID request
 type ComposeInfoV1 struct {
 	ID     string `json:"id"`
