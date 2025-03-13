@@ -347,3 +347,174 @@ func TestCmdComposeInfoUpload(t *testing.T) {
 	assert.Equal(t, "GET", mc.Req.Method)
 
 }
+
+func TestComposeInfoCloud(t *testing.T) {
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		var json string
+		var sc int
+
+		if request.URL.Path == "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata" {
+			// Compose metadata with the original request data included
+			sc = 200
+			json = `{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeMetadata",
+  "packages": [
+    {
+      "arch": "x86_64",
+      "name": "Box2D",
+      "release": "1.fc41",
+      "sigmd5": "9cb50482eaa216604df7d1d492f50b7d",
+      "type": "rpm",
+      "version": "2.4.2"
+    }],
+  "request": {
+    "blueprint": {
+      "description": "Just tmux added",
+      "name": "tmux-image",
+      "packages": [
+        {
+          "name": "tmux"
+        }
+      ],
+      "version": "0.0.1"
+    },
+    "distribution": "fedora-41",
+    "image_requests": [
+      {
+        "architecture": "x86_64",
+        "image_type": "live-installer",
+        "repositories": [],
+        "upload_targets": [
+          {
+            "type": "local",
+            "upload_options": {}
+          },
+          {
+            "type": "aws",
+            "upload_options": {}
+          }
+        ]
+      }
+    ]
+  }
+}`
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8" {
+			json = `{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": {
+        "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	  },
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": {
+          "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	    },
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+}`
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/metadata" {
+			// Compose metadata with the original request data included
+			sc = 200
+			json = `{
+  "href": "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/metadata",
+  "id": "ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "kind": "ComposeMetadata",
+  "packages": [
+    {
+      "arch": "x86_64",
+      "name": "Box2D",
+      "release": "1.fc41",
+      "sigmd5": "9cb50482eaa216604df7d1d492f50b7d",
+      "type": "rpm",
+      "version": "2.4.2"
+    }]}`
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389" {
+			json = `{
+  "href": "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "id": "ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": {
+        "artifact_path": "/var/lib/osbuild-composer/artifacts/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/disk.qcow2"
+	  },
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": {
+          "artifact_path": "/var/lib/osbuild-composer/artifacts/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/disk.qcow2"
+	    },
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+}`
+		} else {
+			sc = 404
+			json = `{"kind":"ComposeError", "...":"unknown url"}`
+		}
+
+		return &http.Response{
+			StatusCode: sc,
+			Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+		}, nil
+	})
+
+	// Get info about the compose with the request
+	cmd, out, err := root.ExecuteTest("compose", "info", "008fc5ad-adad-42ec-b412-7923733483a8")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, infoCmd)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8 FINISHED tmux-image")
+	assert.Contains(t, string(stdout), "    tmux")
+	assert.Contains(t, string(stdout), "Box2D-2.4.2-1.fc41.x86_64")
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mcc.Req.Method)
+
+	// Get info about the compose without request data
+	cmd, out, err = root.ExecuteTest("compose", "info", "ddcf50e5-1ffa-4de6-95ed-42749ac1f389")
+	require.NotNil(t, out)
+	defer out.Close()
+	require.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, infoCmd)
+	stdout, err = io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "ddcf50e5-1ffa-4de6-95ed-42749ac1f389 FINISHED")
+	assert.Contains(t, string(stdout), "Box2D-2.4.2-1.fc41.x86_64")
+	assert.NotContains(t, string(stdout), "tmux-image")
+	assert.NotContains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8")
+	stderr, err = io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mcc.Req.Method)
+}
