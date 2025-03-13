@@ -75,10 +75,7 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 		return "", fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	var r struct {
-		Kind string
-		ID   string
-	}
+	var r ComposeResponseV1
 	err = json.Unmarshal(body, &r)
 	if err != nil {
 		return "", err
