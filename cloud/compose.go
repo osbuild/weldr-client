@@ -90,24 +90,17 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 	return r.ID, nil
 }
 
-// ComposeInfo holds the information returned by /composes/UUID request
-type ComposeInfo struct {
-	ID     string
-	Kind   string
-	Status string
-}
-
 // ComposeInfo returns information on the status of a compose
-func (c Client) ComposeInfo(id string) (ComposeInfo, error) {
+func (c Client) ComposeInfo(id string) (ComposeInfoV1, error) {
 	body, err := c.GetJSON("api/image-builder-composer/v2/composes/" + id)
 	if err != nil {
-		return ComposeInfo{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
+		return ComposeInfoV1{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	var status ComposeInfo
+	var status ComposeInfoV1
 	err = json.Unmarshal(body, &status)
 	if err != nil {
-		return ComposeInfo{}, fmt.Errorf("Error parsing body of status: %s", err)
+		return ComposeInfoV1{}, fmt.Errorf("Error parsing body of status: %s", err)
 	}
 
 	return status, nil
@@ -117,9 +110,9 @@ func (c Client) ComposeInfo(id string) (ComposeInfo, error) {
 // Check the status until it is not 'pending' or a timeout is exceeded
 // aborted will be true if the timeout was exceeded, info will have the last status from
 // the server before the timeout.
-func (c Client) ComposeWait(id string, timeout, interval time.Duration) (aborted bool, status ComposeInfo, err error) {
+func (c Client) ComposeWait(id string, timeout, interval time.Duration) (aborted bool, status ComposeInfoV1, err error) {
 	if interval >= timeout {
-		return false, ComposeInfo{}, fmt.Errorf("Cannot wait, check interval (%v) must be < timeout (%v)", interval, timeout)
+		return false, ComposeInfoV1{}, fmt.Errorf("Cannot wait, check interval (%v) must be < timeout (%v)", interval, timeout)
 	}
 
 	abort := time.NewTimer(timeout)
@@ -174,13 +167,13 @@ func (c Client) GetComposeTypes(distro, arch string) ([]string, error) {
 }
 
 // ListComposes returns status of all of the cloud composes on the server
-func (c Client) ListComposes() ([]ComposeInfo, error) {
+func (c Client) ListComposes() ([]ComposeInfoV1, error) {
 	body, err := c.GetJSON("api/image-builder-composer/v2/composes/")
 	if err != nil {
 		return nil, fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	var status []ComposeInfo
+	var status []ComposeInfoV1
 	err = json.Unmarshal(body, &status)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing body of status: %s", err)

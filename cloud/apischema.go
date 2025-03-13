@@ -8,3 +8,10 @@ type APIResponse struct {
 	Details string `json:"details"`
 	Reason  string `json:"reason"`
 }
+
+// ComposeInfoV1 holds the information returned by /composes/UUID request
+type ComposeInfoV1 struct {
+	ID     string `json:"id"`
+	Kind   string `json:"kind"`
+	Status string `json:"status"`
+}
