@@ -27,6 +27,58 @@ func init() {
 }
 
 func info(cmd *cobra.Command, args []string) error {
+	if root.Cloud.Exists() {
+		metadata, err := root.Cloud.GetComposeMetadata(args[0])
+		if err == nil {
+			var imageSize string
+			var imageType string
+			if len(metadata.Request.ImageRequests) > 0 {
+				if metadata.Request.ImageRequests[0].Size > 0 {
+					imageSize = fmt.Sprintf("%d", metadata.Request.ImageRequests[0].Size)
+				}
+				imageType = metadata.Request.ImageRequests[0].ImageType
+			}
+
+			info, _ := root.Cloud.ComposeInfo(args[0])
+			fmt.Printf("%s %-8s %-15s %s %-16s %s\n",
+				args[0],
+				root.Cloud.StatusMap(info.Status),
+				metadata.Request.Blueprint.Name,
+				metadata.Request.Blueprint.Version,
+				imageType,
+				imageSize)
+
+			uploads, err := metadata.UploadTypes()
+
+			// Skip printing uploads if there are none, or the only one is local
+			if err == nil && len(uploads) > 0 && uploads[0] != "local" {
+				// NOTE: Cloud doesn't have the same upload info as weldr, just print types
+				fmt.Printf("Uploads:\n")
+				for _, t := range uploads {
+					fmt.Printf("    %s\n", t)
+				}
+			}
+
+			fmt.Println("Packages:")
+			for _, p := range metadata.Request.Blueprint.Packages {
+				fmt.Printf("    %s\n", p)
+			}
+
+			fmt.Println("Modules:")
+			for _, m := range metadata.Request.Blueprint.Modules {
+				fmt.Printf("    %s\n", m)
+			}
+
+			fmt.Println("Dependencies:")
+			for _, d := range metadata.Packages {
+				fmt.Printf("    %s\n", d)
+			}
+
+			return nil
+		}
+	}
+
+	// If the UUID wasn't found with the cloudapi try the weldrapi
 	info, resp, err := root.Client.ComposeInfo(args[0])
 	if err != nil {
 		return root.ExecutionError(cmd, "Info Error: %s", err)
