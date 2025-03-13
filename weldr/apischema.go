@@ -186,37 +186,7 @@ type ComposeCancelV0 struct {
 	Status bool   `json:"status"`
 }
 
-// infoBlueprint contains the parts of a Blueprint useful for the compose info command
-type infoBlueprint struct {
-	Name        string    `json:"name"`
-	Description string    `json:"description"`
-	Version     string    `json:"version,omitempty"`
-	Packages    []Package `json:"packages"`
-	Modules     []Package `json:"modules"`
-	Groups      []Group   `json:"groups"`
-}
-
-// A Package specifies an RPM package.
-type Package struct {
-	Name    string `json:"name" toml:"name"`
-	Version string `json:"version,omitempty" toml:"version,omitempty"`
-}
-
-// String returns the name of the package with the optional version
-func (p Package) String() string {
-	if len(p.Version) > 0 {
-		return fmt.Sprintf("%s-%s", p.Name, p.Version)
-	}
-
-	return p.Name
-}
-
-// Group specifies a package group.
-type Group struct {
-	Name string `json:"name" toml:"name"`
-}
-
-// infoBlueprint contains the parts of the upload status useful for the compose info command
+// infoUpload contains the parts of the upload status useful for the compose info command
 type infoUpload struct {
 	Name     string `json:"image_name"`
 	Provider string `json:"provider_name"`
@@ -226,10 +196,10 @@ type infoUpload struct {
 
 // ComposeInfoV0 is the response to a compose/info request
 type ComposeInfoV0 struct {
-	ID        string        `json:"id"`
-	Config    string        `json:"config"`    // anaconda config, let's ignore this field
-	Blueprint infoBlueprint `json:"blueprint"` // blueprint parts that info cares about
-	Commit    string        `json:"commit"`    // empty for now
+	ID        string               `json:"id"`
+	Config    string               `json:"config"`    // anaconda config, let's ignore this field
+	Blueprint common.InfoBlueprint `json:"blueprint"` // blueprint parts that info cares about
+	Commit    string               `json:"commit"`    // empty for now
 	Deps      struct {
 		Packages []common.PackageNEVRA `json:"packages"`
 	} `json:"deps"`
