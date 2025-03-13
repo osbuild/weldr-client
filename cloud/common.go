@@ -178,13 +178,7 @@ func (c Client) Exists() bool {
 
 // ErrorToString parses a cloudapi json error response and returns a printable string
 func ErrorToString(body []byte) string {
-	var r struct {
-		Kind    string
-		ID      string
-		Code    string
-		Details string
-		Reason  string
-	}
+	var r APIResponse
 	err := json.Unmarshal(body, &r)
 	if err != nil {
 		return fmt.Sprintf("Error parsing body of error: %s", err)
