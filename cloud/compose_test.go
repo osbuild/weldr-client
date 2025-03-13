@@ -342,3 +342,100 @@ func TestListComposes(t *testing.T) {
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/image-builder-composer/v2/composes/", mc.Req.URL.Path)
 }
+
+func TestGetComposeMetadata(t *testing.T) {
+	json := `{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeMetadata",
+  "packages": [
+    {
+      "arch": "x86_64",
+      "name": "Box2D",
+      "release": "1.fc41",
+      "sigmd5": "9cb50482eaa216604df7d1d492f50b7d",
+      "type": "rpm",
+      "version": "2.4.2"
+    }],
+  "request": {
+    "blueprint": {
+      "description": "Just tmux added",
+      "name": "tmux-image",
+      "packages": [
+        {
+          "name": "tmux"
+        }
+      ],
+      "version": "0.0.1"
+    },
+    "distribution": "fedora-41",
+    "image_requests": [
+      {
+        "architecture": "x86_64",
+        "image_type": "live-installer",
+        "repositories": [],
+        "upload_targets": [
+          {
+            "type": "local",
+            "upload_options": {}
+          }
+        ]
+      }
+    ]
+  }
+}`
+
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	metadata, err := tc.GetComposeMetadata("008fc5ad-adad-42ec-b412-7923733483a8")
+	require.Nil(t, err)
+	assert.Equal(t, "tmux-image", metadata.Request.Blueprint.Name)
+	assert.Equal(t, "0.0.1", metadata.Request.Blueprint.Version)
+	require.Greater(t, len(metadata.Request.ImageRequests), 0)
+	assert.Equal(t, "live-installer", metadata.Request.ImageRequests[0].ImageType)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata", mc.Req.URL.Path)
+}
+
+func TestGetComposeMetadataNoRequest(t *testing.T) {
+	json := `{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeMetadata",
+  "packages": [
+    {
+      "arch": "x86_64",
+      "name": "Box2D",
+      "release": "1.fc41",
+      "sigmd5": "9cb50482eaa216604df7d1d492f50b7d",
+      "type": "rpm",
+      "version": "2.4.2"
+    }]
+}`
+
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	metadata, err := tc.GetComposeMetadata("008fc5ad-adad-42ec-b412-7923733483a8")
+	require.Nil(t, err)
+	assert.Equal(t, "", metadata.Request.Blueprint.Name)
+	assert.Equal(t, "", metadata.Request.Blueprint.Version)
+	require.Equal(t, len(metadata.Request.ImageRequests), 0)
+	assert.Equal(t, "GET", mc.Req.Method)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata", mc.Req.URL.Path)
+}

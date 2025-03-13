@@ -8,30 +8,6 @@ import (
 	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
-// Just what we need from the cloudapi compose request
-type request struct {
-	Distribution  string         `json:"distribution"`
-	Blueprint     interface{}    `json:"blueprint"`
-	ImageRequests []imageRequest `json:"image_requests"`
-}
-
-type imageRequest struct {
-	Architecture  string      `json:"architecture"`
-	ImageType     string      `json:"image_type"`
-	Size          uint64      `json:"size,omitempty"`
-	Repositories  interface{} `json:"repositories"`
-	UploadOptions interface{} `json:"upload_options,omitempty"`
-	UploadTargets interface{} `json:"upload_targets,omitempty"`
-}
-
-type noRepos struct{} // Empty list of repositories
-
-// localTarget is used to pass 'local' and an empty upload_options object to the cloud API
-type localTarget struct {
-	Type          string   `json:"type"`
-	UploadOptions struct{} `json:"upload_options"`
-}
-
 // StartCompose uses a blueprint to start a compose
 // This uses the cloud API, and it expects the server to have the local save option
 // enabled in the osbuild-composer.service file
@@ -50,7 +26,7 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 		return "", err
 	}
 
-	request := request{
+	request := ComposeRequestV1{
 		Distribution: distro,
 		Blueprint:    blueprint,
 		ImageRequests: []imageRequest{
@@ -177,4 +153,21 @@ func (c Client) ListComposes() ([]ComposeInfoV1, error) {
 	}
 
 	return status, nil
+}
+
+// GetComposeMetadata returns the information from /compose/UUID/metadata
+func (c Client) GetComposeMetadata(id string) (ComposeMetadataV1, error) {
+	route := fmt.Sprintf("api/image-builder-composer/v2/composes/%s/metadata", id)
+	body, err := c.GetJSON(route)
+	if err != nil {
+		return ComposeMetadataV1{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
+	}
+
+	var metadata ComposeMetadataV1
+	err = json.Unmarshal(body, &metadata)
+	if err != nil {
+		return ComposeMetadataV1{}, fmt.Errorf("Error parsing body of metadata: %s", err)
+	}
+
+	return metadata, nil
 }
