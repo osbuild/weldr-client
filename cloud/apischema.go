@@ -6,6 +6,13 @@ import (
 	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
+// StatusV1 is returned by the openapi framework
+type StatusV1 struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Version     string `json:"version"`
+}
+
 // APIResponse is returned by the cloudapi when there is an error
 type APIResponse struct {
 	Kind    string `json:"kind"`

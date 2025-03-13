@@ -61,7 +61,7 @@ func TestServerStatusError(t *testing.T) {
 
 	status, err := tc.ServerStatus()
 	require.Error(t, err)
-	assert.Equal(t, Status{}, status)
+	assert.Equal(t, StatusV1{}, status)
 	assert.Equal(t, "testing error - GET api/image-builder-composer/v2/openapi failed with status 400: testing error", err.Error())
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/image-builder-composer/v2/openapi", mc.Req.URL.Path)
