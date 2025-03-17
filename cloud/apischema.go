@@ -1,6 +1,7 @@
 package cloud
 
 import (
+	"bytes"
 	"encoding/json"
 
 	"github.com/osbuild/weldr-client/v2/internal/common"
@@ -102,4 +103,32 @@ type InfoRequestV1 struct {
 type ComposeMetadataV1 struct {
 	Packages []common.PackageNEVRA `json:"packages"`
 	Request  InfoRequestV1         `json:"request"`
+}
+
+// UploadTypes extracts the upload target types
+// These are stored as interfaces because they vary based on provider type
+// But they always have a 'type' field to describe them.
+func (m *ComposeMetadataV1) UploadTypes() ([]string, error) {
+	types := []string{}
+
+	for i := range m.Request.ImageRequests {
+		// Encode the UploadTargets interface{} using json
+		data := new(bytes.Buffer)
+		if err := json.NewEncoder(data).Encode(m.Request.ImageRequests[i].UploadTargets); err != nil {
+			return nil, err
+		}
+
+		// Decode just the target types, ignoring anything else
+		var targets []struct {
+			Type string `json:"type"`
+		}
+		if err := json.Unmarshal(data.Bytes(), &targets); err != nil {
+			return nil, err
+		}
+
+		for _, t := range targets {
+			types = append(types, t.Type)
+		}
+	}
+	return types, nil
 }

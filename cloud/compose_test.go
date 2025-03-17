@@ -378,6 +378,10 @@ func TestGetComposeMetadata(t *testing.T) {
           {
             "type": "local",
             "upload_options": {}
+          },
+          {
+            "type": "aws",
+            "upload_options": {}
           }
         ]
       }
@@ -401,6 +405,9 @@ func TestGetComposeMetadata(t *testing.T) {
 	assert.Equal(t, "0.0.1", metadata.Request.Blueprint.Version)
 	require.Greater(t, len(metadata.Request.ImageRequests), 0)
 	assert.Equal(t, "live-installer", metadata.Request.ImageRequests[0].ImageType)
+	uploadTypes, err := metadata.UploadTypes()
+	require.NoError(t, err)
+	assert.Equal(t, []string{"local", "aws"}, uploadTypes)
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata", mc.Req.URL.Path)
 }
@@ -436,6 +443,9 @@ func TestGetComposeMetadataNoRequest(t *testing.T) {
 	assert.Equal(t, "", metadata.Request.Blueprint.Name)
 	assert.Equal(t, "", metadata.Request.Blueprint.Version)
 	require.Equal(t, len(metadata.Request.ImageRequests), 0)
+	uploadTypes, err := metadata.UploadTypes()
+	require.NoError(t, err)
+	assert.Equal(t, []string{}, uploadTypes)
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata", mc.Req.URL.Path)
 }
