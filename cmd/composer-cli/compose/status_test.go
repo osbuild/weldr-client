@@ -264,6 +264,31 @@ func TestComposeStatusCloud(t *testing.T) {
   "status": "success"
 },
 {
+  "href": "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "id": "ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": {
+        "artifact_path": "/var/lib/osbuild-composer/artifacts/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/disk.qcow2"
+	  },
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": {
+          "artifact_path": "/var/lib/osbuild-composer/artifacts/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/disk.qcow2"
+	    },
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+},
+{
     "href": "/api/image-builder-composer/v2/composes/fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7",
     "id": "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7",
     "kind": "ComposeStatus",
@@ -291,8 +316,80 @@ func TestComposeStatusCloud(t *testing.T) {
           "sigmd5": "442ad6fb6f6efd73f4386757883c92e7",
           "type": "rpm",
           "version": "1.46.2"
-        }]
+        }],
+  "request": {
+    "blueprint": {
+      "description": "Just tmux added",
+      "name": "tmux-image",
+      "packages": [
+        {
+          "name": "tmux"
+        }
+      ],
+      "version": "0.0.1"
+    },
+    "distribution": "fedora-41",
+    "image_requests": [
+      {
+        "architecture": "x86_64",
+        "image_type": "live-installer",
+        "repositories": [],
+        "upload_targets": [
+          {
+            "type": "local",
+            "upload_options": {}
+          },
+          {
+            "type": "aws",
+            "upload_options": {}
+          }
+        ]
+      }
+    ]
+  }
  }`
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/metadata" {
+			// Compose metadata with the original request data included
+			sc = 200
+			json = `{
+  "href": "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/metadata",
+  "id": "ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "kind": "ComposeMetadata",
+  "packages": [
+    {
+      "arch": "x86_64",
+      "name": "Box2D",
+      "release": "1.fc41",
+      "sigmd5": "9cb50482eaa216604df7d1d492f50b7d",
+      "type": "rpm",
+      "version": "2.4.2"
+    }]}`
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389" {
+			json = `{
+  "href": "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "id": "ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": {
+        "artifact_path": "/var/lib/osbuild-composer/artifacts/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/disk.qcow2"
+	  },
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": {
+          "artifact_path": "/var/lib/osbuild-composer/artifacts/ddcf50e5-1ffa-4de6-95ed-42749ac1f389/disk.qcow2"
+	    },
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+}`
 		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7/metadata" {
 			sc = 200
 			json = `{"href":"/api/image-builder-composer/v2/composes/fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7/metadata","id":"fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7","kind":"ComposeMetadata"}`
@@ -319,7 +416,8 @@ func TestComposeStatusCloud(t *testing.T) {
 	stdout, err := io.ReadAll(out.Stdout)
 	assert.Nil(t, err)
 	assert.Contains(t, string(stdout), "fd4f2e8a-ba12-4cc1-b485-ba0e464bf7c7   FAILED")
-	assert.Contains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8   FINISHED")
+	assert.Contains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8   FINISHED                              tmux-image        0.0.1     live-installer")
+	assert.Contains(t, string(stdout), "ddcf50e5-1ffa-4de6-95ed-42749ac1f389   FINISHED")
 	stderr, err := io.ReadAll(out.Stderr)
 	assert.Nil(t, err)
 	assert.Equal(t, []byte(""), stderr)

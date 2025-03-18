@@ -43,11 +43,11 @@ func status(cmd *cobra.Command, args []string) (rcErr error) {
 				// Get as much detail as we can about the compose
 				// This depends on the type of build and how it was started so some fields may
 				// be blank. Currently no details are available so they are left blank.
-				bpName, bpVersion, imageType := composeDetails(composes[i].ID)
+				bpName, bpVersion, imageType, size := composeDetails(composes[i].ID)
 				fmt.Fprintf(w, "%s\t%-8s\t%s\t%-15s\t%s\t%-16s\t%s\n", composes[i].ID,
 					root.Cloud.StatusMap(composes[i].Status),
 					"",
-					bpName, bpVersion, imageType, "")
+					bpName, bpVersion, imageType, size)
 			}
 		}
 	}
