@@ -5,6 +5,8 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -290,4 +292,55 @@ func TestStatusMap(t *testing.T) {
 
 	assert.Equal(t, "FINISHED", tc.StatusMap("success"))
 	assert.Equal(t, "Unknown", tc.StatusMap("stuck"))
+}
+
+func TestGetFilePathFilename(t *testing.T) {
+	// Test retrieving a file using a different filename
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+
+			resp := http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Header:     http.Header{},
+			}
+			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
+			resp.Header.Set("Content-Type", "text/plain")
+
+			return &resp, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	tdir := t.TempDir()
+	tf := filepath.Join(tdir, "a-new-file.txt")
+	filename, err := tc.GetFilePath("/file/a-very-short-file", tf)
+	require.Nil(t, err)
+	assert.Contains(t, filename, "a-new-file.txt", filename)
+	assert.Equal(t, "/file/a-very-short-file", mc.Req.URL.Path)
+	_, err = os.Stat(filename)
+	require.Nil(t, err)
+	data, _ := os.ReadFile(filename)
+	assert.Equal(t, []byte("A Very Short File."), data)
+
+	// Test that downloading again returns an error
+	_, err = tc.GetFilePath("/file/a-very-short-file", tf)
+	assert.ErrorContains(t, err, "exists, skipping download")
+}
+
+func TestGetFilePathError400(t *testing.T) {
+	mc := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			json := `{"kind": "Error", "details": "no image by that name"}`
+			return &http.Response{
+				Request:    req,
+				StatusCode: 400,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	_, err := tc.GetFilePath("/file/not-even-a-file", "/tmp")
+	assert.ErrorContains(t, err, "no image by that name")
 }

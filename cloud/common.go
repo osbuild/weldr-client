@@ -203,3 +203,30 @@ func (c Client) StatusMap(cloudStatus string) string {
 	}
 	return status
 }
+
+// GetFilePath writes a file returned by the route to the path passed to it
+// If path is an existing directory the file is saved under it using the content-disposition name
+// If the path doesn't end in a / it is assumed to be a full path + filename and the file is
+// saved to it, or skipped if it already exists.
+// If the path ends with a / and doesn't exist it returns an error
+func (c Client) GetFilePath(route, path string) (string, error) {
+	resp, err := c.Request("GET", route, "", map[string]string{})
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Convert the API's JSON error response to an error type and return it
+	// lorax-composer (wrongly) returns 404 for some of its json responses
+	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
+		responseBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return "", err
+		}
+		c.rawFunc("GET", route, resp.StatusCode, responseBody)
+		return "", fmt.Errorf("GET %s failed with status %d: %s", route, resp.StatusCode, ErrorToString(responseBody))
+	}
+
+	fileName, err := common.SaveResponseBodyToFile(resp, path)
+	return fileName, err
+}
