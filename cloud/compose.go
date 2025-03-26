@@ -188,3 +188,10 @@ func (c Client) ListComposes() ([]ComposeInfo, error) {
 
 	return status, nil
 }
+
+// ComposeImagePath saves the compose's image to a directory or file in path
+// It returns the filename, and the error.
+func (c Client) ComposeImagePath(id, path string) (string, error) {
+	route := fmt.Sprintf("api/image-builder-composer/v2/composes/%s/download", id)
+	return c.GetFilePath(route, path)
+}
