@@ -5,6 +5,8 @@ import (
 	"context"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -448,4 +450,55 @@ func TestGetComposeMetadataNoRequest(t *testing.T) {
 	assert.Equal(t, []string{}, uploadTypes)
 	assert.Equal(t, "GET", mc.Req.Method)
 	assert.Equal(t, "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/metadata", mc.Req.URL.Path)
+}
+
+func TestComposeImagePathFilename(t *testing.T) {
+	// Test retrieving a file using a different filename
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+
+			resp := http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+				Header:     http.Header{},
+			}
+			resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
+			resp.Header.Set("Content-Type", "text/plain")
+
+			return &resp, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	tdir := t.TempDir()
+	tf := filepath.Join(tdir, "a-new-file.txt")
+	filename, err := tc.ComposeImagePath("123e4567-e89b-12d3-a456-426655440000", tf)
+	require.Nil(t, err)
+	assert.Contains(t, filename, "a-new-file.txt", filename)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/123e4567-e89b-12d3-a456-426655440000/download", mc.Req.URL.Path)
+	_, err = os.Stat(filename)
+	require.Nil(t, err)
+	data, _ := os.ReadFile(filename)
+	assert.Equal(t, []byte("A Very Short File."), data)
+
+	// Test that downloading again returns an error
+	_, err = tc.GetFilePath("123e4567-e89b-12d3-a456-426655440000", tf)
+	assert.ErrorContains(t, err, "exists, skipping download")
+}
+
+func TestComposeImagePathError400(t *testing.T) {
+	mc := MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			json := `{"kind": "Error", "details": "no image by that name"}`
+			return &http.Response{
+				Request:    req,
+				StatusCode: 400,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	_, err := tc.GetFilePath("123e4567-e89b-12d3-a456-426655440000", "/tmp")
+	assert.ErrorContains(t, err, "no image by that name")
 }
