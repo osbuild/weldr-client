@@ -33,11 +33,24 @@ func init() {
 	composeCmd.AddCommand(listCmd)
 }
 
-// composeDetails returns the compose's blueprint name, version and image type
-// it depends on https://github.com/osbuild/osbuild-composer/pull/4451
-// so for now just returns empty strings
-func composeDetails(id string) (string, string, string) {
-	return "", "", ""
+// composeDetails returns the compose's blueprint name, version, image type, and size
+func composeDetails(id string) (string, string, string, string) {
+	metadata, err := root.Cloud.GetComposeMetadata(id)
+	if err != nil {
+		return "", "", "", ""
+	}
+	var size string
+	var imageType string
+	if len(metadata.Request.ImageRequests) > 0 {
+		imageType = metadata.Request.ImageRequests[0].ImageType
+
+		if metadata.Request.ImageRequests[0].Size > 0 {
+			size = fmt.Sprintf("%d", metadata.Request.ImageRequests[0].Size)
+		}
+
+	}
+
+	return metadata.Request.Blueprint.Name, metadata.Request.Blueprint.Version, imageType, size
 }
 
 func list(cmd *cobra.Command, args []string) (rcErr error) {
@@ -64,10 +77,6 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 			}
 			sort.Strings(filter)
 
-			// The cloudapi status is slightly different than the weldrapi
-			// convert them into consistent statuses
-			statusMap := map[string]string{"pending": "RUNNING", "success": "FINISHED", "failure": "FAILED"}
-
 			for i := range composes {
 				if len(filter) > 0 && !slices.Contains(filter, composes[i].Status) {
 					continue
@@ -76,12 +85,9 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 				// Get as much detail as we can about the compose
 				// This depends on the type of build and how it was started so some fields may
 				// be blank.
-				bpName, bpVersion, imageType := composeDetails(composes[i].ID)
-				status, ok := statusMap[composes[i].Status]
-				if !ok {
-					status = "Unknown"
-				}
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", composes[i].ID, status,
+				bpName, bpVersion, imageType, _ := composeDetails(composes[i].ID)
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", composes[i].ID,
+					root.Cloud.StatusMap(composes[i].Status),
 					bpName, bpVersion, imageType)
 			}
 		}

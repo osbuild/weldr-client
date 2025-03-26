@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/osbuild/weldr-client/v2/internal/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -88,11 +89,11 @@ func TestNewAPIResponseError(t *testing.T) {
 
 func TestPackageString(t *testing.T) {
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "tmux", fmt.Sprintf("%s", Package{"tmux", ""}))
+	assert.Equal(t, "tmux", fmt.Sprintf("%s", common.Package{Name: "tmux"}))
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "tmux-*", fmt.Sprintf("%s", Package{"tmux", "*"}))
+	assert.Equal(t, "tmux-*", fmt.Sprintf("%s", common.Package{Name: "tmux", Version: "*"}))
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "tmux-1.3", fmt.Sprintf("%s", Package{"tmux", "1.3"}))
+	assert.Equal(t, "tmux-1.3", fmt.Sprintf("%s", common.Package{Name: "tmux", Version: "1.3"}))
 }
 
 func TestParseDepsolveResponse(t *testing.T) {

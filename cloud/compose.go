@@ -8,30 +8,6 @@ import (
 	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
-// Just what we need from the cloudapi compose request
-type request struct {
-	Distribution  string         `json:"distribution"`
-	Blueprint     interface{}    `json:"blueprint"`
-	ImageRequests []imageRequest `json:"image_requests"`
-}
-
-type imageRequest struct {
-	Architecture  string      `json:"architecture"`
-	ImageType     string      `json:"image_type"`
-	Size          uint64      `json:"size,omitempty"`
-	Repositories  interface{} `json:"repositories"`
-	UploadOptions interface{} `json:"upload_options,omitempty"`
-	UploadTargets interface{} `json:"upload_targets,omitempty"`
-}
-
-type noRepos struct{} // Empty list of repositories
-
-// localTarget is used to pass 'local' and an empty upload_options object to the cloud API
-type localTarget struct {
-	Type          string   `json:"type"`
-	UploadOptions struct{} `json:"upload_options"`
-}
-
 // StartCompose uses a blueprint to start a compose
 // This uses the cloud API, and it expects the server to have the local save option
 // enabled in the osbuild-composer.service file
@@ -50,7 +26,7 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 		return "", err
 	}
 
-	request := request{
+	request := ComposeRequestV1{
 		Distribution: distro,
 		Blueprint:    blueprint,
 		ImageRequests: []imageRequest{
@@ -75,10 +51,7 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 		return "", fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	var r struct {
-		Kind string
-		ID   string
-	}
+	var r ComposeResponseV1
 	err = json.Unmarshal(body, &r)
 	if err != nil {
 		return "", err
@@ -90,24 +63,17 @@ func (c Client) StartComposeUpload(blueprint interface{}, composeType string, up
 	return r.ID, nil
 }
 
-// ComposeInfo holds the information returned by /composes/UUID request
-type ComposeInfo struct {
-	ID     string
-	Kind   string
-	Status string
-}
-
 // ComposeInfo returns information on the status of a compose
-func (c Client) ComposeInfo(id string) (ComposeInfo, error) {
+func (c Client) ComposeInfo(id string) (ComposeInfoV1, error) {
 	body, err := c.GetJSON("api/image-builder-composer/v2/composes/" + id)
 	if err != nil {
-		return ComposeInfo{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
+		return ComposeInfoV1{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	var status ComposeInfo
+	var status ComposeInfoV1
 	err = json.Unmarshal(body, &status)
 	if err != nil {
-		return ComposeInfo{}, fmt.Errorf("Error parsing body of status: %s", err)
+		return ComposeInfoV1{}, fmt.Errorf("Error parsing body of status: %s", err)
 	}
 
 	return status, nil
@@ -117,9 +83,9 @@ func (c Client) ComposeInfo(id string) (ComposeInfo, error) {
 // Check the status until it is not 'pending' or a timeout is exceeded
 // aborted will be true if the timeout was exceeded, info will have the last status from
 // the server before the timeout.
-func (c Client) ComposeWait(id string, timeout, interval time.Duration) (aborted bool, status ComposeInfo, err error) {
+func (c Client) ComposeWait(id string, timeout, interval time.Duration) (aborted bool, status ComposeInfoV1, err error) {
 	if interval >= timeout {
-		return false, ComposeInfo{}, fmt.Errorf("Cannot wait, check interval (%v) must be < timeout (%v)", interval, timeout)
+		return false, ComposeInfoV1{}, fmt.Errorf("Cannot wait, check interval (%v) must be < timeout (%v)", interval, timeout)
 	}
 
 	abort := time.NewTimer(timeout)
@@ -174,17 +140,34 @@ func (c Client) GetComposeTypes(distro, arch string) ([]string, error) {
 }
 
 // ListComposes returns status of all of the cloud composes on the server
-func (c Client) ListComposes() ([]ComposeInfo, error) {
+func (c Client) ListComposes() ([]ComposeInfoV1, error) {
 	body, err := c.GetJSON("api/image-builder-composer/v2/composes/")
 	if err != nil {
 		return nil, fmt.Errorf("%s - %s", ErrorToString(body), err)
 	}
 
-	var status []ComposeInfo
+	var status []ComposeInfoV1
 	err = json.Unmarshal(body, &status)
 	if err != nil {
 		return nil, fmt.Errorf("Error parsing body of status: %s", err)
 	}
 
 	return status, nil
+}
+
+// GetComposeMetadata returns the information from /compose/UUID/metadata
+func (c Client) GetComposeMetadata(id string) (ComposeMetadataV1, error) {
+	route := fmt.Sprintf("api/image-builder-composer/v2/composes/%s/metadata", id)
+	body, err := c.GetJSON(route)
+	if err != nil {
+		return ComposeMetadataV1{}, fmt.Errorf("%s - %s", ErrorToString(body), err)
+	}
+
+	var metadata ComposeMetadataV1
+	err = json.Unmarshal(body, &metadata)
+	if err != nil {
+		return ComposeMetadataV1{}, fmt.Errorf("Error parsing body of metadata: %s", err)
+	}
+
+	return metadata, nil
 }
