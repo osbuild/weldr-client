@@ -5,12 +5,15 @@
 package common
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"mime"
 	"net/http"
 	"os"
 	"os/user"
+	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -121,4 +124,71 @@ func SortedMapKeys(m map[string]any) []string {
 
 	sort.Strings(keys)
 	return keys
+}
+
+// SaveResponseBodyToFile saves the body of the response to a file
+// The path is one of:
+//   - A filename to save to
+//   - A directory to save the server provided filename under
+//   - Empty, in which case it saves it in the current directory using the server
+//     provided filename.
+//
+// It will not save to a nonexistant directory, and it will not overwrite an
+// existing file.
+func SaveResponseBodyToFile(resp *http.Response, path string) (string, error) {
+	var fileName string
+	var err error
+
+	// Save to server provided filename under current directory
+	if len(path) == 0 {
+		// The fileName returned is safe to write to
+		fileName, err = GetContentFilename(resp.Header.Get("content-disposition"))
+		if err != nil {
+			return fileName, err
+		}
+	} else {
+		// Is the path a directory that exists, or a file to save to?
+
+		// If it is an existing directory? Save under that.
+		var fi fs.FileInfo
+		fi, err = os.Stat(path)
+		if err == nil {
+			if fi.IsDir() {
+				fileName, err = GetContentFilename(resp.Header.Get("content-disposition"))
+				if err != nil {
+					return fileName, err
+				}
+				fileName = filepath.Join(path, fileName)
+			} else {
+				fileName = path
+			}
+		} else {
+			if errors.Is(err, fs.ErrNotExist) {
+				// Does it look like a directory? A directory needs to exist.
+				if path[len(path)-1] == '/' {
+					err = fmt.Errorf("%s does not exist", path)
+					return fileName, err
+				}
+				// Assume it is a file
+				fileName = path
+			} else {
+				// Some other error
+				return fileName, err
+			}
+		}
+	}
+
+	_, err = os.Stat(fileName)
+	if err == nil {
+		return fileName, fmt.Errorf("%s exists, skipping download", fileName)
+	}
+	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return fileName, err
+	}
+	if _, err = io.Copy(f, resp.Body); err != nil {
+		return fileName, err
+	}
+	err = f.Close()
+	return fileName, err
 }
