@@ -30,6 +30,20 @@ func init() {
 }
 
 func getImage(cmd *cobra.Command, args []string) (rcErr error) {
+	// Check cloudapi for composes first
+	if root.Cloud.Exists() {
+		_, err := root.Cloud.ComposeInfo(args[0])
+		if err == nil {
+			fn, err := root.Cloud.ComposeImagePath(args[0], savePath)
+			if err != nil {
+				return root.ExecutionError(cmd, "Image error: %s", err)
+			}
+			fmt.Println(fn)
+			return nil
+		}
+	}
+
+	// If it is not a cloudapi uuid try the weldr api
 	fn, resp, err := root.Client.ComposeImagePath(args[0], savePath)
 	if err != nil {
 		return root.ExecutionError(cmd, "Image error: %s", err)
