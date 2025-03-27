@@ -11,11 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
 	"sort"
 
 	"github.com/osbuild/weldr-client/v2/internal/common"
@@ -259,77 +257,22 @@ func (c Client) GetFile(path string) (fileName, cDisposition, cType string, apiR
 // If the path doesn't end in a / it is assumed to be a full path + filename and the file is
 // saved to it, or skipped if it already exists.
 // If the path ends with a / and doesn't exist it returns an error
-func (c Client) GetFilePath(route, path string) (fileName string, apiResponse *APIResponse, err error) {
+func (c Client) GetFilePath(route, path string) (string, *APIResponse, error) {
 	resp, err := c.Request("GET", route, "", map[string]string{})
 	if err != nil {
-		return
+		return "", nil, err
 	}
 	defer resp.Body.Close()
 
 	// Convert the API's JSON error response to an error type and return it
 	// lorax-composer (wrongly) returns 404 for some of its json responses
 	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
-		apiResponse, err = c.apiError(resp)
-		return
+		apiResponse, err := c.apiError(resp)
+		return "", apiResponse, err
 	}
 
-	// Save to server provided filename under current directory
-	if len(path) == 0 {
-		// The fileName returned is safe to write to
-		fileName, err = common.GetContentFilename(resp.Header.Get("content-disposition"))
-		if err != nil {
-			return
-		}
-		fileName = filepath.Join(path, fileName)
-	} else {
-		// Is the path a directory that exists, or a file to save to?
-
-		// If it is an existing directory? Save under that.
-		var fi fs.FileInfo
-		fi, err = os.Stat(path)
-		if err == nil {
-			if fi.IsDir() {
-				fileName, err = common.GetContentFilename(resp.Header.Get("content-disposition"))
-				if err != nil {
-					return
-				}
-				fileName = filepath.Join(path, fileName)
-			} else {
-				fileName = path
-			}
-		} else {
-			if errors.Is(err, fs.ErrNotExist) {
-				// Does it look like a directory? A directory needs to exist.
-				if path[len(path)-1] == '/' {
-					err = fmt.Errorf("%s does not exist", path)
-					return
-				}
-				// Assume it is a file
-				fileName = path
-			} else {
-				// Some other error
-				return
-			}
-		}
-	}
-
-	_, err = os.Stat(fileName)
-	if err == nil {
-		err = fmt.Errorf("%s exists, skipping download", fileName)
-		return
-	}
-	f, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		return
-	}
-	if _, err = io.Copy(f, resp.Body); err != nil {
-		return
-	}
-	if err = f.Close(); err != nil {
-		return
-	}
-
-	return fileName, nil, nil
+	fileName, err := common.SaveResponseBodyToFile(resp, path)
+	return fileName, nil, err
 }
 
 // PostRaw sends a POST with raw data and returns the raw response body

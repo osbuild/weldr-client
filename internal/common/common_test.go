@@ -1,8 +1,12 @@
 package common
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -88,4 +92,71 @@ func TestSortedMapKeys(t *testing.T) {
 	assert.Equal(t, SortedMapKeys(map[string]any{"fox": 3}), []string{"fox"})
 	assert.Equal(t, SortedMapKeys(map[string]any{}), []string{})
 
+}
+
+func TestSaveResponseBodyToFile(t *testing.T) {
+	resp := http.Response{
+		StatusCode: 200,
+		Body:       io.NopCloser(bytes.NewReader([]byte("A Very Short File."))),
+		Header:     http.Header{},
+	}
+	resp.Header.Set("Content-Disposition", "attachment; filename=a-very-short-file.txt")
+	resp.Header.Set("Content-Type", "text/plain")
+
+	// Current directory, no path or filename
+	fn, err := SaveResponseBodyToFile(&resp, "")
+	assert.Nil(t, err)
+	assert.Equal(t, "a-very-short-file.txt", fn)
+	_, err = os.Stat(fn)
+	require.Nil(t, err)
+	data, _ := os.ReadFile(fn)
+	assert.Equal(t, []byte("A Very Short File."), data)
+	os.Remove(fn)
+
+	// Reset the response body
+	resp.Body = io.NopCloser(bytes.NewReader([]byte("A Very Short File.")))
+
+	// A filename in the current directory
+	fn, err = SaveResponseBodyToFile(&resp, "a-different-name.txt")
+	assert.Nil(t, err)
+	assert.Equal(t, "a-different-name.txt", fn)
+	_, err = os.Stat(fn)
+	require.Nil(t, err)
+	data, _ = os.ReadFile(fn)
+	assert.Equal(t, []byte("A Very Short File."), data)
+	os.Remove(fn)
+
+	// Reset the response body
+	resp.Body = io.NopCloser(bytes.NewReader([]byte("A Very Short File.")))
+
+	tdir := t.TempDir()
+
+	// Existing directory, no path or filename, save under directory
+	fn, err = SaveResponseBodyToFile(&resp, tdir)
+	assert.Nil(t, err)
+	assert.Contains(t, fn, "a-very-short-file.txt")
+	_, err = os.Stat(fn)
+	require.Nil(t, err)
+	data, _ = os.ReadFile(fn)
+	assert.Equal(t, []byte("A Very Short File."), data)
+
+	// Reset the response body
+	resp.Body = io.NopCloser(bytes.NewReader([]byte("A Very Short File.")))
+
+	// Filename in an existing directory
+	tf := filepath.Join(tdir, "a-file.txt")
+	fn, err = SaveResponseBodyToFile(&resp, tf)
+	assert.Nil(t, err)
+	assert.Contains(t, fn, "a-file.txt")
+	_, err = os.Stat(fn)
+	require.Nil(t, err)
+	data, _ = os.ReadFile(fn)
+	assert.Equal(t, []byte("A Very Short File."), data)
+
+	// Reset the response body
+	resp.Body = io.NopCloser(bytes.NewReader([]byte("A Very Short File.")))
+
+	// Missing directory, returns an error
+	_, err = SaveResponseBodyToFile(&resp, "/path/to/erewhon/")
+	assert.Error(t, err)
 }

@@ -230,3 +230,95 @@ func TestCmdComposeUnknownImageJSON(t *testing.T) {
 	_, err = os.Stat("b27c5a7b-d1f6-4c8c-8526-6d6de464f1c7.qcow2")
 	assert.NotNil(t, err)
 }
+
+func TestCmdComposeImageCloud(t *testing.T) {
+	// Test the "compose image" command with the cloudapi
+	mcc := root.SetupCloudCmdTest(func(request *http.Request) (*http.Response, error) {
+		if request.URL.Path == "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8" {
+			// List of composes and their status
+			json := `{
+  "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8",
+  "id": "008fc5ad-adad-42ec-b412-7923733483a8",
+  "kind": "ComposeStatus",
+  "image_status": {
+    "status": "success",
+    "upload_status": {
+      "options": {
+        "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	  },
+      "status": "success",
+      "type": "local"
+    },
+    "upload_statuses": [
+      {
+        "options": {
+          "artifact_path": "/var/lib/osbuild-composer/artifacts/008fc5ad-adad-42ec-b412-7923733483a8/disk.qcow2"
+	    },
+        "status": "success",
+        "type": "local"
+      }
+    ]
+  },
+  "status": "success"
+}`
+
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+
+		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/download" {
+			data := `This is a poor approximation of an image file.`
+
+			resp := http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(data))),
+				Header:     http.Header{},
+			}
+			resp.Header.Set("Content-Disposition", "attachment; filename=008fc5ad-adad-42ec-b412-7923733483a8.qcow2")
+			resp.Header.Set("Content-Type", "application/octet-stream")
+			resp.Header.Set("Content-Length", fmt.Sprintf("%d", len(data)))
+
+			return &resp, nil
+		} else {
+			json := `{"kind":"Error", "...":"unknown url"}`
+
+			return &http.Response{
+				StatusCode: 404,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		}
+	})
+
+	// Change to a temporary directory for the file to be saved in
+	dir := t.TempDir()
+	prevDir, _ := os.Getwd()
+	err := os.Chdir(dir)
+	require.Nil(t, err)
+	//nolint:errcheck
+	defer os.Chdir(prevDir)
+
+	// Make sure savePath is cleared
+	savePath = ""
+
+	// Get the image
+	cmd, out, err := root.ExecuteTest("compose", "image", "008fc5ad-adad-42ec-b412-7923733483a8")
+	require.NotNil(t, out)
+	defer out.Close()
+	assert.Nil(t, err)
+	require.NotNil(t, out.Stdout)
+	require.NotNil(t, out.Stderr)
+	require.NotNil(t, cmd)
+	assert.Equal(t, cmd, imageCmd)
+	stdout, err := io.ReadAll(out.Stdout)
+	assert.Nil(t, err)
+	assert.Contains(t, string(stdout), "008fc5ad-adad-42ec-b412-7923733483a8.qcow2")
+	stderr, err := io.ReadAll(out.Stderr)
+	assert.Nil(t, err)
+	assert.Equal(t, []byte(""), stderr)
+	assert.Equal(t, "GET", mcc.Req.Method)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8/download", mcc.Req.URL.Path)
+
+	_, err = os.Stat("008fc5ad-adad-42ec-b412-7923733483a8.qcow2")
+	assert.Nil(t, err)
+}
