@@ -12,6 +12,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"slices"
 
 	"github.com/osbuild/weldr-client/v2/internal/common"
 )
@@ -124,13 +125,14 @@ func (c Client) GetJSON(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	// Pass the body to the callback function
 	c.rawFunc("GET", path, resp.StatusCode, responseBody)
 
 	// Convert the API's JSON error response to an error
-	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
+	if slices.Contains([]int{400, 401, 403, 404, 500}, resp.StatusCode) {
 		return responseBody, fmt.Errorf("GET %s failed with status %d: %s", path, resp.StatusCode, ErrorToString(responseBody))
+	} else if resp.StatusCode != 200 {
+		return responseBody, fmt.Errorf("GET %s failed with status %d: %s", path, resp.StatusCode, responseBody)
 	}
 
 	return responseBody, nil
@@ -149,14 +151,14 @@ func (c Client) PostRaw(path, body string, headers map[string]string) ([]byte, e
 	if err != nil {
 		return nil, err
 	}
-
 	// Pass the body to the callback function
 	c.rawFunc("POST", path, resp.StatusCode, responseBody)
 
-	// TODO make sure this covers cloud API errors...
 	// Convert the API's JSON error response to an error
-	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
+	if slices.Contains([]int{400, 401, 403, 404, 500}, resp.StatusCode) {
 		return responseBody, fmt.Errorf("POST %s failed with status %d: %s", path, resp.StatusCode, ErrorToString(responseBody))
+	} else if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		return responseBody, fmt.Errorf("POST %s failed with status %d: %s", path, resp.StatusCode, responseBody)
 	}
 
 	return responseBody, nil
@@ -218,13 +220,19 @@ func (c Client) GetFilePath(route, path string) (string, error) {
 
 	// Convert the API's JSON error response to an error type and return it
 	// lorax-composer (wrongly) returns 404 for some of its json responses
-	if resp.StatusCode == 400 || resp.StatusCode == 404 || resp.StatusCode == 500 {
+	if resp.StatusCode != 200 {
 		responseBody, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return "", err
 		}
-		c.rawFunc("GET", route, resp.StatusCode, responseBody)
-		return "", fmt.Errorf("GET %s failed with status %d: %s", route, resp.StatusCode, ErrorToString(responseBody))
+
+		if slices.Contains([]int{400, 401, 403, 404, 500}, resp.StatusCode) {
+			// Pass the body to the callback function
+			c.rawFunc("GET", path, resp.StatusCode, responseBody)
+			return "", fmt.Errorf("GET %s failed with status %d: %s", route, resp.StatusCode, ErrorToString(responseBody))
+		} else {
+			return "", fmt.Errorf("GET %s failed with status %d: %s", path, resp.StatusCode, responseBody)
+		}
 	}
 
 	fileName, err := common.SaveResponseBodyToFile(resp, path)
