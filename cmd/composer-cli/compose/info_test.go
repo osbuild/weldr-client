@@ -401,6 +401,7 @@ func TestComposeInfoCloud(t *testing.T) {
   }
 }`
 		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8" {
+			sc = 200
 			json = `{
   "href": "/api/image-builder-composer/v2/composes/008fc5ad-adad-42ec-b412-7923733483a8",
   "id": "008fc5ad-adad-42ec-b412-7923733483a8",
@@ -443,6 +444,7 @@ func TestComposeInfoCloud(t *testing.T) {
       "version": "2.4.2"
     }]}`
 		} else if request.URL.Path == "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389" {
+			sc = 200
 			json = `{
   "href": "/api/image-builder-composer/v2/composes/ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
   "id": "ddcf50e5-1ffa-4de6-95ed-42749ac1f389",
