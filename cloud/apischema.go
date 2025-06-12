@@ -36,6 +36,12 @@ type ComposeInfoV1 struct {
 	Status string `json:"status"`
 }
 
+// ComposeDeleteV0 is returned when deleting a compose
+type ComposeDeleteV0 struct {
+	Kind string `json:"kind"`
+	ID   string `json:"id"`
+}
+
 // PackageDetailsV1 contains the detailed information about a package
 // including the basic NEVRA details and the summary, description, etc.
 type PackageDetailsV1 struct {

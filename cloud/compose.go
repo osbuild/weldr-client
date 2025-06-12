@@ -178,3 +178,19 @@ func (c Client) ComposeImagePath(id, path string) (string, error) {
 	route := fmt.Sprintf("api/image-builder-composer/v2/composes/%s/download", id)
 	return c.GetFilePath(route, path)
 }
+
+// DeleteCompose removes a single cloud compose from the server
+func (c Client) DeleteCompose(id string) (ComposeDeleteV0, error) {
+	body, err := c.DeleteRaw("api/image-builder-composer/v2/composes/" + id)
+	if err != nil {
+		return ComposeDeleteV0{}, err
+	}
+
+	var response ComposeDeleteV0
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return ComposeDeleteV0{}, fmt.Errorf("Error parsing body of delete: %s", err)
+	}
+
+	return response, nil
+}

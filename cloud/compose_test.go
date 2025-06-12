@@ -502,3 +502,43 @@ func TestComposeImagePathError400(t *testing.T) {
 	_, err := tc.GetFilePath("123e4567-e89b-12d3-a456-426655440000", "/tmp")
 	assert.ErrorContains(t, err, "no image by that name")
 }
+
+func TestDeleteCompose(t *testing.T) {
+	json := `{"href": "/api/image-builder-composer/v2/composes/46f6a5d0-9e42-431b-960e-f21c4ef24f03", "kind": "ComposeDeleteStatus", "id": "46f6a5d0-9e42-431b-960e-f21c4ef24f03"}`
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	response, err := tc.DeleteCompose("46f6a5d0-9e42-431b-960e-f21c4ef24f03")
+	require.Nil(t, err)
+	assert.Equal(t, "46f6a5d0-9e42-431b-960e-f21c4ef24f03", response.ID)
+	assert.Equal(t, "ComposeDeleteStatus", response.Kind)
+	assert.Equal(t, "DELETE", mc.Req.Method)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/46f6a5d0-9e42-431b-960e-f21c4ef24f03", mc.Req.URL.Path)
+}
+
+func TestDeleteComposeError(t *testing.T) {
+	json := `{ "kind": "Error", "details": "unknown compose uuid"}`
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 400,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	response, err := tc.DeleteCompose("46f6a5d0-9e42-431b-960e-f21c4ef230f4")
+	require.NotNil(t, err)
+	assert.ErrorContains(t, err, "unknown compose uuid")
+	assert.Equal(t, ComposeDeleteV0{}, response)
+	assert.Equal(t, "DELETE", mc.Req.Method)
+	assert.Equal(t, "/api/image-builder-composer/v2/composes/46f6a5d0-9e42-431b-960e-f21c4ef230f4", mc.Req.URL.Path)
+}
