@@ -344,3 +344,42 @@ func TestGetFilePathError400(t *testing.T) {
 	_, err := tc.GetFilePath("/file/not-even-a-file", "/tmp")
 	assert.ErrorContains(t, err, "no image by that name")
 }
+
+func TestDeleteRaw(t *testing.T) {
+	json := `{ "kind": "ComposeDeleteStatus", "id": "5e48d4de-1b92-4f72-9291-21e17141ef40" }`
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	body, err := tc.DeleteRaw("/testroute")
+	require.Nil(t, err)
+	assert.Equal(t, []byte(json), body)
+	assert.Equal(t, "DELETE", mc.Req.Method)
+	assert.Equal(t, "/testroute", mc.Req.URL.Path)
+}
+
+func TestDeleteRawError(t *testing.T) {
+	// Test DeleteRaw handling of an error response
+	json := `{ "kind": "Error", "details": "testing error" }`
+	mc := MockClient{
+		DoFunc: func(*http.Request) (*http.Response, error) {
+			return &http.Response{
+				StatusCode: 400,
+				Body:       io.NopCloser(bytes.NewReader([]byte(json))),
+			}, nil
+		},
+	}
+	tc := NewClient(context.Background(), &mc, "")
+
+	_, err := tc.DeleteRaw("/testroute")
+	require.Error(t, err)
+	assert.Equal(t, "DELETE /testroute failed with status 400: testing error", err.Error())
+	assert.Equal(t, "DELETE", mc.Req.Method)
+	assert.Equal(t, "/testroute", mc.Req.URL.Path)
+}
