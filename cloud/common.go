@@ -171,6 +171,32 @@ func (c Client) PostJSON(path, body string) ([]byte, error) {
 	return c.PostRaw(path, body, headers)
 }
 
+// DeleteRaw sends a DELETE request
+// Errors from the API are returned as an error
+func (c Client) DeleteRaw(path string) ([]byte, error) {
+	resp, err := c.Request("DELETE", path, "", nil)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	responseBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	// Pass the body to the callback function
+	c.rawFunc("DELETE", path, resp.StatusCode, responseBody)
+
+	// Convert the API's JSON error response to an error
+	if slices.Contains([]int{400, 401, 403, 404, 500}, resp.StatusCode) {
+		return responseBody, fmt.Errorf("DELETE %s failed with status %d: %s", path, resp.StatusCode, ErrorToString(responseBody))
+	} else if resp.StatusCode != 200 {
+		return responseBody, fmt.Errorf("DELETE %s failed with status %d: %s", path, resp.StatusCode, responseBody)
+	}
+
+	return responseBody, nil
+}
+
 func (c Client) Exists() bool {
 	if c.test {
 		return true
