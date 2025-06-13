@@ -5,6 +5,8 @@
 package compose
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
@@ -25,9 +27,31 @@ func init() {
 }
 
 func deleteComposes(cmd *cobra.Command, args []string) error {
-	_, errors, err := root.Client.DeleteComposes(args)
+	// Check cloudapi for composes first
+	var weldrIDs []string
+	if root.Cloud.Exists() {
+		// Cloud deletes one at a time
+		for _, id := range args {
+			_, err := root.Cloud.DeleteCompose(id)
+			if err != nil {
+				if strings.Contains(err.Error(), "job does not exist") {
+					// Not a cloud api composer UUID
+					weldrIDs = append(weldrIDs, id)
+				} else {
+					return root.ExecutionError(cmd, "Delete Error: %s", err)
+				}
+			}
+		}
+	} else {
+		weldrIDs = args
+	}
+	if len(weldrIDs) == 0 {
+		return nil
+	}
+
+	_, errors, err := root.Client.DeleteComposes(weldrIDs)
 	if err != nil {
-		return root.ExecutionError(cmd, "List Error: %s", err)
+		return root.ExecutionError(cmd, "Delete Error: %s", err)
 	}
 	if len(errors) > 0 {
 		return root.ExecutionErrors(cmd, errors)
