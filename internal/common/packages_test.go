@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,9 +15,9 @@ func TestPackageNEVRAString(t *testing.T) {
 	}
 
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "chrony-4.0-1.fc33.x86_64", fmt.Sprintf("%s", pkgList[0]))
+	assert.Equal(t, "chrony-4.0-1.fc33.x86_64", pkgList[0].String())
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "grub2-common-1:2.04-33.fc33.noarch", fmt.Sprintf("%s", pkgList[1]))
+	assert.Equal(t, "grub2-common-1:2.04-33.fc33.noarch", pkgList[1].String())
 }
 
 func TestPackageEpochString(t *testing.T) {
