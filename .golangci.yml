@@ -1,0 +1,14 @@
+---
+version: "2"
+linters:
+  exclusions:
+    rules:
+      - linters:
+          - errcheck
+        text: "fmt.Fprint"
+      - linters:
+          - staticcheck
+        text: "ST1005:"
+      - linters:
+          - staticcheck
+        text: "QF1003:"

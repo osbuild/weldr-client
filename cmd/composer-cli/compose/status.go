@@ -86,7 +86,7 @@ func status(cmd *cobra.Command, args []string) (rcErr error) {
 		fmt.Fprintf(w, "%s\t%-8s\t%s\t%-15s\t%s\t%-16s\t%s\n", c.ID, c.Status, t.Format("Mon Jan 2 15:04:05 2006"),
 			c.Blueprint, c.Version, c.Type, size)
 	}
-	w.Flush()
+	w.Flush() //nolint:errcheck
 
 	return rcErr
 }

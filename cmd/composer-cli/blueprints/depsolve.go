@@ -42,7 +42,7 @@ func depsolve(cmd *cobra.Command, args []string) (rcErr error) {
 	// Is the blueprint a local file? If so, try to use the cloud API for the depsolve
 	f, err := os.Open(args[0])
 	if err == nil {
-		defer f.Close()
+		defer f.Close() //nolint:errcheck
 
 		if !root.Cloud.Exists() {
 			return root.ExecutionError(cmd, "Using a local blueprint requires server support. Check to make sure that the cloudapi socket is enabled.")

@@ -22,7 +22,7 @@ func (c Client) ServerStatus() (StatusV0, *APIResponse, error) {
 		apiResponse, err := c.apiError(resp)
 		return StatusV0{}, apiResponse, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {

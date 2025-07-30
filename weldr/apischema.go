@@ -88,7 +88,7 @@ func NewAPIResponse(body []byte) (*APIResponse, error) {
 //
 //	{"status": false, "errors": [{"id": ERROR_ID, "msg": ERROR_MESSAGE}, ...]}
 func (c Client) apiError(resp *http.Response) (*APIResponse, error) {
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {

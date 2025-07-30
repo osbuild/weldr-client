@@ -134,7 +134,7 @@ func runDiff(fromBlueprint, fromCommit, toBlueprint, toCommit string, diffArgs [
 	if err != nil {
 		return err
 	}
-	defer os.RemoveAll(tmpDir)
+	defer os.RemoveAll(tmpDir) //nolint:errcheck
 	err = os.Chdir(tmpDir)
 	if err != nil {
 		return err

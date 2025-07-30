@@ -50,7 +50,7 @@ func TestCmdComposeStart(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
@@ -93,7 +93,7 @@ func TestCmdComposeStartJSON(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
@@ -133,7 +133,7 @@ func TestCmdComposeStartSize(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":1046478848}`), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
@@ -157,7 +157,7 @@ func TestCmdComposeStartUpload(t *testing.T) {
 	// Need a temporary test file
 	tmpProfile, err := os.CreateTemp("", "test-profile-p*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpProfile.Name())
+	defer os.Remove(tmpProfile.Name()) //nolint:errcheck
 
 	_, err = tmpProfile.Write([]byte(`provider = "aws"
 [settings]
@@ -187,7 +187,7 @@ aws_secret_key = "AWS Secret Key"
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":0,"upload":{"provider":"aws","image_name":"httpimage","settings":{"aws_access_key":"AWS Access Key","aws_bucket":"AWS Bucket","aws_region":"AWS Region","aws_secret_key":"AWS Secret Key"}}}`), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
@@ -228,7 +228,7 @@ func TestCmdComposeStartError(t *testing.T) {
 	assert.Equal(t, []byte("ERROR: UnknownBlueprint: Unknown blueprint name: homer\n"), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte(`{"blueprint_name":"homer","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
@@ -273,7 +273,7 @@ Compose 876b2946-16cd-4f38-bace-0cdd0093d112 added to the queue
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte(`{"blueprint_name":"http-server","compose_type":"qcow2","branch":"master","size":0}`), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
@@ -294,7 +294,7 @@ func TestCmdComposeStartLocalBP(t *testing.T) {
 	// Need a temporary test file
 	tmpBP, err := os.CreateTemp("", "test-bp-p*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpBP.Name())
+	defer os.Remove(tmpBP.Name()) //nolint:errcheck
 
 	_, err = tmpBP.Write([]byte(`name = "test bp"
 version = "1.1.0"
@@ -323,7 +323,7 @@ version = "3.5a"
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mcc.Req.Method)
 	sentBody, err := io.ReadAll(mcc.Req.Body)
-	mcc.Req.Body.Close()
+	assert.Nil(t, mcc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), `"blueprint":{"name":"test bp","packages":[{"name":"tmux","version":"3.5a"}],"version":"1.1.0"}`)
 	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
@@ -344,7 +344,7 @@ func TestCmdComposeStartLocalBPUpload(t *testing.T) {
 	// Need a temporary test file for the blueprint
 	tmpBP, err := os.CreateTemp("", "test-bp-p*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpBP.Name())
+	defer os.Remove(tmpBP.Name()) //nolint:errcheck
 
 	_, err = tmpBP.Write([]byte(`name = "test bp"
 version = "1.1.0"
@@ -357,7 +357,7 @@ version = "3.5a"
 	// Need a temporary test file for the upload
 	tmpUpload, err := os.CreateTemp("", "test-upload-p*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpUpload.Name())
+	defer os.Remove(tmpUpload.Name()) //nolint:errcheck
 
 	_, err = tmpUpload.Write([]byte(`provider = "aws"
 [settings]
@@ -387,7 +387,7 @@ key = "OBJECT_KEY"`))
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mcc.Req.Method)
 	sentBody, err := io.ReadAll(mcc.Req.Body)
-	mcc.Req.Body.Close()
+	assert.Nil(t, mcc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), `"blueprint":{"name":"test bp","packages":[{"name":"tmux","version":"3.5a"}],"version":"1.1.0"}`)
 	assert.Contains(t, string(sentBody), `"provider":"aws","settings":{"accessKeyID":"AWS_ACCESS_KEY_ID"`)

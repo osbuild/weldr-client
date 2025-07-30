@@ -159,7 +159,7 @@ func (c Client) GetRaw(method, path string) ([]byte, *APIResponse, error) {
 	if err != nil || resp != nil {
 		return nil, resp, err
 	}
-	defer body.Close()
+	defer body.Close() //nolint:errcheck
 
 	bodyBytes, err := io.ReadAll(body)
 	if err != nil {
@@ -225,7 +225,7 @@ func (c Client) GetFile(path string) (fileName, cDisposition, cType string, apiR
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	// Convert the API's JSON error response to an error type and return it
 	// lorax-composer (wrongly) returns 404 for some of its json responses
@@ -262,7 +262,7 @@ func (c Client) GetFilePath(route, path string) (string, *APIResponse, error) {
 	if err != nil {
 		return "", nil, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	// Convert the API's JSON error response to an error type and return it
 	// lorax-composer (wrongly) returns 404 for some of its json responses
@@ -288,7 +288,7 @@ func (c Client) PostRaw(path, body string, headers map[string]string) ([]byte, *
 		apiResponse, err := c.apiError(resp)
 		return nil, apiResponse, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -326,7 +326,7 @@ func (c Client) DeleteRaw(path string) ([]byte, *APIResponse, error) {
 		apiResponse, err := c.apiError(resp)
 		return nil, apiResponse, err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {

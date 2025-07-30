@@ -44,9 +44,9 @@ func executeTests(m *testing.M) int {
 	testState.repoDir = dir
 
 	// Delete any existing test blueprints, ignoring errors
-	testState.client.DeleteBlueprint("cli-test-bp-1")
-	testState.client.DeleteBlueprint("cli-test-bp-2")
-	testState.client.DeleteBlueprint("cli-test-bp-3")
+	testState.client.DeleteBlueprint("cli-test-bp-1") //nolint:errcheck
+	testState.client.DeleteBlueprint("cli-test-bp-2") //nolint:errcheck
+	testState.client.DeleteBlueprint("cli-test-bp-3") //nolint:errcheck
 
 	// TODO Delete any existing test sources
 

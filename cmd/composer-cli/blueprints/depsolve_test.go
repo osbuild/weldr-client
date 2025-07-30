@@ -310,7 +310,7 @@ func TestCmdBlueprintsDepsolveLocalBP(t *testing.T) {
 	// Need a temporary test file
 	tmpBP, err := os.CreateTemp("", "test-bp-p*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpBP.Name())
+	defer os.Remove(tmpBP.Name()) //nolint:errcheck
 
 	_, err = tmpBP.Write([]byte(`name = "test bp"
 version = "1.1.0"
@@ -338,7 +338,7 @@ version = "3.5a"
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mcc.Req.Method)
 	sentBody, err := io.ReadAll(mcc.Req.Body)
-	mcc.Req.Body.Close()
+	assert.Nil(t, mcc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), `"blueprint":{"name":"test bp","packages":[{"name":"tmux","version":"3.5a"}],"version":"1.1.0"}`)
 	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))

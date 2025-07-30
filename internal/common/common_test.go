@@ -45,7 +45,7 @@ func TestMoveFile(t *testing.T) {
 	require.Nil(t, err)
 	_, err = f.Write([]byte("This is just a test file\n"))
 	require.Nil(t, err)
-	f.Close()
+	require.Nil(t, f.Close())
 
 	dstFile := fmt.Sprintf("%s/dest-file.txt", dir)
 	err = MoveFile(f.Name(), dstFile)
@@ -74,7 +74,7 @@ func TestCheckSocket(t *testing.T) {
 	require.Nil(t, err)
 	_, err = f.Write([]byte("This is just a test file\n"))
 	require.Nil(t, err)
-	f.Close()
+	require.Nil(t, f.Close())
 
 	err = CheckSocketError(f.Name(), nil)
 	assert.Nil(t, err)
@@ -111,7 +111,7 @@ func TestSaveResponseBodyToFile(t *testing.T) {
 	require.Nil(t, err)
 	data, _ := os.ReadFile(fn)
 	assert.Equal(t, []byte("A Very Short File."), data)
-	os.Remove(fn)
+	assert.Nil(t, os.Remove(fn))
 
 	// Reset the response body
 	resp.Body = io.NopCloser(bytes.NewReader([]byte("A Very Short File.")))
@@ -124,7 +124,7 @@ func TestSaveResponseBodyToFile(t *testing.T) {
 	require.Nil(t, err)
 	data, _ = os.ReadFile(fn)
 	assert.Equal(t, []byte("A Very Short File."), data)
-	os.Remove(fn)
+	assert.Nil(t, os.Remove(fn))
 
 	// Reset the response body
 	resp.Body = io.NopCloser(bytes.NewReader([]byte("A Very Short File.")))

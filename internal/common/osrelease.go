@@ -17,7 +17,7 @@ func GetHostDistroName() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
 	osrelease, err := readOSRelease(f)
 	if err != nil {
 		return "", err

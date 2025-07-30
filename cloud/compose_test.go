@@ -39,7 +39,7 @@ func TestStartCompose(t *testing.T) {
 	assert.Equal(t, "POST", mc.Req.Method)
 	assert.Equal(t, "/api/image-builder-composer/v2/compose", mc.Req.URL.Path)
 	body, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	assert.Nil(t, err)
 	assert.Contains(t, string(body), "bp test")
 	assert.Contains(t, string(body), "1.1.1")
@@ -81,7 +81,7 @@ func TestStartComposeUpload(t *testing.T) {
 	assert.Equal(t, "POST", mc.Req.Method)
 	assert.Equal(t, "/api/image-builder-composer/v2/compose", mc.Req.URL.Path)
 	body, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	assert.Nil(t, err)
 	assert.Contains(t, string(body), "bp test")
 	assert.Contains(t, string(body), "1.1.1")
@@ -149,11 +149,11 @@ func TestComposeWaitTimeout(t *testing.T) {
 	}
 	tc := NewClient(context.Background(), &mc, "")
 
-	fiveSeconds, err := time.ParseDuration("5s")
+	five, err := time.ParseDuration("5s")
 	assert.Nil(t, err)
 
 	// Interval must be less than timeout
-	aborted, _, err := tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", fiveSeconds, time.Second)
+	aborted, _, err := tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", five, time.Second)
 	assert.Nil(t, err)
 	assert.True(t, aborted)
 }
@@ -170,18 +170,18 @@ func TestComposeWaitError(t *testing.T) {
 	}
 	tc := NewClient(context.Background(), &mc, "")
 
-	tenSeconds, err := time.ParseDuration("10s")
+	ten, err := time.ParseDuration("10s")
 	assert.Nil(t, err)
-	sixtySeconds, err := time.ParseDuration("60s")
+	sixty, err := time.ParseDuration("60s")
 	assert.Nil(t, err)
 
 	// Interval must be less than timeout
-	aborted, _, err := tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", tenSeconds, sixtySeconds)
+	aborted, _, err := tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", ten, sixty)
 	assert.NotNil(t, err)
 	assert.False(t, aborted)
 
 	// Test with server returning an error response
-	aborted, _, err = tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", sixtySeconds, tenSeconds)
+	aborted, _, err = tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", sixty, ten)
 	assert.NotNil(t, err)
 	assert.False(t, aborted)
 }
@@ -219,13 +219,13 @@ func TestComposeWait(t *testing.T) {
 	}
 	tc := NewClient(context.Background(), &mc, "")
 
-	tenSeconds, err := time.ParseDuration("10s")
+	ten, err := time.ParseDuration("10s")
 	assert.Nil(t, err)
-	sixtySeconds, err := time.ParseDuration("60s")
+	sixty, err := time.ParseDuration("60s")
 	assert.Nil(t, err)
 
 	// Interval must be less than timeout
-	aborted, info, err := tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", sixtySeconds, tenSeconds)
+	aborted, info, err := tc.ComposeWait("008fc5ad-adad-42ec-b412-7923733483a8", sixty, ten)
 	assert.Nil(t, err)
 	assert.False(t, aborted)
 	assert.Equal(t, "008fc5ad-adad-42ec-b412-7923733483a8", info.ID)

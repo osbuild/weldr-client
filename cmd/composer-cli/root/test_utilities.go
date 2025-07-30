@@ -46,8 +46,8 @@ func NewOutputCapture() (*OutputCapture, error) {
 	}
 	stderr, err := os.CreateTemp("", "stderr-capture-")
 	if err != nil {
-		stdout.Close()
-		os.Remove(stdout.Name())
+		stdout.Close()           //nolint:errcheck
+		os.Remove(stdout.Name()) //nolint:errcheck
 		return nil, err
 	}
 	out := &OutputCapture{
@@ -64,6 +64,8 @@ func NewOutputCapture() (*OutputCapture, error) {
 }
 
 // Close removes the temporary files and restores the original stdout/stderr
+//
+//nolint:errcheck
 func (c *OutputCapture) Close() {
 	c.Stdout.Close()
 	os.Remove(c.Stdout.Name())
@@ -196,7 +198,8 @@ func LogToFile(filename, message string) error {
 		return err
 	}
 	if _, err := f.Write([]byte(message + "\n")); err != nil {
-		f.Close() // ignore error; Write error takes precedence
+		// ignore error; Write error takes precedence
+		f.Close() //nolint:errcheck
 		return err
 	}
 	if err := f.Close(); err != nil {
