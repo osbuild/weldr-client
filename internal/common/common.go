@@ -48,17 +48,17 @@ func MoveFile(src, dst string) error {
 	if err != nil {
 		return err
 	}
-	defer srcFile.Close()
+	defer srcFile.Close() //nolint:errcheck
 
 	dstFile, err := os.Create(dst)
 	if err != nil {
 		return err
 	}
-	defer dstFile.Close()
+	defer dstFile.Close() //nolint:errcheck
 	_, err = io.Copy(dstFile, srcFile)
 	if err == nil {
-		srcFile.Close()
-		os.Remove(src)
+		srcFile.Close() //nolint:errcheck
+		os.Remove(src)  //nolint:errcheck
 	}
 	return err
 }

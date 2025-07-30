@@ -56,7 +56,7 @@ func TestRequestGetBody(t *testing.T) {
 	require.NotNil(t, r)
 	assert.Equal(t, 200, r.StatusCode)
 	body, err := io.ReadAll(r.Body)
-	r.Body.Close()
+	assert.Nil(t, r.Body.Close())
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("get body test"), body)
 	assert.Equal(t, "GET", mc.Req.Method)
@@ -80,7 +80,7 @@ func TestRequestPostBody(t *testing.T) {
 	require.NotNil(t, r)
 	assert.Equal(t, 200, r.StatusCode)
 	body, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("post body test"), body)
 	assert.Equal(t, "POST", mc.Req.Method)
@@ -133,7 +133,7 @@ func TestRequestMethods400(t *testing.T) {
 		require.NotNil(t, r)
 		assert.Equal(t, 400, r.StatusCode)
 		body, err := io.ReadAll(r.Body)
-		r.Body.Close()
+		assert.Nil(t, r.Body.Close())
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("error response json"), body)
 		assert.Equal(t, methods[i], mc.Req.Method)
@@ -164,7 +164,7 @@ func TestRequestHeaders(t *testing.T) {
 		require.NotNil(t, r)
 		assert.Equal(t, 200, r.StatusCode)
 		body, err := io.ReadAll(mc.Req.Body)
-		mc.Req.Body.Close()
+		assert.Nil(t, mc.Req.Body.Close())
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("post header test"), body)
 		for h, v := range headers[i] {
@@ -194,7 +194,7 @@ func TestGetRawBodyMethods(t *testing.T) {
 		require.Nil(t, r)
 		require.NotNil(t, body)
 		bodyData, err := io.ReadAll(body)
-		body.Close()
+		assert.Nil(t, body.Close())
 		assert.Nil(t, err)
 		assert.Equal(t, []byte("raw body data"), bodyData)
 		assert.Equal(t, methods[i], mc.Req.Method)
@@ -485,7 +485,7 @@ func TestPostRaw(t *testing.T) {
 	assert.Equal(t, []byte("raw body data"), body)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte("post body test"), sentBody)
 	assert.Equal(t, "/api/v1/testroute", mc.Req.URL.Path)
@@ -516,7 +516,7 @@ func TestPostRawHeaders(t *testing.T) {
 		assert.Equal(t, []byte("raw body data"), body)
 		assert.Equal(t, "POST", mc.Req.Method)
 		sentBody, err := io.ReadAll(mc.Req.Body)
-		mc.Req.Body.Close()
+		assert.Nil(t, mc.Req.Body.Close())
 		require.Nil(t, err)
 		assert.Equal(t, []byte("post header test"), sentBody)
 		for h, v := range headers[i] {
@@ -595,7 +595,7 @@ func TestPostTOML(t *testing.T) {
 	assert.Equal(t, []byte("raw body data"), body)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte("post header test"), sentBody)
 	assert.Equal(t, "text/x-toml", mc.Req.Header.Get("Content-Type"))
@@ -621,7 +621,7 @@ func TestPostJSON(t *testing.T) {
 	assert.Equal(t, []byte("raw body data"), body)
 	assert.Equal(t, "POST", mc.Req.Method)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Equal(t, []byte("post header test"), sentBody)
 	assert.Equal(t, "application/json", mc.Req.Header.Get("Content-Type"))
@@ -798,7 +798,7 @@ func TestGetFile(t *testing.T) {
 	require.Nil(t, err)
 	data, _ := os.ReadFile(tf)
 	assert.Equal(t, []byte("A Very Short File."), data)
-	os.Remove(tf)
+	assert.Nil(t, os.Remove(tf))
 }
 
 func TestGetFileError400(t *testing.T) {
@@ -856,7 +856,7 @@ func TestGetFilePath(t *testing.T) {
 	// Test that downloading again returns an error
 	_, _, err = tc.GetFilePath("/file/a-very-short-file", "/tmp")
 	assert.ErrorContains(t, err, "exists, skipping download")
-	os.Remove(filename)
+	assert.Nil(t, os.Remove(filename))
 }
 
 func TestGetFilePathFilename(t *testing.T) {
@@ -890,7 +890,7 @@ func TestGetFilePathFilename(t *testing.T) {
 	// Test that downloading again returns an error
 	_, _, err = tc.GetFilePath("/file/a-very-short-file", "/tmp/a-new-file.txt")
 	assert.ErrorContains(t, err, "exists, skipping download")
-	os.Remove(filename)
+	assert.Nil(t, os.Remove(filename))
 }
 
 func TestGetFileMissingDir(t *testing.T) {
