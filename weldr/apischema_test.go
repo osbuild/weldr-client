@@ -6,7 +6,6 @@ package weldr
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/osbuild/weldr-client/v2/internal/common"
@@ -89,11 +88,11 @@ func TestNewAPIResponseError(t *testing.T) {
 
 func TestPackageString(t *testing.T) {
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "tmux", fmt.Sprintf("%s", common.Package{Name: "tmux"}))
+	assert.Equal(t, "tmux", common.Package{Name: "tmux"}.String())
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "tmux-*", fmt.Sprintf("%s", common.Package{Name: "tmux", Version: "*"}))
+	assert.Equal(t, "tmux-*", common.Package{Name: "tmux", Version: "*"}.String())
 	//nolint:gosimple // using Sprintf on purpose
-	assert.Equal(t, "tmux-1.3", fmt.Sprintf("%s", common.Package{Name: "tmux", Version: "1.3"}))
+	assert.Equal(t, "tmux-1.3", common.Package{Name: "tmux", Version: "1.3"}.String())
 }
 
 func TestParseDepsolveResponse(t *testing.T) {
