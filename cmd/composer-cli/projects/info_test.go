@@ -455,7 +455,7 @@ func TestCmdProjectsInfoCloud(t *testing.T) {
 	assert.Equal(t, []byte(""), stderr)
 	assert.Equal(t, "POST", mcc.Req.Method)
 	sentBody, err := io.ReadAll(mcc.Req.Body)
-	mcc.Req.Body.Close()
+	assert.Nil(t, mcc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), `{"distribution":"homer","architecture":"x86_64","packages":["tmux"]}`)
 	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))

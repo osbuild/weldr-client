@@ -74,7 +74,7 @@ func TestStartComposeUpload(t *testing.T) {
 	// Need a temporary test file
 	tmpProfile, err := os.CreateTemp("", "test-profile-p*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpProfile.Name())
+	defer os.Remove(tmpProfile.Name()) //nolint:errcheck
 
 	_, err = tmpProfile.Write([]byte(`provider = "aws"
 [settings]
@@ -119,7 +119,7 @@ func TestStartOSTreeComposeUpload(t *testing.T) {
 	// Need a temporary test file
 	tmpProfile, err := os.CreateTemp("", "test-profile-p*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpProfile.Name())
+	defer os.Remove(tmpProfile.Name()) //nolint:errcheck
 
 	_, err = tmpProfile.Write([]byte(`provider = "aws"
 [settings]
@@ -255,7 +255,7 @@ func TestComposeLogs(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("%s-logs.tar", id), fn)
 	_, err = os.Stat(fn)
 	require.Nil(t, err)
-	os.Remove(fn)
+	assert.Nil(t, os.Remove(fn))
 }
 
 func TestComposeLogsUnknown(t *testing.T) {
@@ -279,7 +279,7 @@ func TestComposeMetadata(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("%s-metadata.tar", id), fn)
 	_, err = os.Stat(fn)
 	require.Nil(t, err)
-	os.Remove(fn)
+	assert.Nil(t, os.Remove(fn))
 }
 
 func TestComposeMetadataUnknown(t *testing.T) {
@@ -303,7 +303,7 @@ func TestComposeResults(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf("%s.tar", id), fn)
 	_, err = os.Stat(fn)
 	require.Nil(t, err)
-	os.Remove(fn)
+	assert.Nil(t, os.Remove(fn))
 }
 
 func TestComposeResultsUnknown(t *testing.T) {

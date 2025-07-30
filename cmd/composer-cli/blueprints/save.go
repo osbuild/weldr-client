@@ -169,7 +169,8 @@ func saveBlueprint(data, commit, path string) (string, error) {
 	if err != nil {
 		return filename, fmt.Errorf("ERROR: opening file %s: %s", filename, err)
 	}
-	defer f.Close()
+	defer f.Close() //nolint:errcheck
+
 	_, err = f.WriteString(data)
 	if err != nil {
 		return filename, fmt.Errorf("ERROR: writing TOML file: %s", err)

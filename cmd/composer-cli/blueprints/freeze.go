@@ -220,13 +220,13 @@ func freezeSave(cmd *cobra.Command, args []string) (rcErr error) {
 			rcErr = root.ExecutionError(cmd, "")
 			continue
 		}
-		defer f.Close()
+		defer f.Close() //nolint:errcheck
 		_, err = f.WriteString(data)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "ERROR: writing TOML file: %s\n", err)
 			rcErr = root.ExecutionError(cmd, "")
 		}
-		f.Close()
+		f.Close() //nolint:errcheck
 	}
 
 	// If there were any errors, even if other blueprints succeeded, it returns an error

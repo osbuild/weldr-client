@@ -30,7 +30,7 @@ func TestCmdSourcesAdd(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true
@@ -58,7 +58,7 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	assert.Equal(t, "POST", mc.Req.Method)
 	assert.Equal(t, "/api/v1/projects/source/new", mc.Req.URL.Path)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), "check_ssl = true")
 	assert.Contains(t, string(sentBody), "id = \"test-source-1\"")
@@ -78,7 +78,7 @@ func TestCmdSourcesAddJSON(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true
@@ -109,7 +109,7 @@ url = "https://mirrors.fedoraproject.org/metalink?repo=fedora-33&arch=x86_64"
 	assert.Equal(t, "POST", mc.Req.Method)
 	assert.Equal(t, "/api/v1/projects/source/new", mc.Req.URL.Path)
 	sentBody, err := io.ReadAll(mc.Req.Body)
-	mc.Req.Body.Close()
+	assert.Nil(t, mc.Req.Body.Close())
 	require.Nil(t, err)
 	assert.Contains(t, string(sentBody), "check_ssl = true")
 	assert.Contains(t, string(sentBody), "id = \"test-source-1\"")
@@ -139,7 +139,7 @@ func TestCmdNewSourceAddError(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true
@@ -192,7 +192,7 @@ func TestCmdNewSourceAddErrorJSON(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true
@@ -238,7 +238,7 @@ func TestCmdSourcesChange(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true
@@ -280,7 +280,7 @@ func TestCmdSourcesChangeJSON(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true
@@ -335,7 +335,7 @@ func TestCmdNewSourceChangeError(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true
@@ -388,7 +388,7 @@ func TestCmdNewSourceChangeErrorJSON(t *testing.T) {
 	// Need a temporary test file
 	tmpSrc, err := os.CreateTemp("", "test-src-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpSrc.Name())
+	defer os.Remove(tmpSrc.Name()) //nolint:errcheck
 
 	_, err = tmpSrc.Write([]byte(`check_gpg = true
 check_ssl = true

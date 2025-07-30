@@ -126,6 +126,6 @@ func list(cmd *cobra.Command, args []string) (rcErr error) {
 			composes[i].Blueprint, composes[i].Version, composes[i].Type)
 	}
 
-	w.Flush()
+	w.Flush() //nolint:errcheck
 	return rcErr
 }

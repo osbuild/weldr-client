@@ -30,7 +30,7 @@ func TestCmdBlueprintsWorkspace(t *testing.T) {
 	// Need a temporary test file
 	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpBp.Name())
+	defer os.Remove(tmpBp.Name()) //nolint:errcheck
 
 	_, err = tmpBp.Write([]byte(`name = "test-bp-random"
 description = "A test toml file"
@@ -71,7 +71,7 @@ func TestCmdBlueprintsWorkspaceJSON(t *testing.T) {
 	// Need a temporary test file
 	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpBp.Name())
+	defer os.Remove(tmpBp.Name()) //nolint:errcheck
 
 	_, err = tmpBp.Write([]byte(`name = "test-bp-random"
 description = "A test toml file"
@@ -125,7 +125,7 @@ func TestCmdBlueprintsWorkspaceError(t *testing.T) {
 	// Need a temporary test file
 	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpBp.Name())
+	defer os.Remove(tmpBp.Name()) //nolint:errcheck
 
 	_, err = tmpBp.Write([]byte(`name = "test-bp-random"
 description = "A broken toml file
@@ -176,7 +176,7 @@ func TestCmdBlueprintsWorkspaceErrorJSON(t *testing.T) {
 	// Need a temporary test file
 	tmpBp, err := os.CreateTemp("", "test-bp-*.toml")
 	require.Nil(t, err)
-	defer os.Remove(tmpBp.Name())
+	defer os.Remove(tmpBp.Name()) //nolint:errcheck
 
 	_, err = tmpBp.Write([]byte(`name = "test-bp-random"
 description = "A broken toml file
