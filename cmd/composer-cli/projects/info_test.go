@@ -457,7 +457,9 @@ func TestCmdProjectsInfoCloud(t *testing.T) {
 	sentBody, err := io.ReadAll(mcc.Req.Body)
 	assert.Nil(t, mcc.Req.Body.Close())
 	require.Nil(t, err)
-	assert.Contains(t, string(sentBody), `{"distribution":"homer","architecture":"x86_64","packages":["tmux"]}`)
+	// NOTE: sentBody also contains arch specific architecture, skip checking that.
+	assert.Contains(t, string(sentBody), `"distribution":"homer"`)
+	assert.Contains(t, string(sentBody), `"packages":["tmux"]`)
 	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
 	assert.Equal(t, "/api/image-builder-composer/v2/search/packages", mcc.Req.URL.Path)
 }
