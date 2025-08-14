@@ -6,6 +6,7 @@ package projects
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -15,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
 func TestCmdProjectsList(t *testing.T) {
@@ -363,7 +365,7 @@ func TestCmdProjectsListCloud(t *testing.T) {
 	sentBody, err := io.ReadAll(mcc.Req.Body)
 	assert.Nil(t, mcc.Req.Body.Close())
 	require.Nil(t, err)
-	assert.Contains(t, string(sentBody), `{"distribution":"homer","architecture":"x86_64","packages":["*"]}`)
+	assert.Contains(t, string(sentBody), fmt.Sprintf(`{"distribution":"homer","architecture":%q,"packages":["*"]}`, common.HostArch()))
 	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
 	assert.Equal(t, "/api/image-builder-composer/v2/search/packages", mcc.Req.URL.Path)
 }
