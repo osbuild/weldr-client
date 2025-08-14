@@ -6,6 +6,7 @@ package projects
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -14,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/osbuild/weldr-client/v2/cmd/composer-cli/root"
+	"github.com/osbuild/weldr-client/v2/internal/common"
 )
 
 func TestCmdProjectsInfo(t *testing.T) {
@@ -457,7 +459,7 @@ func TestCmdProjectsInfoCloud(t *testing.T) {
 	sentBody, err := io.ReadAll(mcc.Req.Body)
 	assert.Nil(t, mcc.Req.Body.Close())
 	require.Nil(t, err)
-	assert.Contains(t, string(sentBody), `{"distribution":"homer","architecture":"x86_64","packages":["tmux"]}`)
+	assert.Contains(t, string(sentBody), fmt.Sprintf(`{"distribution":"homer","architecture":%q,"packages":["tmux"]}`, common.HostArch()))
 	assert.Equal(t, "application/json", mcc.Req.Header.Get("Content-Type"))
 	assert.Equal(t, "/api/image-builder-composer/v2/search/packages", mcc.Req.URL.Path)
 }
