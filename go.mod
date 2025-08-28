@@ -5,7 +5,7 @@ go 1.22.6
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/spf13/cobra v1.9.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
