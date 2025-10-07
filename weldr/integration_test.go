@@ -149,7 +149,7 @@ func executeTests(m *testing.M) int {
 
 	// Create some fake successful composes
 	for _, bp := range []string{"cli-test-bp-1", "cli-test-bp-2"} {
-		_, resp, err := testState.client.StartComposeTest(bp, "qcow2", 0, 2)
+		_, resp, err := testState.client.StartComposeTest(bp, "server-qcow2", 0, 2)
 		if err != nil {
 			panic(err)
 		}
@@ -160,7 +160,7 @@ func executeTests(m *testing.M) int {
 
 	// Create some fake failed composes
 	for _, bp := range []string{"cli-test-bp-1", "cli-test-bp-2"} {
-		_, resp, err := testState.client.StartComposeTest(bp, "qcow2", 0, 1)
+		_, resp, err := testState.client.StartComposeTest(bp, "server-qcow2", 0, 1)
 		if err != nil {
 			panic(err)
 		}
