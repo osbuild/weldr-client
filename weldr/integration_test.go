@@ -47,6 +47,7 @@ func executeTests(m *testing.M) int {
 	testState.client.DeleteBlueprint("cli-test-bp-1") //nolint:errcheck
 	testState.client.DeleteBlueprint("cli-test-bp-2") //nolint:errcheck
 	testState.client.DeleteBlueprint("cli-test-bp-3") //nolint:errcheck
+	testState.client.DeleteBlueprint("cli-test-bp-4") //nolint:errcheck
 
 	// TODO Delete any existing test sources
 
@@ -139,6 +140,25 @@ func executeTests(m *testing.M) int {
 		name="tmux"
 		version="0"
 		`
+	resp, err = testState.client.PushBlueprintTOML(bp)
+	if err != nil {
+		panic(err)
+	}
+	if resp == nil {
+		panic(errors.New("No response for PushBlueprintTOML"))
+	}
+
+	// Push test blueprint for iot with no packages
+	bp = `
+		name="cli-test-bp-4"
+		description="composer-cli blueprint test 4"
+		version="0.0.1"
+
+		[[customizations.user]]
+		name="root"
+		password="qweqweqwe"
+		`
+	//nolint:errcheck
 	resp, err = testState.client.PushBlueprintTOML(bp)
 	if err != nil {
 		panic(err)
