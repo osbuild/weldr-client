@@ -34,7 +34,7 @@ Requires: diffutils
 BuildRequires: go-vendor-tools
 BuildRequires: git-core
 BuildRequires: make
-BuildRequires: gnupg2
+BuildRequires: openpgpverify
 
 %description
 Go client library and cmdline tool for WELDR API servers like lorax-composer
@@ -42,7 +42,7 @@ and osbuild-composer.
 
 %prep
 %if %{with signed}
-%{gpgverify} --keyring='%{SOURCE4}' --signature='%{SOURCE3}' --data='%{SOURCE0}'
+%{openpgpverify} --keyring='%{SOURCE4}' --signature='%{SOURCE3}' --data='%{SOURCE0}'
 %endif
 %goprep -p1
 tar -xf %{S:1}
