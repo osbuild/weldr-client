@@ -35,6 +35,7 @@ func GetContentFilename(header string) (string, error) {
 	if !ok {
 		return "", fmt.Errorf("No filename in header: %s", header)
 	}
+	filename = filepath.Base(filename)
 	if filename == "/" || filename == "." || filename == ".." {
 		return "", fmt.Errorf("Invalid filename in header: %s", header)
 	}

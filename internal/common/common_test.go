@@ -26,8 +26,14 @@ func TestGetContentFilename(t *testing.T) {
 }
 
 func TestGetContentFilenameError(t *testing.T) {
-	_, err := GetContentFilename("attachment; filename=../../")
+	var err error
+	var filename string
+
+	_, err = GetContentFilename("attachment; filename=../../")
 	assert.NotNil(t, err)
+	filename, err = GetContentFilename("attachment; filename=\"../../foo\"")
+	assert.Nil(t, err)
+	assert.Equal(t, "foo", filename)
 	_, err = GetContentFilename("")
 	assert.NotNil(t, err)
 	_, err = GetContentFilename("attachment;")
